@@ -1,0 +1,89 @@
+[project]
+name = "mlops-course"
+description = "MLOps with Databricks course"
+requires-python = ">=3.12, <3.13"
+dependencies = [
+    "mlflow==3.1.1",
+    "cffi==1.17.1",
+    "cloudpickle==3.1.1",
+    "numpy==1.26.4",
+    "pandas==2.3.0",
+    "pyarrow==17.0.0",
+    "scikit-learn==1.7.0",
+    "lightgbm==4.6.0",
+    "scipy==1.16.0",
+    "databricks-sdk==0.55.0",
+    "pydantic==2.11.7",
+    "loguru==0.7.3",
+    "python-dotenv==1.1.1",
+]
+
+dynamic = ['version']
+
+[project.optional-dependencies]
+dev = ["databricks-connect>=16.0, <17",
+       "ipykernel>=6.29.5, <7",
+       "pip>=25.0.1, <26",
+       "pre-commit>=4.1.0, <5"]
+
+test = ["pre-commit>=4.1.0, <5",
+       "pytest>=8.0.0, <9",
+       "pytest-cov>=5.0.0, <6",
+       "pyspark>=3.4.0, <4"]
+
+[build-system]
+requires = [
+  "setuptools>=72.0"]
+build-backend = "setuptools.build_meta"
+
+
+[tool.setuptools.packages.find]
+where =["src"]
+include = ["house_price*", "marvel_characters*"]
+
+
+[tool.setuptools.dynamic]
+version = { file = "version.txt" }
+
+[tool.pytest.ini_options]
+testpaths = [ "tests" ]
+pythonpath = [ "." ]
+markers = [
+    "ci_exclude: Tests excluded from CI/CD pipeline"
+]
+addopts = [
+    "--cov=src",
+    "--cov-report=term",
+    "--cov-report=xml:coverage.xml"
+]
+
+
+[tool.ruff]
+line-length = 120
+lint.select = [
+    "F",    # pyflakes rules
+    "E",    # pycodestyle error rules
+    "W",    # pycodestyle warning rules
+    "B",    # flake8-bugbear rules
+    "I",    # isort rules
+    "UP",   # pyupgrade rules
+    "SIM",  # flake8-simplify rules
+    "ERA",  # eradicate rules
+    "C",    # pylint convention rules
+    "D",    # pydocstyle rules
+    "ANN"   # flake8-annotations rules
+]
+lint.ignore = [
+    "D107", # Missing docstring in `__init__`
+    "D203", # incorrect-blank-line-before-class
+    "D213", # multi-line-summary-second-line
+    "E501", # line-too-long
+    "C901", # too complex
+    "ERA001", # commented out code
+    "D100", # missing docstring
+    "ERA001" # commented out code
+]
+
+[tool.ruff.format]
+indent-style = "space"
+docstring-code-format = true

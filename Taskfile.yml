@@ -1,0 +1,43 @@
+version: '3'
+dotenv: [.env]
+
+vars:
+  PACKAGE_IMPORT_NAME: mlops_course
+  PYTHON_VERSION: 3.11
+
+tasks:
+  create-venv:
+    desc: Create a virtual environment
+    cmds:
+      - uv venv -p {{.PYTHON_VERSION}} .venv
+    silent: false
+
+  sync-dev:
+    desc: Sync project dependencies with optionals
+    cmds:
+      - rm -rf .venv
+      - task: create-venv
+      - uv sync --extra dev
+
+  sync-test:
+    desc: Sync only test dependencies
+    cmds:
+        - rm -rf .venv
+        - task: create-venv
+        - uv sync --extra test
+        # - source .venv/Scripts/activate && uv sync --extra test # Activate and sync
+
+  lint:
+    desc: Run pre-commit hooks
+    cmds:
+      - uv run pre-commit run --all-files
+
+  help:
+    desc: Print all tasks defined in the Taskfile
+    cmd: task -l
+    silent: true
+
+  default:
+    cmds:
+      - task: help
+    silent: true
