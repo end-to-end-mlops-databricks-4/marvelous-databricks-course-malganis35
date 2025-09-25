@@ -38,8 +38,7 @@ def load_files_from_source(config: dict):
 
     return file_paths
 
-
-def upload_files(host: str, token: str, env_config: dict, files: list):
+def upload_files(host: str, token: str, env_config: dict, files: list, profile: str = None):
     """
     Upload files into the specified Databricks Volume.
 
@@ -48,12 +47,18 @@ def upload_files(host: str, token: str, env_config: dict, files: list):
         token (str): Databricks API token
         env_config (dict): Environment configuration dictionary containing 'catalog_name', 'schema_name', and 'volume_name' keys.
         files (list): List of local file paths to upload.
+        profile (str): Databricks profile
 
     Returns:
         uploaded (list): List of uploaded file paths in Databricks DBFS.
     
     """
-    w = WorkspaceClient(host=host, token=token)
+    if profile:
+        w = WorkspaceClient(profile=profile)
+    elif host and token:
+        w = WorkspaceClient(host=host, token=token)
+    else:
+        w = WorkspaceClient()  # fallback : auto-detect (CLI, cloud login, etc.)
 
     catalog = env_config["catalog_name"]
     schema = env_config["schema_name"]

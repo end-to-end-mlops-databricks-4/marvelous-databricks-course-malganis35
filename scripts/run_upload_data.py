@@ -27,7 +27,7 @@ def main():
     args = parser.parse_args()
 
     # 1. Load environment variables
-    host, token = load_env(args.env_file)
+    host, token, profile = load_env(args.env_file)
 
     # 2. Select environments to process
     envs = ["dev", "acc", "prd"] if args.env == "all" else [args.env]
@@ -56,7 +56,7 @@ def main():
         logger.debug(f"Files to upload: {files}")
 
         # Upload to Databricks
-        uploaded = upload_files(host, token, env_config, files)
+        uploaded = upload_files(host, token, env_config, files, profile)
 
         summary[env] = uploaded
         total += len(uploaded)

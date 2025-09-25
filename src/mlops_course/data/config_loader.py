@@ -18,14 +18,18 @@ def load_env(env_file: str = ".env"):
         EnvironmentError: If DATABRICKS_HOST or DATABRICKS_TOKEN are not defined in the env_file.
     """
     load_dotenv(dotenv_path=env_file)
+
     host = os.getenv("DATABRICKS_HOST")
     token = os.getenv("DATABRICKS_TOKEN")
+    profile = os.getenv("PROFILE")
 
-    if not host or not token:
-        raise EnvironmentError(
-            f"DATABRICKS_HOST and DATABRICKS_TOKEN must be defined in {env_file}"
-        )
-    return host, token
+    if profile:
+        return None, None, profile  # mode profil
+    if host and token:
+        return host, token, None    # mode token
+    raise EnvironmentError(
+        f"Ni PROFILE ni DATABRICKS_HOST/TOKEN définis dans {env_file}"
+    )
 
 
 def load_project_config(path: str, env: str):

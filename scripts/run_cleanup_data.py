@@ -19,7 +19,7 @@ def main():
     args = parser.parse_args()
 
     # Load host/token
-    host, token = load_env(args.env_file)
+    host, token, profile = load_env(args.env_file)
     logger.info(f"Loaded credentials from {args.env_file}")
 
     # Prepare environments to process
@@ -27,8 +27,15 @@ def main():
     logger.info(f"Environments selected for cleanup: {envs}")
 
     # Initialize Databricks client
-    w = WorkspaceClient(host=host, token=token)
-    logger.debug("Databricks WorkspaceClient initialized")
+    if profile:
+        w = WorkspaceClient(profile=profile)
+        logger.debug(f"Databricks WorkspaceClient initialized with profile {profile}")
+    elif host and token:
+        w = WorkspaceClient(host=host, token=token)
+        logger.debug("Databricks WorkspaceClient initialized with host/token")
+    else:
+        w = WorkspaceClient()  # fallback auto-detection
+        logger.debug("Databricks WorkspaceClient initialized with auto-detection")
 
     for env in envs:
         env_config, _ = load_project_config(args.config, env)
