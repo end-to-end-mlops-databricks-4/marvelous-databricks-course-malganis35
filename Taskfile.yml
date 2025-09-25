@@ -3,7 +3,7 @@ dotenv: [.env]
 
 vars:
   PACKAGE_IMPORT_NAME: mlops_course
-  PYTHON_VERSION: 3.11
+  PYTHON_VERSION: 3.12
 
 tasks:
   create-venv:
