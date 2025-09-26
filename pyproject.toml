@@ -16,6 +16,10 @@ dependencies = [
     "pydantic==2.11.7",
     "loguru==0.7.3",
     "python-dotenv==1.1.1",
+    "databricks-cli>=0.18.0",
+    "databricks-connect>=16.3.5",
+    "pretty-errors>=1.2.25",
+    "kagglehub>=0.3.13",
 ]
 
 dynamic = ['version']
@@ -24,12 +28,14 @@ dynamic = ['version']
 dev = ["databricks-connect>=16.0, <17",
        "ipykernel>=6.29.5, <7",
        "pip>=25.0.1, <26",
-       "pre-commit>=4.1.0, <5"]
+       "pre-commit>=4.1.0, <5",
+       "commitizen>=4.9.1",]
 
 test = ["pre-commit>=4.1.0, <5",
        "pytest>=8.0.0, <9",
        "pytest-cov>=5.0.0, <6",
-       "pyspark>=3.4.0, <4"]
+       "pyspark>=3.4.0, <4",
+       "pytest-mock[test]>=3.15.1",]
 
 [build-system]
 requires = [
@@ -87,3 +93,29 @@ lint.ignore = [
 [tool.ruff.format]
 indent-style = "space"
 docstring-code-format = true
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version_provider = "pep621"
+tag_format = "v$version"
+version_files = [
+  "pyproject.toml:^version =",
+  "VERSION"
+]
+bump_message = "chore(release): bump version $current_version → $new_version [skip ci]"
+update_changelog_on_bump = true
+changelog_incremental = true
+pre_bump_hooks = [
+    "uv sync",
+    "git add uv.lock"
+]
+changelog_file = "CHANGELOG.md"
+changelog_title = "# Changelog \\n\\nAll notable changes to this project will be documented in this file.\n\nThe format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),\nand this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).\\n\\n## [Unreleased]\\n"
+changelog_message_template = """
+## {{version}} - {{date}}
+
+{{#each commits}}
+- {{message}}
+{{/each}}
+
+"""

@@ -3,23 +3,31 @@ dotenv: [.env]
 
 vars:
   PACKAGE_IMPORT_NAME: mlops_course
-  PYTHON_VERSION: 3.11
+  PYTHON_VERSION: 3.12
 
 tasks:
+  install:
+    desc: Install project stack dependencies (task, uv, devbox)
+    cmds:
+      - sudo apt install task
+      - curl -LsSf https://astral.sh/uv/install.sh | sh
+      - curl -fsSL https://get.jetify.com/devbox | bash
+    silent: false
+
   create-venv:
     desc: Create a virtual environment
     cmds:
       - uv venv -p {{.PYTHON_VERSION}} .venv
     silent: false
 
-  sync-dev:
+  dev-install:
     desc: Sync project dependencies with optionals
     cmds:
       - rm -rf .venv
       - task: create-venv
       - uv sync --extra dev
 
-  sync-test:
+  test-install:
     desc: Sync only test dependencies
     cmds:
         - rm -rf .venv
@@ -27,14 +35,67 @@ tasks:
         - uv sync --extra test
         # - source .venv/Scripts/activate && uv sync --extra test # Activate and sync
 
+  demo:
+    desc: Test on a demo script
+    cmds:
+      - uv run scripts/demo.py
+
+  run-upload-data:
+    desc: Test on a demo script
+    cmds:
+      - uv run scripts/run_upload_data.py --env dev --env-file .env --config project_config.yml
+
+  run-process-data:
+    desc: Test on a pre-processing script
+    cmds:
+      - uv run scripts/process_data.py
+
   lint:
     desc: Run pre-commit hooks
     cmds:
       - uv run pre-commit run --all-files
 
+  test:
+    desc: Run unit test and coverage
+    cmds:
+      - task: test-install
+      - pytest --cov src/mlops_course --cov-report=html:_artifact/coverage_re --cov-report=term-missing --cov-config=.coveragerc
+      - 'echo "Note: you can open the HTML report with: open _artifact/coverage_re/index.html"'
+
+  qa-lines-count:
+    desc: Count the number of lines in each *.py script (excluding .venv)
+    cmds:
+      - echo "--> Count the number of lines in each *.py script (excluding .venv)"
+      - >
+        find . -path ./.venv -prune -o -name '*.py' -exec wc -l {} \; |
+        sort -n |
+        awk '{printf "%4s %s\n", $1, $2}{s+=$1}END{print s}'
+
+  pc:
+    desc: Run pre-commit hooks
+    cmds:
+      - task: dev-install
+      - uv run pre-commit run --all-files
+
+  clean:
+    desc: Clean all temporary files
+    cmds:
+      - find . -type f -name "*.py[co]" -delete
+      - find . -type d -name "__pycache__" -delete
+      - find . -name '*.egg-info'  -type d -exec rm -rf {} +
+      - rm -rf .venv/
+      - rm -rf _artifact/ .devbox/ .pytest_cache/ .ruff_cache/ node_modules/
+      - rm .coverage package.json package-lock.json digest.txt zz_git-diff.txt
+
+  digest:
+    desc: Make a git digest of the repository
+    cmds:
+      - uv run --with gitingest gitingest .
+
   help:
     desc: Print all tasks defined in the Taskfile
-    cmd: task -l
+    cmds:
+      - task -l
     silent: true
 
   default:

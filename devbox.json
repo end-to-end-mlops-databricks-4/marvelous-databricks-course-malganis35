@@ -1,0 +1,31 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.16.0/.schema/devbox.schema.json",
+  "packages": [
+    "git@latest",
+    "uv@latest",
+    "tree@latest",
+    "pre-commit@latest",
+    "nodejs@20",
+    "unzip@latest",
+    "gzip@latest",
+    "curl@latest",
+    "wget@latest",
+    "htop@latest",
+    "pandoc@latest",
+    "tig@latest",
+    "jq@latest"
+  ],
+  "shell": {
+    "init_hook": [
+      "echo 'Welcome to Cao Tri devbox!' > /dev/null",
+      "npm install -D @shelve/cli",
+      "npm install --prefix ~/.local @mermaid-js/mermaid-cli",
+      "export PATH=$HOME/.local/node_modules/.bin:$PATH"
+    ],
+    "scripts": {
+      "test": [
+        "echo \"Error: no test specified\" && exit 1"
+      ]
+    }
+  }
+}
