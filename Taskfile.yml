@@ -54,6 +54,28 @@ tasks:
     desc: Run pre-commit hooks
     cmds:
       - uv run pre-commit run --all-files
+  
+  test:
+    desc: Run unit test and coverage
+    cmds:
+      - task: test-install
+      - pytest --cov src/mlops_course --cov-report=html:_artifact/coverage_re --cov-report=term-missing --cov-config=.coveragerc
+      - 'echo "Note: you can open the HTML report with: open _artifact/coverage_re/index.html"'
+
+  qa-lines-count:
+    desc: Count the number of lines in each *.py script (excluding .venv)
+    cmds:
+      - echo "--> Count the number of lines in each *.py script (excluding .venv)"
+      - >
+        find . -path ./.venv -prune -o -name '*.py' -exec wc -l {} \; |
+        sort -n |
+        awk '{printf "%4s %s\n", $1, $2}{s+=$1}END{print s}'
+
+  pc:
+    desc: Run pre-commit hooks
+    cmds:
+      - task: dev-install
+      - uv run pre-commit run --all-files
 
   clean:
     desc: Clean all temporary files
