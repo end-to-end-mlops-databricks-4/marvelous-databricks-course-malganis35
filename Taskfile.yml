@@ -6,20 +6,28 @@ vars:
   PYTHON_VERSION: 3.12
 
 tasks:
+  install:
+    desc: Install project stack dependencies (task, uv, devbox)
+    cmds:
+      - sudo apt install task
+      - curl -LsSf https://astral.sh/uv/install.sh | sh
+      - curl -fsSL https://get.jetify.com/devbox | bash
+    silent: false
+
   create-venv:
     desc: Create a virtual environment
     cmds:
       - uv venv -p {{.PYTHON_VERSION}} .venv
     silent: false
 
-  sync-dev:
+  dev-install:
     desc: Sync project dependencies with optionals
     cmds:
       - rm -rf .venv
       - task: create-venv
       - uv sync --extra dev
 
-  sync-test:
+  test-install:
     desc: Sync only test dependencies
     cmds:
         - rm -rf .venv
@@ -27,14 +35,34 @@ tasks:
         - uv sync --extra test
         # - source .venv/Scripts/activate && uv sync --extra test # Activate and sync
 
+  demo:
+    desc: Test on a demo script
+    cmds:
+      - uv run scripts/demo.py
+
+  run-upload-data:
+    desc: Test on a demo script
+    cmds:
+      - uv run scripts/run_upload_data.py --env dev --env-file .env --config project_config.yml
+
+  run-process-data:
+    desc: Test on a pre-processing script
+    cmds:
+      - uv run scripts/process_data.py
+
   lint:
     desc: Run pre-commit hooks
     cmds:
       - uv run pre-commit run --all-files
 
+  digest:
+    desc: Make a git digest of the repository
+    cmds:
+      - uv run --with gitingest gitingest .
+
   help:
     desc: Print all tasks defined in the Taskfile
-    cmds: 
+    cmds:
       - task -l
     silent: true
 
