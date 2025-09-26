@@ -1,10 +1,10 @@
-from loguru import logger
+from databricks.sdk import WorkspaceClient
 from databricks.sdk.service.catalog import VolumeType
+from loguru import logger
 
 
-def check_catalog_exists(w, catalog_name: str):
-    """
-    Checks if a Databricks catalog exists and is accessible.
+def check_catalog_exists(w: WorkspaceClient, catalog_name: str) -> None:
+    """Check if a Databricks catalog exists and is accessible.
 
     Args:
         w (Databricks client instance): The Databricks client instance.
@@ -12,19 +12,19 @@ def check_catalog_exists(w, catalog_name: str):
 
     Raises:
         SystemExit(1): If the catalog does not exist or is inaccessible.
+
     """
     try:
         w.catalogs.get(catalog_name)
         logger.info(f"Catalog {catalog_name} exists.")
     except Exception as e:
         logger.error(f"Catalog {catalog_name} not found or inaccessible: {e}")
-        raise SystemExit(1)
+        raise SystemExit(1) from e
+    return None
 
 
-def ensure_schema(w, catalog_name: str, schema_name: str):
-    """
-    Checks if a schema exists in the specified Databricks catalog.
-    If it doesn't exist, the function creates it.
+def ensure_schema(w: WorkspaceClient, catalog_name: str, schema_name: str) -> None:
+    """Check if a schema exists in the specified Databricks catalog. If it doesn't exist, the function creates it.
 
     Args:
         w: A Databricks client object.
@@ -33,6 +33,7 @@ def ensure_schema(w, catalog_name: str, schema_name: str):
 
     Returns:
         None
+
     """
     try:
         w.schemas.get(schema_name, catalog_name=catalog_name)
@@ -40,20 +41,16 @@ def ensure_schema(w, catalog_name: str, schema_name: str):
     except Exception:
         logger.info(f"Creating schema {schema_name} in {catalog_name}...")
         try:
-            w.schemas.create(
-                name=schema_name,
-                catalog_name=catalog_name,
-                comment="ML Schema"
-            )
+            w.schemas.create(name=schema_name, catalog_name=catalog_name, comment="ML Schema")
             logger.info(f"Schema {schema_name} created in {catalog_name}.")
         except Exception as e:
             logger.error(f"Failed to create schema {schema_name} in {catalog_name}: {e}")
+    return None
 
 
-def ensure_volume(w, catalog_name: str, schema_name: str, volume_name: str):
-    """
-    Ensure the existence of a Databricks volume in the specified catalog.schema.
-    
+def ensure_volume(w: WorkspaceClient, catalog_name: str, schema_name: str, volume_name: str) -> None:
+    """Ensure the existence of a Databricks volume in the specified catalog.schema.
+
     Args:
         w (Databricks client): The Databricks client instance.
         catalog_name (str): Name of the Databricks catalog.
@@ -65,6 +62,7 @@ def ensure_volume(w, catalog_name: str, schema_name: str, volume_name: str):
 
     Notes:
     This function will create the volume if it does not exist in the specified catalog.schema.
+
     """
     try:
         w.volumes.get(volume_name, catalog_name=catalog_name, schema_name=schema_name)
@@ -82,3 +80,4 @@ def ensure_volume(w, catalog_name: str, schema_name: str, volume_name: str):
             logger.info(f"Volume {volume_name} created in {catalog_name}.{schema_name}.")
         except Exception as e:
             logger.error(f"Failed to create volume {volume_name} in {catalog_name}.{schema_name}: {e}")
+    return None

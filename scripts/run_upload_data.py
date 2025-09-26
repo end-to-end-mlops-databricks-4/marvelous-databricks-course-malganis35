@@ -3,27 +3,36 @@
 #   All environments: uv run scripts/run_upload_data.py --env all --env-file .env --config project_config.yml
 
 import argparse
+
 from loguru import logger
+
 from mlops_course.data.config_loader import load_env, load_project_config
 from mlops_course.data.uploader import load_files_from_source, upload_files
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Upload files (local or Kaggle) to Databricks Volumes"
+def main() -> None:
+    """Upload files (local or Kaggle) to Databricks Volumes.
+
+    This script loads environment variables, selects environments to process,
+    uploads files to Databricks, and provides a summary of the uploaded files.
+
+    Args:
+        --env (str): Target environment (dev, acc, prd, or all)
+        --env-file (str): Path to .env file containing DATABRICKS_HOST and DATABRICKS_TOKEN
+        --config (str): YAML configuration file
+
+    Returns:
+        None
+
+    """
+    parser = argparse.ArgumentParser(description="Upload files (local or Kaggle) to Databricks Volumes")
+    parser.add_argument(
+        "--env", default="dev", choices=["dev", "acc", "prd", "all"], help="Target environment (dev, acc, prd, or all)"
     )
     parser.add_argument(
-        "--env", default="dev", choices=["dev", "acc", "prd", "all"],
-        help="Target environment (dev, acc, prd, or all)"
+        "--env-file", default=".env", help="Path to .env file containing DATABRICKS_HOST and DATABRICKS_TOKEN"
     )
-    parser.add_argument(
-        "--env-file", default=".env",
-        help="Path to .env file containing DATABRICKS_HOST and DATABRICKS_TOKEN"
-    )
-    parser.add_argument(
-        "--config", default="project_config.yml",
-        help="YAML configuration file"
-    )
+    parser.add_argument("--config", default="project_config.yml", help="YAML configuration file")
     args = parser.parse_args()
 
     # 1. Load environment variables
@@ -72,6 +81,8 @@ def main():
             logger.warning(" (no files uploaded)")
     logger.info(f"Total uploaded files: {total}")
     logger.success("Process completed.")
+
+    return None
 
 
 if __name__ == "__main__":

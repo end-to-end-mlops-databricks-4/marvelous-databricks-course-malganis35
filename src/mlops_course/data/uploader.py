@@ -1,22 +1,31 @@
 import os
-from loguru import logger
+
 from databricks.sdk import WorkspaceClient
+from loguru import logger
+
 from .databricks_utils import check_catalog_exists, ensure_schema, ensure_volume
 
 
-def load_files_from_source(config: dict):
-    """
-    Loads environment variables from a .env file, specifically extracting the 
-    DATABRICKS_HOST and DATABRICKS_TOKEN for Databricks authentication.
+def load_files_from_source(config: dict) -> list[str]:
+    """Load files from a specified source configuration.
+
+    Supports loading from a local directory or a Kaggle dataset, based on the
+    `source_type` key in the configuration dictionary.
 
     Args:
-        env_file (str): Path to the .env file. Defaults to ".env".
+        config (dict): A configuration dictionary that specifies:
+            - **source_type** (str): Either `"local"` or `"kaggle"`.
+            - **files** (list[str]): List of filenames to load.
+            - **local_path** (str, optional): Base path for local files (if `source_type` is `"local"`).
+            - **kaggle_dataset** (str, optional): Kaggle dataset identifier (if `source_type` is `"kaggle"`).
 
     Returns:
-        tuple: A tuple containing the DATABRICKS_HOST and DATABRICKS_TOKEN values.
+        list[str]: A list of file paths corresponding to the loaded files.
 
     Raises:
-        EnvironmentError: If DATABRICKS_HOST or DATABRICKS_TOKEN are not defined in the env_file.
+        ValueError: If `source_type` is not `"local"` or `"kaggle"`.
+        FileNotFoundError: If any specified file does not exist.
+
     """
     source_type = config["source_type"]
     files = config["files"]
@@ -26,6 +35,7 @@ def load_files_from_source(config: dict):
         file_paths = [os.path.join(base_path, f) for f in files]
     elif source_type == "kaggle":
         import kagglehub
+
         dataset = config["kaggle_dataset"]
         path = kagglehub.dataset_download(dataset)
         file_paths = [os.path.join(path, f) for f in files]
@@ -38,9 +48,9 @@ def load_files_from_source(config: dict):
 
     return file_paths
 
-def upload_files(host: str, token: str, env_config: dict, files: list, profile: str = None):
-    """
-    Upload files into the specified Databricks Volume.
+
+def upload_files(host: str, token: str, env_config: dict, files: list, profile: str = None) -> None:
+    """Upload files into the specified Databricks Volume.
 
     Args:
         host (str): Databricks host URL
@@ -51,7 +61,7 @@ def upload_files(host: str, token: str, env_config: dict, files: list, profile: 
 
     Returns:
         uploaded (list): List of uploaded file paths in Databricks DBFS.
-    
+
     """
     if profile:
         w = WorkspaceClient(profile=profile)

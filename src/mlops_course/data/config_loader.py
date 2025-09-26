@@ -1,40 +1,62 @@
 import os
+
 import yaml
-from dotenv import load_dotenv
+from dotenv import dotenv_values, load_dotenv
+from loguru import logger
 
 
-def load_env(env_file: str = ".env"):
-    """
-    Loads environment variables from a .env file, specifically extracting the 
-    DATABRICKS_HOST and DATABRICKS_TOKEN for Databricks authentication.
-    
+def load_env(env_file: str = ".env") -> tuple[str | None, str | None, str | None]:
+    """Load Databricks authentication details from a .env file.
+
+    The function reads environment variables from the specified `.env` file using
+    `python-dotenv`. It supports two authentication modes:
+    - **Profile mode:** when a `PROFILE` variable is defined.
+    - **Token mode:** when both `DATABRICKS_HOST` and `DATABRICKS_TOKEN` are defined.
+
     Args:
-        env_file (str): Path to the .env file. Defaults to ".env".
-    
+        env_file (str): Path to the `.env` file. Defaults to ".env".
+
     Returns:
-        tuple: A tuple containing the DATABRICKS_HOST and DATABRICKS_TOKEN values.
-        
+        tuple[str | None, str | None, str | None]:
+        A tuple containing `(DATABRICKS_HOST, DATABRICKS_TOKEN, PROFILE)`, where
+        unused values are returned as `None`.
+
     Raises:
-        EnvironmentError: If DATABRICKS_HOST or DATABRICKS_TOKEN are not defined in the env_file.
+        OSError: If neither `PROFILE` nor both `DATABRICKS_HOST` and `DATABRICKS_TOKEN`
+            are defined in the given `.env` file.
+
     """
-    load_dotenv(dotenv_path=env_file)
+    # Résolution du chemin absolu
+    env_path = os.path.abspath(env_file)
+    if not os.path.exists(env_path):
+        raise FileNotFoundError(f".env file not found at {env_path}")
 
-    host = os.getenv("DATABRICKS_HOST")
-    token = os.getenv("DATABRICKS_TOKEN")
-    profile = os.getenv("PROFILE")
+    # Charge les variables sans dépendre du cwd
+    load_dotenv(dotenv_path=env_path, override=True)
 
+    # Lecture directe du fichier (pour vérifier le contenu réel)
+    env_vars = dotenv_values(env_path)
+    host = env_vars.get("DATABRICKS_HOST") or os.getenv("DATABRICKS_HOST")
+    token = env_vars.get("DATABRICKS_TOKEN") or os.getenv("DATABRICKS_TOKEN")
+    profile = env_vars.get("PROFILE") or os.getenv("PROFILE")
+
+    # Logging debug utile
+    logger.debug(f"Loaded env from {env_path}: host={host}, token={'***' if token else None}, profile={profile}")
+
+    # Logique de priorité : PROFILE > TOKEN
     if profile:
-        return None, None, profile  # mode profil
+        return None, None, profile
     if host and token:
-        return host, token, None    # mode token
-    raise EnvironmentError(
-        f"Ni PROFILE ni DATABRICKS_HOST/TOKEN définis dans {env_file}"
-    )
+        return host, token, None
+
+    raise OSError(f"Missing PROFILE or DATABRICKS_HOST/TOKEN in {env_path}")
+    return None, None, None  # mode auto-detect
 
 
-def load_project_config(path: str, env: str):
-    """
-    Load and parse the YAML project configuration from the specified path.
+def load_project_config(path: str, env: str) -> tuple[dict, dict]:
+    """Load environment variables from a .env file.
+
+    Specifically extracts the DATABRICKS_HOST and DATABRICKS_TOKEN for Databricks authentication.
 
     It extracts the environment-specific configuration (`env_config`) and the global configuration (`global_config`).
 
@@ -47,8 +69,9 @@ def load_project_config(path: str, env: str):
 
     Raises:
         ValueError: If the specified environment is not found in the configuration file.
+
     """
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         config = yaml.safe_load(f)
 
     if env not in config:
