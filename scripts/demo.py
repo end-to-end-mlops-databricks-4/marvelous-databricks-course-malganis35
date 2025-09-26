@@ -10,7 +10,7 @@ from pyspark.sql import SparkSession
 from mlops_course.utils.env_loader import load_environment
 from mlops_course.utils.databricks_utils import create_spark_session
 
-ENV_FILE = "../.env"
+ENV_FILE = "./.env"
 
 logger.info("🔧 Loading environment and Databricks configuration...")
 load_environment(ENV_FILE)
