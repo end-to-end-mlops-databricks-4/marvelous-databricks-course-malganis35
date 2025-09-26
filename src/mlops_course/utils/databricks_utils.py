@@ -1,5 +1,4 @@
-"""
-Databricks utilities module.
+"""Databricks utilities module.
 
 Provides helper functions to create a Databricks-connected Spark session
 that works with both Free (Serverless) and Premium (Cluster) workspaces.
@@ -11,12 +10,15 @@ Usage:
 """
 
 import os
+
+import pyspark
+from databricks.connect import DatabricksSession
 from loguru import logger
+from pyspark.sql import SparkSession
 
 
-def create_spark_session():
-    """
-    Create a Spark session connected to Databricks via Databricks Connect.
+def create_spark_session() -> "pyspark.sql.SparkSession":
+    """Create a Spark session connected to Databricks via Databricks Connect.
 
     Automatically determines whether to use Serverless or Cluster compute
     based on environment variables loaded from .env.
@@ -28,10 +30,8 @@ def create_spark_session():
 
     Returns:
         pyspark.sql.SparkSession
-    """
-    from databricks.connect import DatabricksSession
-    from pyspark.sql import SparkSession
 
+    """
     compute_mode = os.getenv("DATABRICKS_COMPUTE", "serverless").lower()
     cluster_id = os.getenv("DATABRICKS_CLUSTER_ID")
 

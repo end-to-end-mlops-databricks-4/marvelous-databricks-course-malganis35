@@ -4,11 +4,10 @@
 
 # %% Databricks notebook source
 import pretty_errors  # noqa: F401
-from databricks.connect import DatabricksSession
 from loguru import logger
-from pyspark.sql import SparkSession
-from mlops_course.utils.env_loader import load_environment
+
 from mlops_course.utils.databricks_utils import create_spark_session
+from mlops_course.utils.env_loader import load_environment
 
 ENV_FILE = "./.env"
 

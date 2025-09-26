@@ -1,5 +1,4 @@
-"""
-Utility to load environment variables for Databricks and project configuration.
+"""Utility to load environment variables for Databricks and project configuration.
 
 Usage:
     from mlops_course.utils.env_loader import load_environment
@@ -9,16 +8,17 @@ Usage:
 
 import os
 from pathlib import Path
+
 from dotenv import load_dotenv
 from loguru import logger
 
 
 def load_environment(env_file: str | None = None) -> None:
-    """
-    Load environment variables from a .env file and set Databricks profile defaults.
+    """Load environment variables from a .env file and set Databricks profile defaults.
 
     Args:
         env_file (str | None): Path to the .env file. Defaults to ".env" in project root.
+
     """
     # Determine env path
     env_path = Path(env_file or os.getenv("ENV_FILE", ".env"))
