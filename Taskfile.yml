@@ -34,7 +34,8 @@ tasks:
 
   help:
     desc: Print all tasks defined in the Taskfile
-    cmd: task -l
+    cmds: 
+      - task -l
     silent: true
 
   default:
