@@ -1,0 +1,184 @@
+# Contributing Guidelines
+
+Thank you for your interest in contributing to this project! 🎉
+We welcome contributions of all kinds — whether it's fixing bugs, improving documentation, suggesting new features, or writing code.
+
+---
+
+## How to Contribute
+
+1. **Fork the repository**
+   Click the "Fork" button at the top right of this repository to create your own copy.
+
+2. **Clone your fork**
+
+   ```bash
+   git clone <repo-url>
+   cd <repo-name>
+   ```
+
+3. **Create a new branch**
+
+   ```bash
+   git checkout -b feature/my-new-feature
+   ```
+
+4. **Make your changes**
+
+   * Follow the [Coding Standards](#-coding-standards) below.
+   * Make sure your code is properly tested.
+
+5. **Commit your changes**
+   Use clear and descriptive commit messages.
+
+   ```bash
+   git commit -m "Add: new feature to improve X"
+   ```
+
+   Or better, use commitizen to enforce conventional commit
+
+   ```bash
+   uv run cz c
+   ```
+
+6. **Push to your fork**
+
+   ```bash
+   git push origin feature/my-new-feature
+   ```
+
+7. **Open a Pull Request (PR)**
+   Go to the original repository and click **New Pull Request**.
+   Describe your changes clearly in the PR template.
+
+---
+
+## Coding Standards
+
+* Use clear, consistent naming conventions.
+* Write clean, readable, and well-documented code.
+* Keep functions small and focused.
+* Run tests before submitting a PR / MR.
+
+## How to commit within this project
+
+Commitizen is a tool designed to help developers write consistent and standardized commit messages for their Git repositories. It ensures that commit messages follow a specific format, making it easier to understand the history and context of changes in a project.
+
+### Key Features of Commitizen
+
+Standardized Commit Messages: Commitizen prompts you to fill out required fields for your commit messages, ensuring they adhere to a predefined format. This helps maintain consistency across all commits1.
+
+Integration with Conventional Commits: Commitizen supports conventional commit messages, which are structured to provide clear and concise information about the changes made. This format is widely used in many projects.
+
+Version Bumping and Changelog Generation: Commitizen can automatically bump the version of your project based on the commit messages and generate changelogs, making it easier to manage releases.
+
+Customizable: You can configure Commitizen to use different adapters and customize the commit message format to suit your project's needs.
+
+### Example Commitizen Commit Flow
+
+1. Run the commit command:
+
+   ```bash
+   uv run cz c
+   ```
+
+2. Follow the prompts:
+
+- Type: Select the type of change (e.g., feat, fix, docs, style, refactor, test, chore).
+- Scope: Specify the scope of the change (optional).
+- Subject: Write a short description of the change.
+- Body: Provide a detailed description of the change (optional).
+- Footer: Add any relevant issue references (optional).
+
+### Example Commit Message
+
+After following the prompts, your commit message might look like this:
+
+```bash
+feat(auth): add login functionality
+
+- Implemented login functionality
+- Added unit tests for login
+- Updated documentation
+
+Closes #123
+```
+
+Using Commitizen ensures that your commit messages are consistent and informative, making it easier to understand the history and context of changes in your project.
+
+## Pre commit hook
+
+The pre-commit module is a framework for managing and maintaining Git pre-commit hooks. Pre-commit hooks are scripts that run automatically before a commit is finalized, allowing you to enforce code quality, formatting, or other checks to ensure consistency and prevent errors in your codebase.
+
+### Usage of pre-commit in the Project
+
+In the provided README.md, the pre-commit module is used to set up Git hooks for this project. Here's how it works:
+
+1. Install the Pre-Commit Hook: The following command installs the pre-commit hooks defined in the .pre-commit-config.yaml file:
+
+    ```bash
+    uv run pre-commit install
+    ```
+
+    This command ensures that the hooks are triggered automatically whenever you attempt to make a commit.
+
+2. Configuration: The hooks are configured in the .pre-commit-config.yaml file. This file specifies the tools and checks that will run as part of the pre-commit process. Common checks include:
+
+   - Code formatting (e.g., black, ruff, or isort).
+   - Linting (e.g., flake8 or pylint).
+   - Security checks (e.g., bandit).
+   - Detecting secrets in code (e.g., detect-secrets).
+   - test
+
+3. Running Pre-Commit Hooks: Once installed, the hooks will automatically run every time you attempt to commit changes. If any of the checks fail, the commit will be blocked until the issues are resolved.
+
+4. Manually Running Pre-Commit: You can manually run the pre-commit hooks on all files (not just staged ones) using:
+
+    ```bash
+    uv run pre-commit run --all-files
+    ```
+
+## Benefits of using ```pre-commit```
+
+- **Automated Code Quality Checks**: Ensures that all committed code adheres to the project's standards.
+- **Prevents Common Mistakes**: Catches issues like syntax errors, formatting problems, or security vulnerabilities before they are committed.
+- **Consistency Across the Team**: Enforces the same checks for all contributors, maintaining a consistent codebase.
+- **Saves Time**: Reduces the need for manual code reviews for basic issues.
+
+## Example Workflow
+
+1. Make changes to your code.
+2. Stage the changes using git add.
+3. Attempt to commit using git commit. The pre-commit hooks will run automatically.
+4. If any checks fail, fix the issues and repeat the process.
+
+By integrating ```pre-commit``` into your workflow, you can ensure higher code quality and fewer issues in your repository.
+
+
+---
+
+## Tests
+
+* Make sure that existing tests pass before submitting a PR / MR.
+* Add new tests if your changes add new functionality.
+
+---
+
+## Documentation
+
+* Update the documentation if your changes affect usage.
+* Keep comments concise and useful.
+
+---
+
+## Communication
+
+* Use GitHub / Gitlab Issues to report bugs or request features.
+* Be respectful and constructive in discussions.
+
+---
+
+## Thank You!
+
+Your contributions make this project better.
+We really appreciate your time and effort!
