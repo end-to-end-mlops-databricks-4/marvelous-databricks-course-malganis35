@@ -55,6 +55,16 @@ tasks:
     cmds:
       - uv run pre-commit run --all-files
 
+  clean:
+    desc: Clean all temporary files
+    cmds:
+      - find . -type f -name "*.py[co]" -delete
+      - find . -type d -name "__pycache__" -delete
+      - find . -name '*.egg-info'  -type d -exec rm -rf {} +
+      - rm -rf .venv/
+      - rm -rf _artifact/ .devbox/ .pytest_cache/ .ruff_cache/ node_modules/
+      - rm .coverage package.json package-lock.json digest.txt zz_git-diff.txt
+
   digest:
     desc: Make a git digest of the repository
     cmds:
