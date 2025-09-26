@@ -4,21 +4,26 @@
 
 # %% Databricks notebook source
 import pretty_errors  # noqa: F401
-from pyspark.sql import SparkSession
 from databricks.connect import DatabricksSession
 from loguru import logger
+from pyspark.sql import SparkSession
+from mlops_course.utils.env_loader import load_environment
+from mlops_course.utils.databricks_utils import create_spark_session
 
-try:
-    spark = SparkSession.builder.getOrCreate()
-except:
-    logger.warning("Falling back to DatabricksSession")
-    spark = DatabricksSession.builder.getOrCreate()
+ENV_FILE = "../.env"
 
+logger.info("🔧 Loading environment and Databricks configuration...")
+load_environment(ENV_FILE)
+logger.info("🔧 Initialize Spark Session...")
+spark = create_spark_session()
+
+logger.info("List tables in samples.nyctaxi")
 df = spark.read.table("samples.nyctaxi.trips")
+
+logger.info("Show 5 rows")
 df.show(5)
 
-# COMMAND ----------
-
-print(list(df.columns))
+logger.info("Dataframe columns:")
+logger.info(list(df.columns))
 
 # COMMAND ----------
