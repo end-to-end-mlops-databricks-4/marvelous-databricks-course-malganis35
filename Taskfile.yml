@@ -54,7 +54,7 @@ tasks:
     desc: Run pre-commit hooks
     cmds:
       - uv run pre-commit run --all-files
-  
+
   test:
     desc: Run unit test and coverage
     cmds:
