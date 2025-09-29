@@ -1,11 +1,11 @@
-"""Unit tests for src/mlops_course/data/databricks_utils.py."""
+"""Unit tests for src/hotel_reservation/data/databricks_utils.py."""
 
 import logging
 
 import pytest
 from loguru import logger
 
-from src.mlops_course.data.databricks_utils import (
+from src.hotel_reservation.data.databricks_utils import (
     check_catalog_exists,
     ensure_schema,
     ensure_volume,

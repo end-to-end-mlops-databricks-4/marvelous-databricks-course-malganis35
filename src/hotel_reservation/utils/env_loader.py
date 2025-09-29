@@ -1,7 +1,7 @@
 """Utility to load environment variables for Databricks and project configuration.
 
 Usage:
-    from mlops_course.utils.env_loader import load_environment
+    from hotel_reservation.utils.env_loader import load_environment
 
     load_environment(".env")  # or load_environment() to use default
 """

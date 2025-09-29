@@ -1,4 +1,4 @@
-"""Unit tests for configuration loading and validation logic in mlops_course.utils.config."""
+"""Unit tests for configuration loading and validation logic in hotel_reservation.utils.config."""
 
 import tempfile
 from typing import Any
@@ -6,7 +6,7 @@ from typing import Any
 import pytest
 import yaml
 
-from mlops_course.utils.config import ProjectConfig, Tags
+from hotel_reservation.utils.config import ProjectConfig, Tags
 
 
 @pytest.fixture

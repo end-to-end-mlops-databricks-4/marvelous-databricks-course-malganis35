@@ -8,8 +8,8 @@ from pyspark.sql.functions import current_timestamp, to_utc_timestamp
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
-from mlops_course.utils.config import ProjectConfig
-from mlops_course.utils.timer import timeit
+from hotel_reservation.utils.config import ProjectConfig
+from hotel_reservation.utils.timer import timeit
 
 
 class DataProcessor:

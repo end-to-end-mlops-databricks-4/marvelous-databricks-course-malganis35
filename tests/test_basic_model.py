@@ -70,7 +70,7 @@ sys.modules["delta.tables"] = mock_tables_module
 # ---------------------------------------------------------------------
 # Imports after DeltaTable patch
 # ---------------------------------------------------------------------
-from src.mlops_course.model.basic_model import BasicModel  # noqa: E402
+from src.hotel_reservation.model.basic_model import BasicModel  # noqa: E402
 
 # ---------------------------------------------------------------------
 # Warning suppression
@@ -106,7 +106,7 @@ class MockTags:
 
     def model_dump(self) -> dict[str, str]:
         """Return a mock tags dictionary."""
-        return {"project": "mlops_course", "stage": "dev"}
+        return {"project": "hotel_reservation", "stage": "dev"}
 
 
 # ---------------------------------------------------------------------
@@ -179,7 +179,7 @@ def test_train(model: BasicModel) -> None:
     assert hasattr(model.pipeline, "predict")
 
 
-@patch("src.mlops_course.model.basic_model.mlflow")
+@patch("src.hotel_reservation.model.basic_model.mlflow")
 def test_log_model(mock_mlflow: MagicMock, model: BasicModel) -> None:
     """Verify metrics and model are logged to MLflow."""
     model.X_train = pd.DataFrame({"age": [25.0, 30.0], "income": [40000.0, 50000.0], "country": ["FR", "US"]})
@@ -202,8 +202,8 @@ def test_log_model(mock_mlflow: MagicMock, model: BasicModel) -> None:
     mock_mlflow.sklearn.log_model.assert_called_once()
 
 
-@patch("src.mlops_course.model.basic_model.mlflow")
-@patch("src.mlops_course.model.basic_model.MlflowClient")
+@patch("src.hotel_reservation.model.basic_model.mlflow")
+@patch("src.hotel_reservation.model.basic_model.MlflowClient")
 def test_register_model(mock_client_cls: MagicMock, mock_mlflow: MagicMock, model: BasicModel) -> None:
     """Ensure model is registered and alias is set to latest-model."""
     model.run_id = "123"
@@ -218,7 +218,7 @@ def test_register_model(mock_client_cls: MagicMock, mock_mlflow: MagicMock, mode
     mock_client.set_registered_model_alias.assert_called_with(name=model.model_name, alias="latest-model", version=2)
 
 
-@patch("src.mlops_course.model.basic_model.mlflow")
+@patch("src.hotel_reservation.model.basic_model.mlflow")
 def test_load_latest_model_and_predict(mock_mlflow: MagicMock, model: BasicModel) -> None:
     """Ensure prediction path loads the model and returns numpy array."""
     fake_model = MagicMock()
@@ -234,7 +234,7 @@ def test_load_latest_model_and_predict(mock_mlflow: MagicMock, model: BasicModel
     mock_mlflow.sklearn.load_model.assert_called_once()
 
 
-@patch("src.mlops_course.model.basic_model.mlflow")
+@patch("src.hotel_reservation.model.basic_model.mlflow")
 def test_retrieve_current_run_dataset(mock_mlflow: MagicMock, model: BasicModel) -> None:
     """Ensure dataset source loader is invoked and result returned."""
     mock_dataset_source = MagicMock()
@@ -250,7 +250,7 @@ def test_retrieve_current_run_dataset(mock_mlflow: MagicMock, model: BasicModel)
     assert result == "mocked_dataset"
 
 
-@patch("src.mlops_course.model.basic_model.mlflow")
+@patch("src.hotel_reservation.model.basic_model.mlflow")
 def test_retrieve_current_run_metadata(mock_mlflow: MagicMock, model: BasicModel) -> None:
     """Ensure metrics and params dicts are extracted from run."""
     mock_run = MagicMock()
@@ -268,8 +268,8 @@ def test_retrieve_current_run_metadata(mock_mlflow: MagicMock, model: BasicModel
     assert params["max_iter"] == "100"
 
 
-@patch("src.mlops_course.model.basic_model.mlflow")
-@patch("src.mlops_course.model.basic_model.MlflowClient")
+@patch("src.hotel_reservation.model.basic_model.mlflow")
+@patch("src.hotel_reservation.model.basic_model.MlflowClient")
 def test_model_improved(mock_client_cls: MagicMock, mock_mlflow: MagicMock, model: BasicModel) -> None:
     """Return True when current model F1 is >= previous model F1."""
     model.metrics = {"f1_score": 0.8}
@@ -290,8 +290,8 @@ def test_model_improved(mock_client_cls: MagicMock, mock_mlflow: MagicMock, mode
     mock_mlflow.models.evaluate.assert_called_once()
 
 
-@patch("src.mlops_course.model.basic_model.mlflow")
-@patch("src.mlops_course.model.basic_model.MlflowClient")
+@patch("src.hotel_reservation.model.basic_model.mlflow")
+@patch("src.hotel_reservation.model.basic_model.MlflowClient")
 def test_model_not_improved(mock_client_cls: MagicMock, mock_mlflow: MagicMock, model: BasicModel) -> None:
     """Return False when current model F1 is < previous model F1."""
     model.metrics = {"f1_score": 0.6}

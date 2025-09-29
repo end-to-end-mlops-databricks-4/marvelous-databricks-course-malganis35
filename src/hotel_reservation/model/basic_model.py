@@ -24,8 +24,8 @@ from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_sc
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
-from mlops_course.utils.config import ProjectConfig, Tags
-from mlops_course.utils.timer import timeit
+from hotel_reservation.utils.config import ProjectConfig, Tags
+from hotel_reservation.utils.timer import timeit
 
 
 class Result:

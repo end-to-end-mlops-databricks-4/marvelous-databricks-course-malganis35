@@ -1,4 +1,4 @@
-"""Unit tests for src/mlops_course/data/uploader.py."""
+"""Unit tests for src/hotel_reservation/data/uploader.py."""
 
 import io
 import logging
@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 from loguru import logger
 
-from src.mlops_course.data import uploader
+from src.hotel_reservation.data import uploader
 
 
 # --------------------------------------------------------------------------- #

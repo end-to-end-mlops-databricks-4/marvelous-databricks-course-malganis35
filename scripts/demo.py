@@ -9,8 +9,8 @@ import sys
 import pretty_errors  # noqa: F401
 from loguru import logger
 
-from mlops_course.utils.databricks_utils import create_spark_session
-from mlops_course.utils.env_loader import load_environment
+from hotel_reservation.utils.databricks_utils import create_spark_session
+from hotel_reservation.utils.env_loader import load_environment
 
 if "ipykernel" in sys.modules:
     # Running interactively, mock arguments

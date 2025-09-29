@@ -1,4 +1,4 @@
-"""Unit tests for src/mlops_course/utils/env_loader.py."""
+"""Unit tests for src/hotel_reservation/utils/env_loader.py."""
 
 import logging
 import os
@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from loguru import logger
 
-from src.mlops_course.utils import env_loader
+from src.hotel_reservation.utils import env_loader
 
 
 # --------------------------------------------------------------------------- #

@@ -1,6 +1,19 @@
 [project]
-name = "mlops-course"
-description = "MLOps with Databricks course"
+name = "hotel-reservation"
+description = "Hotel Reservation Package for the MLOps with Databricks course"
+authors = [
+    { name = "Cao Tri DO", email = "caotri.do88@gmail.com" }
+]
+maintainers = [
+    { name = "Cao Tri DO", email = "caotri.do88@gmail.com" }
+]
+readme = "README.md"
+keywords = ["python", "databricks", "data-science", "mlops"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
 requires-python = ">=3.12, <3.13"
 dependencies = [
     "mlflow==3.1.1",
@@ -45,7 +58,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where =["src"]
-include = ["mlops_course"]
+include = ["hotel_reservation"]
 
 
 [tool.setuptools.dynamic]
@@ -118,3 +131,6 @@ changelog_message_template = """
 {{/each}}
 
 """
+
+[project.urls]
+homepage = "https://github.com/end-to-end-mlops-databricks-4/marvelous-databricks-course-malganis35"

@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from loguru import logger
 from mlflow.tracking import MlflowClient
 
-from mlops_course.utils.config import ProjectConfig
+from hotel_reservation.utils.config import ProjectConfig
 
 
 def main(env_file: str, config_file: str, environment: str, yes: bool = False) -> None:

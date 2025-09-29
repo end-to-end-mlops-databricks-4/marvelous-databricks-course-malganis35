@@ -103,7 +103,7 @@ task run-process-data
 ```
 malganis35_cohort4/
 │
-├── src/mlops_course/
+├── src/hotel_reservation/
 │   ├── data/              # Data ingestion and upload utilities
 │   ├── feature/           # Feature engineering and preprocessing
 │   ├── model/             # Model training and registry logic

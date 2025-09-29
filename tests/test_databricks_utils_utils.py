@@ -1,4 +1,4 @@
-"""Unit tests for src/mlops_course/utils/databricks_utils.py."""
+"""Unit tests for src/hotel_reservation/utils/databricks_utils.py."""
 
 import logging
 import os
@@ -30,7 +30,7 @@ sys.modules["databricks.connect"] = fake_connect_submodule
 
 
 # Import now that the fake module exists
-from src.mlops_course.utils import databricks_utils  # noqa: E402
+from src.hotel_reservation.utils import databricks_utils  # noqa: E402
 
 
 # --------------------------------------------------------------------------- #

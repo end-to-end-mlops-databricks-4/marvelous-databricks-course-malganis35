@@ -1,4 +1,4 @@
-"""Unit tests for the DataProcessor class in mlops_course.feature.data_processor."""
+"""Unit tests for the DataProcessor class in hotel_reservation.feature.data_processor."""
 
 from unittest.mock import MagicMock, patch
 
@@ -6,8 +6,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from mlops_course.feature.data_processor import DataProcessor
-from mlops_course.utils.config import ProjectConfig, Tags
+from hotel_reservation.feature.data_processor import DataProcessor
+from hotel_reservation.utils.config import ProjectConfig, Tags
 
 
 @pytest.fixture
@@ -103,8 +103,8 @@ def test_split_data_shapes(processor: DataProcessor) -> None:
     assert not train.equals(test)
 
 
-@patch("mlops_course.feature.data_processor.to_utc_timestamp")
-@patch("mlops_course.feature.data_processor.current_timestamp")
+@patch("hotel_reservation.feature.data_processor.to_utc_timestamp")
+@patch("hotel_reservation.feature.data_processor.current_timestamp")
 def test_save_to_catalog_calls_spark_write(
     mock_current_ts: MagicMock, mock_to_utc_ts: MagicMock, processor: DataProcessor
 ) -> None:

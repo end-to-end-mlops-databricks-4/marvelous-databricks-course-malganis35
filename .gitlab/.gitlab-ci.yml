@@ -123,10 +123,10 @@ build_docs:
   stage: docs
   before_script:
     - apt-get update && apt-get install -y git
-    - pip install -r ./docs/dq_text2sql/requirements.txt
+    - pip install -r ./docs/hotel_reservation/requirements.txt
     - pip install Sphinx sphinx-rtd-theme
   script:
-    - sphinx-build -b html ./docs/mlops_course public_tmp/
+    - sphinx-build -b html ./docs/hotel_reservation public_tmp/
   artifacts:
     paths:
       - public_tmp

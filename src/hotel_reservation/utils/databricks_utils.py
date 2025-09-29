@@ -4,7 +4,7 @@ Provides helper functions to create a Databricks-connected Spark session
 that works with both Free (Serverless) and Premium (Cluster) workspaces.
 
 Usage:
-    from mlops_course.utils.databricks_utils import create_spark_session
+    from hotel_reservation.utils.databricks_utils import create_spark_session
 
     spark = create_spark_session()
 """

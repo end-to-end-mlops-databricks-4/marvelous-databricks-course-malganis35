@@ -11,10 +11,10 @@ import pretty_errors  # noqa: F401
 import yaml
 from loguru import logger
 
-from mlops_course.feature.data_processor import DataProcessor
-from mlops_course.utils.config import ProjectConfig
-from mlops_course.utils.databricks_utils import create_spark_session
-from mlops_course.utils.env_loader import load_environment
+from hotel_reservation.feature.data_processor import DataProcessor
+from hotel_reservation.utils.config import ProjectConfig
+from hotel_reservation.utils.databricks_utils import create_spark_session
+from hotel_reservation.utils.env_loader import load_environment
 
 # COMMAND ----------
 
