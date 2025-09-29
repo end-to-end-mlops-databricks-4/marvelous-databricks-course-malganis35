@@ -96,6 +96,11 @@ tasks:
     cmds:
       - uv run --with gitingest gitingest .
 
+  databrickscfg:
+    desc: Show the databrickscfg file
+    cmds:
+      - cat ~/.databrickscfg
+
   help:
     desc: Print all tasks defined in the Taskfile
     cmds:
