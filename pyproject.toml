@@ -61,7 +61,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where =["src"]
-include = ["hotel_reservation"]
+include = ["mlops_course*"]
 
 
 [tool.setuptools.dynamic]
