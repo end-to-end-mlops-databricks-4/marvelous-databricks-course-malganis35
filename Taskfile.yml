@@ -53,6 +53,18 @@ tasks:
       - task: dev-install
       - uv run scripts/process_data.py
 
+  run_create_mlflow_workspace:
+    desc: Create the directory on Databricks for MLflow experiments
+    cmds:
+      - task: dev-install
+      - uv run scripts/run_create_mlflow_workspace.py
+
+  train_register_model:
+    desc: Run a basic experiment to train, log and register a model
+    cmds:
+      - task: dev-install
+      - uv run scripts/train_register_model.py
+
   lint:
     desc: Run pre-commit hooks
     cmds:
