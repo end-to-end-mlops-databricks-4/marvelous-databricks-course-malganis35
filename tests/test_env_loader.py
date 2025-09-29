@@ -1,23 +1,35 @@
-import os
+"""Unit tests for src/mlops_course/utils/env_loader.py."""
+
 import logging
+import os
 from pathlib import Path
+
 import pytest
 from loguru import logger
+
 from src.mlops_course.utils import env_loader
 
 
-# --- Connect Loguru to standard logging for caplog ---
+# --------------------------------------------------------------------------- #
+#                          Loguru → Standard Logging Bridge                    #
+# --------------------------------------------------------------------------- #
 class PropagateHandler(logging.Handler):
-    def emit(self, record):
+    """Propagate Loguru log records to Python's logging system."""
+
+    def emit(self, record: logging.LogRecord) -> None:
+        """Send a LogRecord to the standard logging handlers."""
         logging.getLogger(record.name).handle(record)
 
 
 logger.add(PropagateHandler(), format="{message}")
 
 
+# --------------------------------------------------------------------------- #
+#                                  Fixtures                                   #
+# --------------------------------------------------------------------------- #
 @pytest.fixture(autouse=True)
-def cleanup_env(monkeypatch):
-    """Nettoie les variables d'environnement entre les tests."""
+def cleanup_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Clean up environment variables between tests."""
     for key in ["PROFILE", "DATABRICKS_CONFIG_PROFILE", "DATABRICKS_HOST"]:
         monkeypatch.delenv(key, raising=False)
     yield
@@ -25,16 +37,20 @@ def cleanup_env(monkeypatch):
         monkeypatch.delenv(key, raising=False)
 
 
-def test_load_environment_with_existing_env_file(tmp_path, monkeypatch, caplog):
-    """Test that load_environment loads variables from a valid .env file."""
-    # Crée un faux .env
+# --------------------------------------------------------------------------- #
+#                                    Tests                                    #
+# --------------------------------------------------------------------------- #
+def test_load_environment_with_existing_env_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Ensure environment variables load correctly from a valid .env file."""
     env_file = tmp_path / ".env"
     env_file.write_text("PROFILE=my_profile\nDATABRICKS_HOST=https://dummy")
 
-    # Mock load_dotenv pour s'assurer qu'il est bien appelé
-    called = {}
+    called: dict[str, object] = {}
 
-    def fake_load_dotenv(dotenv_path, override):
+    def fake_load_dotenv(dotenv_path: Path, override: bool) -> None:
+        """Simulate loading .env file."""
         called["path"] = dotenv_path
         called["override"] = override
         os.environ["PROFILE"] = "my_profile"
@@ -45,43 +61,34 @@ def test_load_environment_with_existing_env_file(tmp_path, monkeypatch, caplog):
     with caplog.at_level(logging.INFO):
         env_loader.load_environment(str(env_file))
 
-    # Vérifie que load_dotenv a bien été appelé
+    # Verify load_dotenv call and side effects
     assert called["path"] == env_file
     assert called["override"] is True
-
-    # Vérifie les logs
     assert "Loaded environment" in caplog.text
     assert "Databricks profile set to" in caplog.text
-
-    # Vérifie les variables
     assert os.getenv("DATABRICKS_CONFIG_PROFILE") == "my_profile"
     assert os.getenv("DATABRICKS_HOST") == "https://dummy"
 
 
-def test_load_environment_with_missing_env_file(tmp_path, caplog):
-    """Test that a missing .env file logs a warning but still logs profile info."""
+def test_load_environment_with_missing_env_file(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
+    """Ensure missing .env file logs a warning but still reports profile info."""
     env_file = tmp_path / "missing.env"
 
-    # Capture tous les niveaux de logs (INFO et WARNING)
     with caplog.at_level(logging.INFO):
         env_loader.load_environment(str(env_file))
 
-    # Vérifie qu’un warning a bien été logué
     assert "not found" in caplog.text or "⚠️" in caplog.text
-
-    # Vérifie que le log d’info sur le profil apparaît aussi
     assert "Databricks profile set to" in caplog.text
-
-    # Vérifie qu’on logue aussi le host même si non défini
     assert "Databricks host" in caplog.text
 
 
-def test_load_environment_without_argument_uses_default(monkeypatch, tmp_path, caplog):
-    """Test default behavior when env_file argument is None."""
+def test_load_environment_without_argument_uses_default(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Ensure default behavior loads ENV_FILE or .env in project root."""
     default_env = tmp_path / ".env"
     default_env.write_text("PROFILE=default_profile")
 
-    # Force ENV_FILE dans les variables d'environnement
     monkeypatch.setenv("ENV_FILE", str(default_env))
 
     with caplog.at_level(logging.INFO):
@@ -91,12 +98,15 @@ def test_load_environment_without_argument_uses_default(monkeypatch, tmp_path, c
     assert os.getenv("DATABRICKS_CONFIG_PROFILE") == "default_profile"
 
 
-def test_load_environment_without_profile(monkeypatch, tmp_path, caplog):
-    """Test when .env file exists but no PROFILE is set."""
+def test_load_environment_without_profile(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Ensure .env file without PROFILE does not set DATABRICKS_CONFIG_PROFILE."""
     env_file = tmp_path / ".env"
     env_file.write_text("DATABRICKS_HOST=https://example")
 
-    def fake_load_dotenv(dotenv_path, override):
+    def fake_load_dotenv(dotenv_path: Path, override: bool) -> None:
+        """Mock dotenv loader for minimal .env file."""
         os.environ["DATABRICKS_HOST"] = "https://example"
 
     monkeypatch.setattr(env_loader, "load_dotenv", fake_load_dotenv)
@@ -104,6 +114,5 @@ def test_load_environment_without_profile(monkeypatch, tmp_path, caplog):
     with caplog.at_level(logging.INFO):
         env_loader.load_environment(str(env_file))
 
-    # PROFILE n'est pas défini → DATABRICKS_CONFIG_PROFILE doit être None
     assert os.getenv("DATABRICKS_CONFIG_PROFILE") is None
     assert "Databricks host: https://example" in caplog.text

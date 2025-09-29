@@ -1,48 +1,80 @@
+"""Unit tests for src/mlops_course/data/cleanup.py."""
+
 import logging
+from typing import Any
+
 import pytest
 from loguru import logger
-from src.mlops_course.data.cleanup import delete_volume, delete_schema
+
+from src.mlops_course.data.cleanup import delete_schema, delete_volume
 
 
-# 🔧 Connecte Loguru à logging standard pour que caplog puisse le capturer
+# --------------------------------------------------------------------------- #
+#                     Bridge Loguru → Standard Logging                        #
+# --------------------------------------------------------------------------- #
 class PropagateHandler(logging.Handler):
-    def emit(self, record):
+    """Forward Loguru logs to the standard logging system for pytest capture."""
+
+    def emit(self, record: logging.LogRecord) -> None:
+        """Emit a log record through the standard logging system."""
         logging.getLogger(record.name).handle(record)
 
 
 logger.add(PropagateHandler(), format="{message}")
 
 
+# --------------------------------------------------------------------------- #
+#                         Dummy API Simulations                               #
+# --------------------------------------------------------------------------- #
 class DummyVolumesAPI:
-    def __init__(self, should_fail=False):
-        self.should_fail = should_fail
-        self.deleted = None
+    """Simulated Databricks Volumes API for testing."""
 
-    def delete(self, full_name):
+    def __init__(self, should_fail: bool = False) -> None:
+        """Initialize with optional failure mode."""
+        self.should_fail = should_fail
+        self.deleted: Any = None
+
+    def delete(self, full_name: str) -> None:
+        """Simulate deleting a volume or raising an exception."""
         if self.should_fail:
             raise Exception("delete failed")
         self.deleted = full_name
 
 
 class DummySchemasAPI:
-    def __init__(self, should_fail=False):
-        self.should_fail = should_fail
-        self.deleted = None
+    """Simulated Databricks Schemas API for testing."""
 
-    def delete(self, full_name, force=False):
+    def __init__(self, should_fail: bool = False) -> None:
+        """Initialize with optional failure mode."""
+        self.should_fail = should_fail
+        self.deleted: Any = None
+
+    def delete(self, full_name: str, force: bool = False) -> None:
+        """Simulate deleting a schema or raising an exception."""
         if self.should_fail:
             raise Exception("delete failed")
         self.deleted = (full_name, force)
 
 
 class DummyWorkspaceClient:
-    def __init__(self, volume_fail=False, schema_fail=False):
+    """Simulated WorkspaceClient with schema and volume sub-APIs."""
+
+    def __init__(self, volume_fail: bool = False, schema_fail: bool = False) -> None:
+        """Initialize dummy client with configurable failure behavior."""
         self.volumes = DummyVolumesAPI(volume_fail)
         self.schemas = DummySchemasAPI(schema_fail)
 
 
+# --------------------------------------------------------------------------- #
+#                                   TESTS                                     #
+# --------------------------------------------------------------------------- #
 @pytest.mark.parametrize("should_fail", [False, True])
-def test_delete_volume_logs_and_calls(monkeypatch, caplog, should_fail):
+def test_delete_volume_logs_and_calls(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+    should_fail: bool,
+) -> None:
+    """Verify delete_volume logs success or failure and calls API correctly."""
     w = DummyWorkspaceClient(volume_fail=should_fail)
     catalog, schema, volume = "cat", "sch", "vol"
     full_name = f"{catalog}.{schema}.{volume}"
@@ -59,7 +91,12 @@ def test_delete_volume_logs_and_calls(monkeypatch, caplog, should_fail):
 
 
 @pytest.mark.parametrize("should_fail", [False, True])
-def test_delete_schema_logs_and_calls(monkeypatch, caplog, should_fail):
+def test_delete_schema_logs_and_calls(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+    should_fail: bool,
+) -> None:
+    """Verify delete_schema logs success or failure and calls API correctly."""
     w = DummyWorkspaceClient(schema_fail=should_fail)
     catalog, schema = "cat", "sch"
     full_name = f"{catalog}.{schema}"

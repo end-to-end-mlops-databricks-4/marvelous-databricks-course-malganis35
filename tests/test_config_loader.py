@@ -1,25 +1,37 @@
-import os
-import yaml
+"""Unit tests for src/mlops_course/data/config_loader.py."""
+
 import logging
-import pytest
+import os
 from pathlib import Path
+from typing import Any
+
+import pytest
+import yaml
 from loguru import logger
+
 from src.mlops_course.data import config_loader
 
 
-# --- Connect Loguru to standard logging for caplog ---
+# --------------------------------------------------------------------------- #
+#               Bridge Loguru → Standard Logging for pytest caplog            #
+# --------------------------------------------------------------------------- #
 class PropagateHandler(logging.Handler):
-    def emit(self, record):
+    """Forward Loguru logs to Python's logging system for pytest capture."""
+
+    def emit(self, record: logging.LogRecord) -> None:
+        """Emit a record to Python's logging system."""
         logging.getLogger(record.name).handle(record)
 
 
 logger.add(PropagateHandler(), format="{message}")
 
 
-# --- Fixture globale : nettoyage de l'environnement ---
+# --------------------------------------------------------------------------- #
+#                          Global pytest fixture                              #
+# --------------------------------------------------------------------------- #
 @pytest.fixture(autouse=True)
-def clean_env(monkeypatch):
-    """Supprime les variables Databricks avant chaque test."""
+def clean_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Remove Databricks-related env vars before and after each test."""
     for var in ["PROFILE", "DATABRICKS_HOST", "DATABRICKS_TOKEN"]:
         monkeypatch.delenv(var, raising=False)
     yield
@@ -27,17 +39,20 @@ def clean_env(monkeypatch):
         monkeypatch.delenv(var, raising=False)
 
 
-# ----------------- TESTS for load_env() -----------------
-
-def test_load_env_with_profile(monkeypatch, tmp_path, caplog):
-    """Test when PROFILE is set in the .env file."""
+# --------------------------------------------------------------------------- #
+#                         Tests for load_env()                                #
+# --------------------------------------------------------------------------- #
+def test_load_env_with_profile(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that load_env reads PROFILE from .env when provided."""
     env_file = tmp_path / ".env"
     env_file.write_text("PROFILE=my_profile\n")
 
-    def fake_load_dotenv(dotenv_path, override):
+    def fake_load_dotenv(dotenv_path: str, override: bool) -> None:
         os.environ["PROFILE"] = "my_profile"
 
-    def fake_dotenv_values(path):
+    def fake_dotenv_values(path: str) -> dict[str, str]:
         return {"PROFILE": "my_profile"}
 
     monkeypatch.setattr(config_loader, "load_dotenv", fake_load_dotenv)
@@ -51,20 +66,20 @@ def test_load_env_with_profile(monkeypatch, tmp_path, caplog):
     assert "Loaded env" in caplog.text
 
 
-def test_load_env_with_token(monkeypatch, tmp_path, caplog):
-    """Test when host/token are present (no profile)."""
+def test_load_env_with_token(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
+    """Test that load_env reads host/token when no PROFILE is defined."""
     env_file = tmp_path / ".env"
     env_file.write_text("DATABRICKS_HOST=https://dummy\nDATABRICKS_TOKEN=secret")
 
-    def fake_load_dotenv(dotenv_path, override):
+    def fake_load_dotenv(dotenv_path: str, override: bool) -> None:
         os.environ["DATABRICKS_HOST"] = "https://dummy"
         os.environ["DATABRICKS_TOKEN"] = "secret"
 
-    def fake_dotenv_values(path):
+    def fake_dotenv_values(path: str) -> dict[str, str | None]:
         return {
             "DATABRICKS_HOST": "https://dummy",
             "DATABRICKS_TOKEN": "secret",
-            "PROFILE": None,  # Important: s'assurer que PROFILE est None
+            "PROFILE": None,
         }
 
     monkeypatch.setattr(config_loader, "load_dotenv", fake_load_dotenv)
@@ -79,23 +94,25 @@ def test_load_env_with_token(monkeypatch, tmp_path, caplog):
     assert "Loaded env" in caplog.text
 
 
-def test_load_env_missing_file(tmp_path):
-    """Test when .env file does not exist."""
+def test_load_env_missing_file(tmp_path: Path) -> None:
+    """Test that load_env raises FileNotFoundError when .env file is missing."""
     env_file = tmp_path / "nope.env"
     with pytest.raises(FileNotFoundError):
         config_loader.load_env(str(env_file))
 
 
-def test_load_env_missing_vars(monkeypatch, tmp_path):
-    """Test when file exists but missing PROFILE and host/token."""
+def test_load_env_missing_vars(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Test that load_env raises OSError when no valid vars are found."""
     env_file = tmp_path / ".env"
     env_file.write_text("DATABRICKS_HOST=\nDATABRICKS_TOKEN=\n")
 
-    def fake_load_dotenv(dotenv_path, override):
+    def fake_load_dotenv(dotenv_path: str, override: bool) -> None:
+        """Simulate loading empty environment variables."""
         pass
 
-    def fake_dotenv_values(path):
-        return {}  # Aucun host/token/profile
+    def fake_dotenv_values(path: str) -> dict[str, str]:
+        """Return empty env dict (no profile/host/token)."""
+        return {}
 
     monkeypatch.setattr(config_loader, "load_dotenv", fake_load_dotenv)
     monkeypatch.setattr(config_loader, "dotenv_values", fake_dotenv_values)
@@ -106,11 +123,12 @@ def test_load_env_missing_vars(monkeypatch, tmp_path):
     assert "Missing PROFILE" in str(excinfo.value)
 
 
-# ----------------- TESTS for load_project_config() -----------------
-
-def test_load_project_config_valid(tmp_path):
-    """Test normal YAML loading with environment present."""
-    yaml_content = {
+# --------------------------------------------------------------------------- #
+#                     Tests for load_project_config()                         #
+# --------------------------------------------------------------------------- #
+def test_load_project_config_valid(tmp_path: Path) -> None:
+    """Test that YAML config loads correctly when env exists."""
+    yaml_content: dict[str, Any] = {
         "dev": {"catalog_name": "cat_dev", "schema_name": "sch_dev"},
         "global_setting": {"owner": "team-mlops"},
     }
@@ -124,9 +142,9 @@ def test_load_project_config_valid(tmp_path):
     assert "dev" not in global_config
 
 
-def test_load_project_config_missing_env(tmp_path):
-    """Test ValueError when environment not found."""
-    yaml_content = {"dev": {"x": 1}}
+def test_load_project_config_missing_env(tmp_path: Path) -> None:
+    """Test that ValueError is raised when specified environment is missing."""
+    yaml_content: dict[str, Any] = {"dev": {"x": 1}}
     config_file = tmp_path / "config.yml"
     config_file.write_text(yaml.safe_dump(yaml_content))
 
