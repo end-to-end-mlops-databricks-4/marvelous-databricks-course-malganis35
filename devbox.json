@@ -13,7 +13,8 @@
     "htop@latest",
     "pandoc@latest",
     "tig@latest",
-    "jq@latest"
+    "jq@latest",
+    "act@latest"
   ],
   "shell": {
     "init_hook": [
