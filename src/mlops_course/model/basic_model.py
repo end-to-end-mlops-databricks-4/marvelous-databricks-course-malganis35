@@ -27,9 +27,14 @@ from sklearn.preprocessing import OneHotEncoder
 from mlops_course.utils.config import ProjectConfig, Tags
 from mlops_course.utils.timer import timeit
 
+
 class Result:
-    def __init__(self):
+    """Container for storing model evaluation metrics."""
+
+    def __init__(self) -> None:
+        """Initialize metrics dictionary."""
         self.metrics = {}
+
 
 class BasicModel:
     """A basic model class for hotel_reservation prediction using LogisticRegression.
@@ -79,12 +84,12 @@ class BasicModel:
         self.X_test = self.test_set[self.num_features + self.cat_features]
         self.y_test = self.test_set[self.target]
         self.eval_data = self.test_set[self.num_features + self.cat_features + [self.target]]
-        
+
         train_delta_table = DeltaTable.forName(self.spark, f"{self.catalog_name}.{self.schema_name}.{self.train_table}")
         self.train_data_version = str(train_delta_table.history().select("version").first()[0])
         test_delta_table = DeltaTable.forName(self.spark, f"{self.catalog_name}.{self.schema_name}.{self.test_table}")
         self.test_data_version = str(test_delta_table.history().select("version").first()[0])
-        
+
         logger.info("✅ Data successfully loaded.")
 
     @timeit
@@ -121,32 +126,28 @@ class BasicModel:
 
             # Log the model
             signature = infer_signature(model_input=self.X_train, model_output=y_pred)
-            dataset = mlflow.data.from_spark(
-                self.train_set_spark,
-                table_name=f"{self.catalog_name}.{self.schema_name}.{self.train_table}",
-                version=self.data_version,
-            )
-            
+
             train_dataset = mlflow.data.from_spark(
                 self.train_set_spark,
                 table_name=f"{self.catalog_name}.{self.schema_name}.{self.train_table}",
                 version=self.data_version,
             )
             mlflow.log_input(train_dataset, context="training")
-            
+
             test_dataset = mlflow.data.from_spark(
                 self.test_set_spark,
                 table_name=f"{self.catalog_name}.{self.schema_name}.{self.test_table}",
                 version=self.data_version,
             )
             mlflow.log_input(test_dataset, context="testing")
-            
+
             mlflow.sklearn.log_model(
-                sk_model=self.pipeline, 
-                artifact_path=f"{self.model_type}-pipeline-model", signature=signature,
+                sk_model=self.pipeline,
+                artifact_path=f"{self.model_type}-pipeline-model",
+                signature=signature,
                 input_example=self.X_test[0:1],
             )
-            
+
             # Evaluate classification metrics
             result = Result()
             result.metrics["accuracy"] = accuracy_score(self.y_test, y_pred)
@@ -154,10 +155,10 @@ class BasicModel:
             result.metrics["recall"] = recall_score(self.y_test, y_pred, average="weighted", zero_division=0)
             result.metrics["f1_score"] = f1_score(self.y_test, y_pred, average="weighted", zero_division=0)
 
-            logger.info(f"📊 Accuracy: {result.metrics["accuracy"]}")
-            logger.info(f"📊 Precision: {result.metrics["precision"]}")
-            logger.info(f"📊 Recall: {result.metrics["recall"]}")
-            logger.info(f"📊 F1 Score: {result.metrics["f1_score"]}")
+            logger.info(f"📊 Accuracy: {result.metrics['accuracy']}")
+            logger.info(f"📊 Precision: {result.metrics['precision']}")
+            logger.info(f"📊 Recall: {result.metrics['recall']}")
+            logger.info(f"📊 F1 Score: {result.metrics['f1_score']}")
 
             # Log parameters and metrics
             mlflow.log_param("model_type", "Logistic Regression with preprocessing")
@@ -166,7 +167,7 @@ class BasicModel:
             mlflow.log_metric("precision", result.metrics["precision"])
             mlflow.log_metric("recall", result.metrics["recall"])
             mlflow.log_metric("f1_score", result.metrics["f1_score"])
-            
+
             self.metrics = result.metrics
 
     @timeit
@@ -195,7 +196,7 @@ class BasicModel:
             return True
         else:
             logger.info("⛔ Current model does not improve over latest. Returning False.")
-            return False            
+            return False
 
     @timeit
     def register_model(self) -> None:

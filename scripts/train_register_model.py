@@ -21,12 +21,15 @@ from mlops_course.utils.databricks_utils import create_spark_session
 if "ipykernel" in sys.modules:
     # Running interactively, mock arguments
     class Args:
+        """Mock arguments used when running interactively (e.g. in Jupyter)."""
+
         root_path = ".."
         config = "project_config.yml"
         env = ".env"
         git_sha = "abcd12345"
         job_run_id = "local_test_run"
         branch = "dev"
+
     args = Args()
 else:
     # Normal CLI usage
@@ -95,5 +98,5 @@ if model_improved:
     logger.info("Model registration completed.")
 else:
     logger.info("Model not registered as it did not improve.")
-    
+
 # COMMAND ----------
