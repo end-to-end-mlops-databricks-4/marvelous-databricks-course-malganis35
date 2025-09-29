@@ -4,10 +4,10 @@
 
 # %% Databricks notebook source
 import argparse
+import sys
+
 import pretty_errors  # noqa: F401
 from loguru import logger
-import os
-import sys
 
 from mlops_course.utils.databricks_utils import create_spark_session
 from mlops_course.utils.env_loader import load_environment

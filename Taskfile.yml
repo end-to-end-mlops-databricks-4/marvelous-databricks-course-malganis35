@@ -33,7 +33,6 @@ tasks:
         - rm -rf .venv
         - task: create-venv
         - uv sync --extra test
-        # - source .venv/Scripts/activate && uv sync --extra test # Activate and sync
 
   demo:
     desc: Test on a demo script

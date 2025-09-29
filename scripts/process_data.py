@@ -5,11 +5,11 @@
 # %% Databricks notebook source
 
 import argparse
+import sys
+
 import pretty_errors  # noqa: F401
 import yaml
 from loguru import logger
-import os
-import sys
 
 from mlops_course.feature.data_processor import DataProcessor
 from mlops_course.utils.config import ProjectConfig
