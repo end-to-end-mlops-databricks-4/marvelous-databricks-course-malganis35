@@ -23,15 +23,11 @@ tasks:
   dev-install:
     desc: Sync project dependencies with optionals
     cmds:
-      - rm -rf .venv
-      - task: create-venv
       - uv sync --extra dev
 
   test-install:
     desc: Sync only test dependencies
     cmds:
-        - rm -rf .venv
-        - task: create-venv
         - uv sync --extra test
 
   demo:
@@ -101,6 +97,13 @@ tasks:
       - rm -rf .venv/
       - rm -rf _artifact/ .devbox/ .pytest_cache/ .ruff_cache/ node_modules/
       - rm .coverage package.json package-lock.json digest.txt zz_git-diff.txt
+
+  clean-databricks:
+    desc: Clean all data, schema and experiments in Databricks
+    cmds:
+      - task: dev-install
+      - uv run scripts/run_cleanup_mlflow_experiments.py
+      - uv run scripts/run_cleanup_data.py
 
   digest:
     desc: Make a git digest of the repository
