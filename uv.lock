@@ -963,8 +963,6 @@ source = { editable = "." }
 dependencies = [
     { name = "cffi" },
     { name = "cloudpickle" },
-    { name = "databricks-cli" },
-    { name = "databricks-connect" },
     { name = "databricks-sdk" },
     { name = "kagglehub" },
     { name = "lightgbm" },
@@ -983,6 +981,7 @@ dependencies = [
 [package.optional-dependencies]
 dev = [
     { name = "commitizen" },
+    { name = "databricks-cli" },
     { name = "databricks-connect" },
     { name = "ipykernel" },
     { name = "pip" },
@@ -1001,8 +1000,7 @@ requires-dist = [
     { name = "cffi", specifier = "==1.17.1" },
     { name = "cloudpickle", specifier = "==3.1.1" },
     { name = "commitizen", marker = "extra == 'dev'", specifier = ">=4.9.1" },
-    { name = "databricks-cli", specifier = ">=0.18.0" },
-    { name = "databricks-connect", specifier = ">=16.3.5" },
+    { name = "databricks-cli", marker = "extra == 'dev'", specifier = ">=0.18.0" },
     { name = "databricks-connect", marker = "extra == 'dev'", specifier = ">=16.0,<17" },
     { name = "databricks-sdk", specifier = "==0.55.0" },
     { name = "ipykernel", marker = "extra == 'dev'", specifier = ">=6.29.5,<7" },
