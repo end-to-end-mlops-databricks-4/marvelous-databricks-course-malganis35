@@ -8,7 +8,6 @@ import mlflow
 import pretty_errors  # noqa: F401
 from dotenv import load_dotenv
 from loguru import logger
-from pyspark.sql import SparkSession
 
 from mlops_course.marvelous.common import is_databricks
 from mlops_course.model.basic_model import BasicModel
@@ -16,16 +15,16 @@ from mlops_course.utils.config import ProjectConfig, Tags
 from mlops_course.utils.databricks_utils import create_spark_session
 
 ## COMMAND ----------
-# Global user setup 
+# Global user setup
 
 ENV_FILE = "./.env"
 CONFIG_FILE = "./project_config.yml"
-ENVIRONMENT_CHOICE="dev"
+ENVIRONMENT_CHOICE = "dev"
 
 # COMMAND ----------
 if not is_databricks():
     load_dotenv(dotenv_path=ENV_FILE)
-    profile = os.getenv("PROFILE") # os.environ["PROFILE"]
+    profile = os.getenv("PROFILE")  # os.environ["PROFILE"]
     mlflow.set_tracking_uri(f"databricks://{profile}")
     mlflow.set_registry_uri(f"databricks-uc://{profile}")
 

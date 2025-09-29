@@ -1,20 +1,21 @@
 # Run the code :
 # uv run scripts/run_create_mlflow_workspace.py --env-file ./.env --config-file ./project_config.yml --environment dev
 
-import os
 import argparse
-from dotenv import load_dotenv
+import os
+
+import mlflow
 from databricks.sdk import WorkspaceClient
 from databricks.sdk.errors.platform import ResourceDoesNotExist
-import mlflow
-from mlflow.tracking import MlflowClient
-from mlops_course.utils.config import ProjectConfig
+from dotenv import load_dotenv
 from loguru import logger
+from mlflow.tracking import MlflowClient
+
+from mlops_course.utils.config import ProjectConfig
 
 
 def main(env_file: str, config_file: str, environment: str) -> None:
-    """Main entry point to prepare and set an MLflow experiment on Databricks."""
-
+    """Prepare and set up an MLflow experiment on Databricks."""
     # Load environment variables from .env file
     load_dotenv(dotenv_path=env_file)
 

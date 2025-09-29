@@ -1,18 +1,19 @@
 # Run this script
 # uv run scripts/run_cleanup_mlflow_experiments.py --env-file ./.env --config-file ./project_config.yml --environment dev
 
-import os
 import argparse
-from dotenv import load_dotenv
+import os
+
 import mlflow
-from mlflow.tracking import MlflowClient
-from mlops_course.utils.config import ProjectConfig
+from dotenv import load_dotenv
 from loguru import logger
+from mlflow.tracking import MlflowClient
+
+from mlops_course.utils.config import ProjectConfig
 
 
 def main(env_file: str, config_file: str, environment: str, yes: bool = False) -> None:
     """Delete (mark as deleted) MLflow experiments defined in project_config.yml on Databricks."""
-
     # Load environment variables from .env file
     load_dotenv(dotenv_path=env_file)
 
