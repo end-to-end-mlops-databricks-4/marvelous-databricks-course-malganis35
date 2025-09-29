@@ -38,21 +38,25 @@ tasks:
   demo:
     desc: Test on a demo script
     cmds:
+      - task: dev-install
       - uv run scripts/demo.py
 
   run-upload-data:
     desc: Test on a demo script
     cmds:
+      - task: dev-install
       - uv run scripts/run_upload_data.py --env dev --env-file .env --config project_config.yml
 
   run-process-data:
     desc: Test on a pre-processing script
     cmds:
+      - task: dev-install
       - uv run scripts/process_data.py
 
   lint:
     desc: Run pre-commit hooks
     cmds:
+      - task: dev-install
       - uv run pre-commit run --all-files
 
   test:
