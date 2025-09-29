@@ -17,8 +17,8 @@ from mlops_course.utils.config import ProjectConfig
 def main(env_file: str, config_file: str, environment: str) -> None:
     """Prepare and set up an MLflow experiment on Databricks."""
     # Load environment variables from .env file
-    load_dotenv(dotenv_path=env_file)
-
+    load_dotenv(dotenv_path=env_file, override=True)
+    
     # ✅ Retrieve the profile only from .env (ignore CLI args)
     profile = os.getenv("PROFILE")
     if not profile:
@@ -31,6 +31,10 @@ def main(env_file: str, config_file: str, environment: str) -> None:
     config = ProjectConfig.from_yaml(config_path=config_file, env=environment)
     logger.info(f"Loaded project configuration for environment: {environment}")
 
+    # ✅ Point MLflow tracking to Databricks
+    mlflow.set_tracking_uri(f"databricks://{profile}")
+    logger.debug(f"MLflow tracking URI set to: {mlflow.get_tracking_uri()}")
+    
     # Connect to Databricks
     w = WorkspaceClient(profile=profile)
     client = MlflowClient()

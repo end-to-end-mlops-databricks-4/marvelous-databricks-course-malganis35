@@ -15,7 +15,7 @@ from mlops_course.utils.config import ProjectConfig
 def main(env_file: str, config_file: str, environment: str, yes: bool = False) -> None:
     """Delete (mark as deleted) MLflow experiments defined in project_config.yml on Databricks."""
     # Load environment variables from .env file
-    load_dotenv(dotenv_path=env_file)
+    load_dotenv(dotenv_path=env_file, override=True)
 
     # ✅ Retrieve the profile only from .env (ignore CLI args)
     profile = os.getenv("PROFILE")
