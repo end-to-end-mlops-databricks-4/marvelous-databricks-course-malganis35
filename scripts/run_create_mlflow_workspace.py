@@ -18,7 +18,7 @@ def main(env_file: str, config_file: str, environment: str) -> None:
     """Prepare and set up an MLflow experiment on Databricks."""
     # Load environment variables from .env file
     load_dotenv(dotenv_path=env_file, override=True)
-    
+
     # ✅ Retrieve the profile only from .env (ignore CLI args)
     profile = os.getenv("PROFILE")
     if not profile:
@@ -34,7 +34,7 @@ def main(env_file: str, config_file: str, environment: str) -> None:
     # ✅ Point MLflow tracking to Databricks
     mlflow.set_tracking_uri(f"databricks://{profile}")
     logger.debug(f"MLflow tracking URI set to: {mlflow.get_tracking_uri()}")
-    
+
     # Connect to Databricks
     w = WorkspaceClient(profile=profile)
     client = MlflowClient()

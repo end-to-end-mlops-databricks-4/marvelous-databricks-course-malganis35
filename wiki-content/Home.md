@@ -2,7 +2,7 @@
 
 Welcome to my project! This contains supplementary information, troubleshooting guides, and community contributions.
 
-A full documentation of this project has been made in Sphinx and is available: 
+A full documentation of this project has been made in Sphinx and is available:
 https://docs.mlops.caotri.dofavier.fr/
 
 ## 📚 Course Structure

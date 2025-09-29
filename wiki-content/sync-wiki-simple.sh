@@ -46,13 +46,13 @@ create_wiki_from_lecture() {
     local wiki_name=$2
     local lecture_file="../lectures/lecture-${lecture_num}.md"
     local wiki_file="${wiki_name}.md"
-    
+
     if [ -f "$lecture_file" ]; then
         echo "📝 Creating ${wiki_name} from lecture-${lecture_num}..."
-        
+
         # Just remove the Jekyll front matter, keep everything else
         sed '1,/^---$/d; /^---$/d' "$lecture_file" > "$wiki_file"
-        
+
     else
         echo "⚠️  Lecture file not found: $lecture_file"
     fi
