@@ -17,13 +17,13 @@ from mlops_course.utils.databricks_utils import create_spark_session
 ## COMMAND ----------
 # Global user setup
 
-ENV_FILE = "./.env"
-CONFIG_FILE = "./project_config.yml"
+ENV_FILE = "../.env"
+CONFIG_FILE = "../project_config.yml"
 ENVIRONMENT_CHOICE = "dev"
 
 # COMMAND ----------
 if not is_databricks():
-    load_dotenv(dotenv_path=ENV_FILE)
+    load_dotenv(dotenv_path=ENV_FILE, override=True)
     profile = os.getenv("PROFILE")  # os.environ["PROFILE"]
     mlflow.set_tracking_uri(f"databricks://{profile}")
     mlflow.set_registry_uri(f"databricks-uc://{profile}")
@@ -52,13 +52,24 @@ basic_model.prepare_features()
 logger.info("Loaded data, prepared features.")
 
 # COMMAND ----------
-# Train + log the model (runs everything including MLflow logging)
+# Train
 basic_model.train()
-basic_model.log_model()
 logger.info("Model training completed.")
 
 # COMMAND ----------
-basic_model.register_model()
-logger.info("Registered model")
+# log the model in MLFlow Experiment
+basic_model.log_model()
+logger.info("Model is logged in MLFlow Experiments.")
 
+# COMMAND ----------
+# Evaluate old and new model
+model_improved = basic_model.model_improved()
+logger.info("Model evaluation completed, model improved: %s", model_improved)
+
+# COMMAND ----------
+if model_improved:
+    # Register the model
+    basic_model.register_model()
+    logger.info("Model registration completed.")
+    
 # COMMAND ----------

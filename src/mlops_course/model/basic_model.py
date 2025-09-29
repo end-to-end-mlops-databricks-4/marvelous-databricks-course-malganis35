@@ -12,6 +12,7 @@ catalog_name, schema_name → Database schema names for Databricks tables.
 import mlflow
 import numpy as np
 import pandas as pd
+from delta.tables import DeltaTable
 from loguru import logger
 from mlflow import MlflowClient
 from mlflow.data.dataset_source import DatasetSource
@@ -26,6 +27,9 @@ from sklearn.preprocessing import OneHotEncoder
 from mlops_course.utils.config import ProjectConfig, Tags
 from mlops_course.utils.timer import timeit
 
+class Result:
+    def __init__(self):
+        self.metrics = {}
 
 class BasicModel:
     """A basic model class for hotel_reservation prediction using LogisticRegression.
@@ -66,13 +70,21 @@ class BasicModel:
         logger.info("Loading data from Databricks tables...")
         self.train_set_spark = self.spark.table(f"{self.catalog_name}.{self.schema_name}.{self.train_table}")
         self.train_set = self.train_set_spark.toPandas()
-        self.test_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.{self.test_table}").toPandas()
+        self.test_set_spark = self.spark.table(f"{self.catalog_name}.{self.schema_name}.{self.test_table}")
+        self.test_set = self.test_set_spark.toPandas()
         self.data_version = "0"  # describe history -> retrieve
 
         self.X_train = self.train_set[self.num_features + self.cat_features]
         self.y_train = self.train_set[self.target]
         self.X_test = self.test_set[self.num_features + self.cat_features]
         self.y_test = self.test_set[self.target]
+        self.eval_data = self.test_set[self.num_features + self.cat_features + [self.target]]
+        
+        train_delta_table = DeltaTable.forName(self.spark, f"{self.catalog_name}.{self.schema_name}.{self.train_table}")
+        self.train_data_version = str(train_delta_table.history().select("version").first()[0])
+        test_delta_table = DeltaTable.forName(self.spark, f"{self.catalog_name}.{self.schema_name}.{self.test_table}")
+        self.test_data_version = str(test_delta_table.history().select("version").first()[0])
+        
         logger.info("✅ Data successfully loaded.")
 
     @timeit
@@ -107,25 +119,6 @@ class BasicModel:
 
             y_pred = self.pipeline.predict(self.X_test)
 
-            # Evaluate classification metrics
-            accuracy = accuracy_score(self.y_test, y_pred)
-            precision = precision_score(self.y_test, y_pred, average="weighted", zero_division=0)
-            recall = recall_score(self.y_test, y_pred, average="weighted", zero_division=0)
-            f1 = f1_score(self.y_test, y_pred, average="weighted", zero_division=0)
-
-            logger.info(f"📊 Accuracy: {accuracy}")
-            logger.info(f"📊 Precision: {precision}")
-            logger.info(f"📊 Recall: {recall}")
-            logger.info(f"📊 F1 Score: {f1}")
-
-            # Log parameters and metrics
-            mlflow.log_param("model_type", "Logistic Regression with preprocessing")
-            mlflow.log_params(self.parameters)
-            mlflow.log_metric("accuracy", accuracy)
-            mlflow.log_metric("precision", precision)
-            mlflow.log_metric("recall", recall)
-            mlflow.log_metric("f1_score", f1)
-
             # Log the model
             signature = infer_signature(model_input=self.X_train, model_output=y_pred)
             dataset = mlflow.data.from_spark(
@@ -133,10 +126,76 @@ class BasicModel:
                 table_name=f"{self.catalog_name}.{self.schema_name}.{self.train_table}",
                 version=self.data_version,
             )
-            mlflow.log_input(dataset, context="training")
-            mlflow.sklearn.log_model(
-                sk_model=self.pipeline, artifact_path=f"{self.model_type}-pipeline-model", signature=signature
+            
+            train_dataset = mlflow.data.from_spark(
+                self.train_set_spark,
+                table_name=f"{self.catalog_name}.{self.schema_name}.{self.train_table}",
+                version=self.data_version,
             )
+            mlflow.log_input(train_dataset, context="training")
+            
+            test_dataset = mlflow.data.from_spark(
+                self.test_set_spark,
+                table_name=f"{self.catalog_name}.{self.schema_name}.{self.test_table}",
+                version=self.data_version,
+            )
+            mlflow.log_input(test_dataset, context="testing")
+            
+            mlflow.sklearn.log_model(
+                sk_model=self.pipeline, 
+                artifact_path=f"{self.model_type}-pipeline-model", signature=signature,
+                input_example=self.X_test[0:1],
+            )
+            
+            # Evaluate classification metrics
+            result = Result()
+            result.metrics["accuracy"] = accuracy_score(self.y_test, y_pred)
+            result.metrics["precision"] = precision_score(self.y_test, y_pred, average="weighted", zero_division=0)
+            result.metrics["recall"] = recall_score(self.y_test, y_pred, average="weighted", zero_division=0)
+            result.metrics["f1_score"] = f1_score(self.y_test, y_pred, average="weighted", zero_division=0)
+
+            logger.info(f"📊 Accuracy: {result.metrics["accuracy"]}")
+            logger.info(f"📊 Precision: {result.metrics["precision"]}")
+            logger.info(f"📊 Recall: {result.metrics["recall"]}")
+            logger.info(f"📊 F1 Score: {result.metrics["f1_score"]}")
+
+            # Log parameters and metrics
+            mlflow.log_param("model_type", "Logistic Regression with preprocessing")
+            mlflow.log_params(self.parameters)
+            mlflow.log_metric("accuracy", result.metrics["accuracy"])
+            mlflow.log_metric("precision", result.metrics["precision"])
+            mlflow.log_metric("recall", result.metrics["recall"])
+            mlflow.log_metric("f1_score", result.metrics["f1_score"])
+            
+            self.metrics = result.metrics
+
+    @timeit
+    def model_improved(self) -> bool:
+        """Evaluate the model performance on the test set.
+
+        Compares the current model with the latest registered model using F1-score.
+        :return: True if the current model performs better, False otherwise.
+        """
+        client = MlflowClient()
+        latest_model_version = client.get_model_version_by_alias(name=self.model_name, alias="latest-model")
+        latest_model_uri = f"models:/{latest_model_version.model_id}"
+
+        result = mlflow.models.evaluate(
+            latest_model_uri,
+            self.eval_data,
+            targets=self.config.target,
+            model_type="classifier",
+            evaluators=["default"],
+        )
+        metrics_old = result.metrics
+        logger.info(f"Latest model F1-score: {metrics_old['f1_score']}")
+        logger.info(f"Current model F1-score: {self.metrics['f1_score']}")
+        if self.metrics["f1_score"] >= metrics_old["f1_score"]:
+            logger.info("💥 Current model performs better. Returning True.")
+            return True
+        else:
+            logger.info("⛔ Current model does not improve over latest. Returning False.")
+            return False            
 
     @timeit
     def register_model(self) -> None:
