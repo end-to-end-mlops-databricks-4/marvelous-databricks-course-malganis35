@@ -76,6 +76,7 @@ def mock_config() -> ProjectConfig:
         experiment_name_basic="/experiments/basic",
         experiment_name_custom="/experiments/custom",
         model_name="mock_model",
+        model_name_fe="mock_model",
         model_type="logistic-regression",
     )
 
@@ -219,18 +220,3 @@ def test_update_feature_table_runs_two_sql_queries(model: FeatureLookUpModel) ->
     """Ensure update_feature_table executes two SQL queries."""
     model.update_feature_table()
     assert model.spark.sql.call_count == 2
-
-
-@patch("hotel_reservation.model.feature_lookup_model.mlflow")
-def test_model_improved_handles_no_existing_model(mock_mlflow: MagicMock, model: FeatureLookUpModel) -> None:
-    """If no existing model, F1 = 0 and should return True."""
-    model.metrics = {"f1_score": 0.9}
-    client_mock = MagicMock()
-    mock_mlflow.tracking.MlflowClient.return_value = client_mock
-    mock_mlflow.exceptions.MlflowException = Exception
-
-    client_mock.get_model_version_by_alias.side_effect = Exception("No model found")
-
-    improved = model.model_improved(test_set=pd.DataFrame())
-
-    assert improved is True

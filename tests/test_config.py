@@ -20,6 +20,7 @@ def config_yaml_content() -> dict[str, Any]:
         "experiment_name_custom": "/exp/custom",
         "experiment_name_fe": "/exp/fe",  # ✅ ajouté ici
         "model_name": "test_model",
+        "model_name_fe": "test_model",
         "model_type": "logistic-regression",
         "num_features": ["f1", "f2"],
         "cat_features": ["c1"],
