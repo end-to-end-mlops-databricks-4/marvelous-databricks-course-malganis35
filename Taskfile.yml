@@ -67,6 +67,12 @@ tasks:
       - task: dev-install
       - uv run scripts/train_register_fe_model.py --git_sha "abcd12345" "--job_run_id" local_test_run --branch dev
 
+  deploy_model_serving:
+    desc: Deploy a model serving endpoint in Databricks from the model
+    cmds:
+      - task: dev-install
+      - uv run scripts/deploy_model_serving.py --branch dev
+
   lint:
     desc: Run pre-commit hooks
     cmds:
