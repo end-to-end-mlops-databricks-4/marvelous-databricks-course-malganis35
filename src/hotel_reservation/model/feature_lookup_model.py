@@ -1,19 +1,18 @@
 """FeatureLookUp model implementation."""
 
-from datetime import datetime
-
 import mlflow
 from databricks import feature_engineering
 from databricks.feature_engineering import FeatureFunction, FeatureLookup
 from databricks.sdk import WorkspaceClient
-# from lightgbm import LGBMRegressor
-from sklearn.linear_model import LogisticRegression
 from loguru import logger
 from mlflow.models import infer_signature
 from mlflow.tracking import MlflowClient
 from pyspark.sql import DataFrame, SparkSession
-from pyspark.sql import functions as F
 from sklearn.compose import ColumnTransformer
+
+# from lightgbm import LGBMRegressor
+from sklearn.linear_model import LogisticRegression
+
 # from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 from sklearn.pipeline import Pipeline
@@ -54,7 +53,7 @@ class FeatureLookUpModel:
         self.test_table = self.config.test_table
         self.model_type = self.config.model_type
         self.model_name = f"{self.catalog_name}.{self.schema_name}.{self.config.model_name}"
-        
+
         # Define table names and function name
         self.feature_table_name = f"{self.catalog_name}.{self.schema_name}.{self.feature_table_name}"
         self.feature_function_name = f"{self.catalog_name}.{self.schema_name}.{self.feature_function_name}"
@@ -62,7 +61,7 @@ class FeatureLookUpModel:
         # MLflow configuration
         self.experiment_name = self.config.experiment_name_fe
         self.tags = tags.dict()
-        
+
     @timeit
     def create_feature_table(self) -> None:
         """Create or update the hotel_reservations_features table and populate it.
@@ -110,7 +109,9 @@ class FeatureLookUpModel:
         )
         self.test_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.{self.test_table}").toPandas()
 
-        self.train_set = self.train_set.withColumn("no_of_weekend_nights", self.train_set["no_of_weekend_nights"].cast("int"))
+        self.train_set = self.train_set.withColumn(
+            "no_of_weekend_nights", self.train_set["no_of_weekend_nights"].cast("int")
+        )
         self.train_set = self.train_set.withColumn("no_of_week_nights", self.train_set["no_of_week_nights"].cast("int"))
         self.train_set = self.train_set.withColumn("Booking_ID", self.train_set["Booking_ID"].cast("string"))
 
@@ -134,16 +135,16 @@ class FeatureLookUpModel:
                 FeatureFunction(
                     udf_name=self.feature_function_name,
                     output_name="total_nights",
-                    input_bindings={"no_of_weekend_nights": "no_of_weekend_nights", 
-                                    "no_of_week_nights": "no_of_week_nights", 
-                                    },
+                    input_bindings={
+                        "no_of_weekend_nights": "no_of_weekend_nights",
+                        "no_of_week_nights": "no_of_week_nights",
+                    },
                 ),
             ],
             exclude_columns=["update_timestamp_utc"],
         )
 
         self.training_df = self.training_set.load_df().toPandas()
-        current_year = datetime.now().year
         self.test_set["total_nights"] = self.test_set["no_of_weekend_nights"] + self.test_set["no_of_week_nights"]
 
         self.X_train = self.training_df[self.num_features + self.cat_features + ["total_nights"]]
@@ -165,18 +166,19 @@ class FeatureLookUpModel:
             transformers=[("cat", OneHotEncoder(handle_unknown="ignore"), self.cat_features)], remainder="passthrough"
         )
 
-        pipeline = Pipeline(steps=[("preprocessor", preprocessor), ("classifier", LogisticRegression(**self.parameters))])
+        pipeline = Pipeline(
+            steps=[("preprocessor", preprocessor), ("classifier", LogisticRegression(**self.parameters))]
+        )
 
         mlflow.set_experiment(self.experiment_name)
 
         with mlflow.start_run(tags=self.tags) as run:
-            
             self.run_id = run.info.run_id
-            
+
             logger.debug("Start the model ...")
             pipeline.fit(self.X_train, self.y_train)
             y_pred = pipeline.predict(self.X_test)
-            
+
             logger.debug("Log the model ...")
             # Log the model
             signature = infer_signature(model_input=self.X_train, model_output=y_pred)
@@ -193,7 +195,7 @@ class FeatureLookUpModel:
                 source=f"{self.catalog_name}.{self.schema_name}.{self.test_table}",
             )
             mlflow.log_input(test_dataset, context="testing")
-            
+
             self.fe.log_model(
                 model=pipeline,
                 flavor=mlflow.sklearn,
@@ -326,11 +328,11 @@ class FeatureLookUpModel:
             )
             metrics_old = result.metrics
             logger.info(f"Latest model F1-score: {metrics_old['f1_score']}")
-        except:
-            logger.info(f"No model exist yet. Set F1-score to Zero")
+        except mlflow.exceptions.MlflowException:
+            logger.info("No model exist yet. Set F1-score to Zero")
             metrics_old = {}
             metrics_old["f1_score"] = 0
-        
+
         logger.info(f"Current model F1-score: {self.metrics['f1_score']}")
         if self.metrics["f1_score"] >= metrics_old["f1_score"]:
             logger.info("💥 Current model performs better. Returning True.")

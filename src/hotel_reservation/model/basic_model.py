@@ -257,11 +257,11 @@ class BasicModel:
             )
             metrics_old = result.metrics
             logger.info(f"Latest model F1-score: {metrics_old['f1_score']}")
-        except:
-            logger.info(f"No model exist yet. Set F1-score to Zero")
+        except Exception:
+            logger.info("No model exist yet. Set F1-score to Zero")
             metrics_old = {}
             metrics_old["f1_score"] = 0
-        
+
         logger.info(f"Current model F1-score: {self.metrics['f1_score']}")
         if self.metrics["f1_score"] >= metrics_old["f1_score"]:
             logger.info("💥 Current model performs better. Returning True.")

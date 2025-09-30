@@ -9,18 +9,19 @@
 
 # Configure tracking uri
 import argparse
-import mlflow
+import os
 import sys
-import os 
-import pretty_errors  # noqa: F401
 
+import mlflow
+import pretty_errors  # noqa: F401
 from dotenv import load_dotenv
 from loguru import logger
 from pyspark.sql import SparkSession
+from pyspark.sql.functions import col
 
 from hotel_reservation.marvelous.common import is_databricks
-from hotel_reservation.utils.config import ProjectConfig, Tags
 from hotel_reservation.model.feature_lookup_model import FeatureLookUpModel
+from hotel_reservation.utils.config import ProjectConfig, Tags
 from hotel_reservation.utils.databricks_utils import create_spark_session
 
 # Configure tracking uri
@@ -124,14 +125,13 @@ X_test = test_set.drop("OverallQual", "GrLivArea", "GarageCars", config.target)
 
 # COMMAND ----------
 
-
-from pyspark.sql.functions import col
-
-X_test = X_test.withColumn("LotArea", col("LotArea").cast("int")) \
-       .withColumn("OverallCond", col("OverallCond").cast("int")) \
-       .withColumn("YearBuilt", col("YearBuilt").cast("int")) \
-       .withColumn("YearRemodAdd", col("YearRemodAdd").cast("int")) \
-       .withColumn("TotalBsmtSF", col("TotalBsmtSF").cast("int"))
+X_test = (
+    X_test.withColumn("LotArea", col("LotArea").cast("int"))
+    .withColumn("OverallCond", col("OverallCond").cast("int"))
+    .withColumn("YearBuilt", col("YearBuilt").cast("int"))
+    .withColumn("YearRemodAdd", col("YearRemodAdd").cast("int"))
+    .withColumn("TotalBsmtSF", col("TotalBsmtSF").cast("int"))
+)
 
 
 # COMMAND ----------
@@ -145,4 +145,3 @@ predictions = fe_model.load_latest_model_and_predict(X_test)
 logger.info(predictions)
 
 # COMMAND ----------
-

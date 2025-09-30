@@ -38,7 +38,7 @@ class DataProcessor:
         self._drop_unused_columns()
         # self._create_features()
         # self._log_and_scale_numeric()
-        self._drop_dupplicates
+        self._drop_dupplicates()
 
         return self.df
 
@@ -78,11 +78,11 @@ class DataProcessor:
         ]
         scaler = StandardScaler()
         self.df[numerical_cols] = scaler.fit_transform(self.df[numerical_cols])
-        
-    def _drop_dupplicates(self) -> None:
-        """Drop optional dupplicates data
 
-        Applies drop dupplicates from pandas
+    def _drop_dupplicates(self) -> None:
+        """Drop optional dupplicates data.
+
+        Applies drop dupplicates from pandas.
         """
         self.df = self.df.drop_duplicates()
 
