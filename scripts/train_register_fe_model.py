@@ -7,6 +7,8 @@
 
 # COMMAND ----------
 
+# Generate a temporary token: databricks auth token --host https://dbc-f122dc18-1b68.cloud.databricks.com
+
 # Configure tracking uri
 import argparse
 import os
@@ -23,10 +25,6 @@ from hotel_reservation.marvelous.common import is_databricks
 from hotel_reservation.model.feature_lookup_model import FeatureLookUpModel
 from hotel_reservation.utils.config import ProjectConfig, Tags
 from hotel_reservation.utils.databricks_utils import create_spark_session
-
-# Configure tracking uri
-# mlflow.set_tracking_uri("databricks")
-# mlflow.set_registry_uri("databricks-uc")
 
 ## COMMAND ----------
 # Global user setup
@@ -111,37 +109,3 @@ fe_model.train()
 # Train the model
 fe_model.register_model()
 
-# COMMAND ----------
-
-# Lets run prediction on the last production model
-# Load test set from Delta table
-spark = SparkSession.builder.getOrCreate()
-
-test_set = spark.table(f"{config.catalog_name}.{config.schema_name}.test_set").limit(10)
-
-# Drop feature lookup columns and target
-X_test = test_set.drop("OverallQual", "GrLivArea", "GarageCars", config.target)
-
-
-# COMMAND ----------
-
-X_test = (
-    X_test.withColumn("LotArea", col("LotArea").cast("int"))
-    .withColumn("OverallCond", col("OverallCond").cast("int"))
-    .withColumn("YearBuilt", col("YearBuilt").cast("int"))
-    .withColumn("YearRemodAdd", col("YearRemodAdd").cast("int"))
-    .withColumn("TotalBsmtSF", col("TotalBsmtSF").cast("int"))
-)
-
-
-# COMMAND ----------
-
-fe_model = FeatureLookUpModel(config=config, tags=tags, spark=spark)
-
-# Make predictions
-predictions = fe_model.load_latest_model_and_predict(X_test)
-
-# Display predictions
-logger.info(predictions)
-
-# COMMAND ----------
