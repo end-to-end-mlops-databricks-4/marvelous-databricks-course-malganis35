@@ -18,8 +18,6 @@ import mlflow
 import pretty_errors  # noqa: F401
 from dotenv import load_dotenv
 from loguru import logger
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import col
 
 from hotel_reservation.marvelous.common import is_databricks
 from hotel_reservation.model.feature_lookup_model import FeatureLookUpModel
@@ -108,4 +106,3 @@ fe_model.train()
 
 # Train the model
 fe_model.register_model()
-
