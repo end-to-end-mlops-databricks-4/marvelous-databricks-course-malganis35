@@ -1,12 +1,12 @@
 """Unit tests for BasicModel with full lint compliance.
 
-- Mocks `delta.tables.DeltaTable` so tests run without delta-spark.
+- Mocks `pyspark` and `delta.tables.DeltaTable` so tests run without real Spark.
 - Covers training, logging, registration, prediction, dataset/metadata retrieval,
   and both branches of `model_improved()`.
 """
 
 # ---------------------------------------------------------------------
-# Patch delta.tables.DeltaTable before importing BasicModel
+# Patch pyspark and delta modules before importing BasicModel
 # ---------------------------------------------------------------------
 from __future__ import annotations
 
@@ -20,7 +20,16 @@ import pandas as pd
 import pytest
 from sklearn.exceptions import ConvergenceWarning
 
-# Create a synthetic `delta` package with `tables.DeltaTable`
+# === Mock pyspark.sql ===
+mock_pyspark = types.ModuleType("pyspark")
+mock_sql = types.ModuleType("pyspark.sql")
+mock_sql.SparkSession = MagicMock()
+mock_pyspark.sql = mock_sql
+
+sys.modules["pyspark"] = mock_pyspark
+sys.modules["pyspark.sql"] = mock_sql
+
+# === Mock delta.tables.DeltaTable ===
 mock_delta_module = types.ModuleType("delta")
 mock_tables_module = types.ModuleType("delta.tables")
 
@@ -61,14 +70,13 @@ class MockDeltaTable:
         return MockDelta()
 
 
-# Wire up the mocked modules
 mock_tables_module.DeltaTable = MockDeltaTable
 mock_delta_module.tables = mock_tables_module
 sys.modules["delta"] = mock_delta_module
 sys.modules["delta.tables"] = mock_tables_module
 
 # ---------------------------------------------------------------------
-# Imports after DeltaTable patch
+# Imports after pyspark and DeltaTable patches
 # ---------------------------------------------------------------------
 from src.hotel_reservation.model.basic_model import BasicModel  # noqa: E402
 

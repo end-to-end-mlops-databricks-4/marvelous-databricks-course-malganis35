@@ -22,8 +22,8 @@ class ProjectConfig(BaseModel):
     raw_data_file: str
     train_table: str
     test_table: str
-    feature_table_name: str
-    feature_function_name: str
+    feature_table_name: str | None
+    feature_function_name: str | None
     experiment_name_basic: str | None
     experiment_name_custom: str | None
     experiment_name_fe: str | None

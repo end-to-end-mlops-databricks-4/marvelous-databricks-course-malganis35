@@ -1,9 +1,11 @@
 """Unit tests for FeatureLookUpModel in hotel_reservation.model.feature_lookup_model."""
 
 from __future__ import annotations
+
 import sys
 import types
 from unittest.mock import MagicMock, patch
+
 import pandas as pd
 import pytest
 
@@ -49,10 +51,10 @@ mock_mlflow.tracking.MlflowClient = MagicMock()
 mock_mlflow.exceptions = types.SimpleNamespace(MlflowException=Exception)  # ✅ real exception class
 
 # ---------------------------------------------------------------------
-# Import class under test
+# Import class under test (ignore E402 intentionally)
 # ---------------------------------------------------------------------
-from hotel_reservation.model.feature_lookup_model import FeatureLookUpModel, Result
-from hotel_reservation.utils.config import ProjectConfig, Tags
+from hotel_reservation.model.feature_lookup_model import FeatureLookUpModel  # noqa: E402
+from hotel_reservation.utils.config import ProjectConfig, Tags  # noqa: E402
 
 
 @pytest.fixture
@@ -103,13 +105,13 @@ def model(mock_config: ProjectConfig, mock_tags: Tags, mock_spark: MagicMock) ->
 # ---------------------------------------------------------------------
 # Actual tests
 # ---------------------------------------------------------------------
-def test_create_feature_table_executes_sql(model: FeatureLookUpModel):
+def test_create_feature_table_executes_sql(model: FeatureLookUpModel) -> None:
     """Ensure CREATE/ALTER/INSERT SQL queries are called."""
     model.create_feature_table()
     assert model.spark.sql.call_count >= 4
 
 
-def test_define_feature_function_creates_udf(model: FeatureLookUpModel):
+def test_define_feature_function_creates_udf(model: FeatureLookUpModel) -> None:
     """Ensure feature function creation SQL executes."""
     model.define_feature_function()
     model.spark.sql.assert_called_once()
@@ -117,7 +119,7 @@ def test_define_feature_function_creates_udf(model: FeatureLookUpModel):
     assert "CREATE OR REPLACE FUNCTION" in called_query
 
 
-def test_load_data_calls_spark_table_and_drops_columns(model: FeatureLookUpModel):
+def test_load_data_calls_spark_table_and_drops_columns(model: FeatureLookUpModel) -> None:
     """Test load_data uses Spark table and performs column transformations."""
     mock_train_df = MagicMock()
     mock_test_df = MagicMock()
@@ -128,9 +130,9 @@ def test_load_data_calls_spark_table_and_drops_columns(model: FeatureLookUpModel
     assert hasattr(model, "test_set")
 
 
-def test_feature_engineering_creates_training_set(model: FeatureLookUpModel):
+def test_feature_engineering_creates_training_set(model: FeatureLookUpModel) -> None:
     """Test that feature_engineering uses FeatureEngineeringClient to create training set."""
-    model.train_set = MagicMock()  # ✅ ensures train_set exists
+    model.train_set = MagicMock()
     mock_fe_client = model.fe
     mock_training_set = MagicMock()
     mock_fe_client.create_training_set.return_value = mock_training_set
@@ -141,7 +143,7 @@ def test_feature_engineering_creates_training_set(model: FeatureLookUpModel):
             "booking_status": [0, 1],
             "no_of_weekend_nights": [1, 2],
             "no_of_week_nights": [2, 3],
-            "total_nights": [3, 5],  # ✅ add to avoid KeyError
+            "total_nights": [3, 5],
         }
     )
     model.test_set = pd.DataFrame(
@@ -162,7 +164,7 @@ def test_feature_engineering_creates_training_set(model: FeatureLookUpModel):
 
 
 @patch("hotel_reservation.model.feature_lookup_model.mlflow")
-def test_train_logs_metrics(mock_mlflow: MagicMock, model: FeatureLookUpModel):
+def test_train_logs_metrics(mock_mlflow: MagicMock, model: FeatureLookUpModel) -> None:
     """Ensure train() fits model, logs metrics and parameters to MLflow."""
     model.X_train = pd.DataFrame({"lead_time": [1, 2], "room_type_reserved": ["A", "B"], "total_nights": [3, 4]})
     model.y_train = pd.Series([0, 1])
@@ -187,14 +189,13 @@ def test_train_logs_metrics(mock_mlflow: MagicMock, model: FeatureLookUpModel):
 
 @patch("hotel_reservation.model.feature_lookup_model.MlflowClient")
 @patch("hotel_reservation.model.feature_lookup_model.mlflow")
-def test_register_model_sets_alias(mock_mlflow: MagicMock, mock_client: MagicMock, model: FeatureLookUpModel):
+def test_register_model_sets_alias(mock_mlflow: MagicMock, mock_client: MagicMock, model: FeatureLookUpModel) -> None:
     """Ensure register_model registers and sets alias."""
     model.run_id = "mock_run_id"
     mock_registered = MagicMock()
     mock_registered.version = 1
     mock_mlflow.register_model.return_value = mock_registered
 
-    # ✅ mock MlflowClient to prevent real URI parsing
     client_instance = MagicMock()
     mock_client.return_value = client_instance
 
@@ -205,7 +206,7 @@ def test_register_model_sets_alias(mock_mlflow: MagicMock, mock_client: MagicMoc
     client_instance.set_registered_model_alias.assert_called_once()
 
 
-def test_load_latest_model_and_predict_returns_predictions(model: FeatureLookUpModel):
+def test_load_latest_model_and_predict_returns_predictions(model: FeatureLookUpModel) -> None:
     """Ensure load_latest_model_and_predict calls score_batch."""
     model.fe.score_batch.return_value = pd.DataFrame({"prediction": [1, 0]})
     dummy_df = pd.DataFrame({"a": [1, 2]})
@@ -214,19 +215,18 @@ def test_load_latest_model_and_predict_returns_predictions(model: FeatureLookUpM
     assert "prediction" in result.columns
 
 
-def test_update_feature_table_runs_two_sql_queries(model: FeatureLookUpModel):
+def test_update_feature_table_runs_two_sql_queries(model: FeatureLookUpModel) -> None:
     """Ensure update_feature_table executes two SQL queries."""
     model.update_feature_table()
     assert model.spark.sql.call_count == 2
 
 
 @patch("hotel_reservation.model.feature_lookup_model.mlflow")
-def test_model_improved_handles_no_existing_model(mock_mlflow: MagicMock, model: FeatureLookUpModel):
+def test_model_improved_handles_no_existing_model(mock_mlflow: MagicMock, model: FeatureLookUpModel) -> None:
     """If no existing model, F1 = 0 and should return True."""
     model.metrics = {"f1_score": 0.9}
     client_mock = MagicMock()
     mock_mlflow.tracking.MlflowClient.return_value = client_mock
-    # ✅ ensure exception is a real subclass of Exception
     mock_mlflow.exceptions.MlflowException = Exception
 
     client_mock.get_model_version_by_alias.side_effect = Exception("No model found")

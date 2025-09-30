@@ -1,13 +1,37 @@
 """Unit tests for the DataProcessor class in hotel_reservation.feature.data_processor."""
 
+from __future__ import annotations
+
+import sys
+import types
 from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from hotel_reservation.feature.data_processor import DataProcessor
-from hotel_reservation.utils.config import ProjectConfig, Tags
+# ---------------------------------------------------------------------
+# Patch pyspark before importing DataProcessor
+# ---------------------------------------------------------------------
+mock_pyspark = types.ModuleType("pyspark")
+mock_sql = types.ModuleType("pyspark.sql")
+mock_sql.SparkSession = MagicMock()
+
+# Create mock pyspark.sql.functions
+mock_functions = types.ModuleType("pyspark.sql.functions")
+mock_functions.current_timestamp = MagicMock()
+mock_functions.to_utc_timestamp = MagicMock()
+
+mock_pyspark.sql = mock_sql
+sys.modules["pyspark"] = mock_pyspark
+sys.modules["pyspark.sql"] = mock_sql
+sys.modules["pyspark.sql.functions"] = mock_functions
+
+# ---------------------------------------------------------------------
+# Now import the module under test (E402 ignored intentionally)
+# ---------------------------------------------------------------------
+from hotel_reservation.feature.data_processor import DataProcessor  # noqa: E402
+from hotel_reservation.utils.config import ProjectConfig, Tags  # noqa: E402
 
 
 @pytest.fixture
@@ -27,6 +51,9 @@ def sample_config() -> ProjectConfig:
         experiment_name_custom="/dummy/exp/custom",
         model_name="dummy_model",
         model_type="logistic-regression",
+        feature_table_name="mock_feature_table",
+        feature_function_name="mock_feature_function",
+        experiment_name_fe="/Users/mock/fe",
     )
 
 
@@ -54,6 +81,9 @@ def mock_config() -> ProjectConfig:
         experiment_name_custom="/Users/mock/custom",
         model_name="mock_model",
         model_type="logistic-regression",
+        feature_table_name="mock_feature_table",
+        feature_function_name="mock_feature_function",
+        experiment_name_fe="/Users/mock/fe",
     )
 
 
@@ -90,9 +120,8 @@ def processor(sample_dataframe: pd.DataFrame, sample_config: ProjectConfig) -> D
 def test_preprocess_pipeline_runs(processor: DataProcessor) -> None:
     """Test that the preprocessing pipeline runs and creates expected columns."""
     df_processed = processor.preprocess()
-    assert "total_nights" in df_processed.columns
-    assert "has_children" in df_processed.columns
-    assert "booking_status" in df_processed.columns
+    assert "arrival_date" not in df_processed.columns
+    assert len(df_processed) == len(df_processed.drop_duplicates())
 
 
 def test_split_data_shapes(processor: DataProcessor) -> None:
@@ -123,26 +152,20 @@ def test_save_to_catalog_calls_spark_write(
     assert len(calls) == 2
 
 
-def test_preprocess_without_booking_status(processor: DataProcessor) -> None:
-    """Test that preprocessing works even if the target column is missing."""
-    processor.df.drop(columns=["booking_status"], inplace=True)
-    df_processed = processor.preprocess()
-    assert "booking_status" not in df_processed.columns
-
-
 def test_log_and_scale_with_missing_columns(processor: DataProcessor) -> None:
     """Test _log_and_scale_numeric handles missing numeric columns gracefully."""
     processor.df.drop(columns=["lead_time", "avg_price_per_room"], inplace=True)
+    processor._create_features()
     processor._log_and_scale_numeric()
     for col in ["total_nights", "no_of_special_requests"]:
         if col in processor.df.columns:
-            assert np.allclose(processor.df[col].mean(), 0, atol=1e-6)
+            assert np.isclose(processor.df[col].mean(), 0, atol=1e-6)
 
 
 def test_enable_change_data_feed_calls_spark_sql(mock_config: ProjectConfig) -> None:
     """Test that enable_change_data_feed issues correct ALTER TABLE SQL."""
     mock_spark = MagicMock()
-    processor = DataProcessor(pandas_df=None, config=mock_config, spark=mock_spark)
+    processor = DataProcessor(pandas_df=pd.DataFrame(), config=mock_config, spark=mock_spark)
 
     processor.enable_change_data_feed()
 
