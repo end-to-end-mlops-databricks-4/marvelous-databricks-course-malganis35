@@ -7,7 +7,6 @@ from databricks import feature_engineering
 from databricks.feature_engineering import FeatureFunction, FeatureLookup
 from databricks.sdk import WorkspaceClient
 # from lightgbm import LGBMRegressor
-from delta.tables import DeltaTable
 from sklearn.linear_model import LogisticRegression
 from loguru import logger
 from mlflow.models import infer_signature
@@ -53,6 +52,8 @@ class FeatureLookUpModel:
         self.feature_function_name = self.config.feature_function_name
         self.train_table = self.config.train_table
         self.test_table = self.config.test_table
+        self.model_type = self.config.model_type
+        self.model_name = f"{self.catalog_name}.{self.schema_name}.{self.config.model_name}"
         
         # Define table names and function name
         self.feature_table_name = f"{self.catalog_name}.{self.schema_name}.{self.feature_table_name}"
@@ -61,7 +62,7 @@ class FeatureLookUpModel:
         # MLflow configuration
         self.experiment_name = self.config.experiment_name_fe
         self.tags = tags.dict()
-
+        
     @timeit
     def create_feature_table(self) -> None:
         """Create or update the hotel_reservations_features table and populate it.
@@ -79,7 +80,7 @@ class FeatureLookUpModel:
             f"INSERT INTO {self.feature_table_name} SELECT Booking_ID, no_of_previous_cancellations, no_of_previous_bookings_not_canceled FROM {self.catalog_name}.{self.schema_name}.{self.train_table}"
         )
         self.spark.sql(
-            f"INSERT INTO {self.feature_table_name} SELECT Id, no_of_previous_cancellations, no_of_previous_bookings_not_canceled FROM {self.catalog_name}.{self.schema_name}.{self.test_table}"
+            f"INSERT INTO {self.feature_table_name} SELECT Booking_ID, no_of_previous_cancellations, no_of_previous_bookings_not_canceled FROM {self.catalog_name}.{self.schema_name}.{self.test_table}"
         )
         logger.info("✅ Feature table created and populated.")
 
@@ -89,15 +90,14 @@ class FeatureLookUpModel:
         This function adds no_of_weekend_nights + no_of_week_nights = total_nights
         """
         self.spark.sql(f"""
-        CREATE OR REPLACE FUNCTION {self.function_name}(total_nights INT)
+        CREATE OR REPLACE FUNCTION {self.feature_function_name}(no_of_weekend_nights INT, no_of_week_nights INT)
         RETURNS INT
         LANGUAGE PYTHON AS
         $$
-        total_nights = no_of_weekend_nights + no_of_week_nights
-        return total_nights
+        return no_of_weekend_nights + no_of_week_nights
         $$
         """)
-        logger.info("✅ Feature function defined.")
+        logger.info("✅ Feature function defined correctly.")
 
     @timeit
     def load_data(self) -> None:
@@ -132,7 +132,7 @@ class FeatureLookUpModel:
                     lookup_key="Booking_ID",
                 ),
                 FeatureFunction(
-                    udf_name=self.function_name,
+                    udf_name=self.feature_function_name,
                     output_name="total_nights",
                     input_bindings={"no_of_weekend_nights": "no_of_weekend_nights", 
                                     "no_of_week_nights": "no_of_week_nights", 
@@ -181,26 +181,26 @@ class FeatureLookUpModel:
             # Log the model
             signature = infer_signature(model_input=self.X_train, model_output=y_pred)
 
-            train_dataset = mlflow.data.from_spark(
-                self.train_set_spark,
-                table_name=f"{self.catalog_name}.{self.schema_name}.{self.train_table}",
-                version=self.data_version,
+            self.training_df = self.training_set.load_df().toPandas()
+            train_dataset = mlflow.data.from_pandas(
+                self.training_df,
+                source=f"{self.catalog_name}.{self.schema_name}.{self.train_table}",
             )
             mlflow.log_input(train_dataset, context="training")
 
-            test_dataset = mlflow.data.from_spark(
-                self.test_set_spark,
-                table_name=f"{self.catalog_name}.{self.schema_name}.{self.test_table}",
-                version=self.data_version,
+            test_dataset = mlflow.data.from_pandas(
+                self.test_set,
+                source=f"{self.catalog_name}.{self.schema_name}.{self.test_table}",
             )
             mlflow.log_input(test_dataset, context="testing")
             
             self.fe.log_model(
-                sk_model=pipeline,
+                model=pipeline,
                 flavor=mlflow.sklearn,
                 artifact_path=f"{self.model_type}-pipeline-model-fe",
                 signature=signature,
                 input_example=self.X_test[0:1],
+                training_set=self.training_set,
             )
 
             # Evaluate classification metrics
@@ -231,9 +231,10 @@ class FeatureLookUpModel:
 
         Registers the model and sets alias to 'latest-model'.
         """
+        full_model_name = f"{self.model_name}-fe"
         registered_model = mlflow.register_model(
-            model_uri=f"runs:/{self.run_id}/lightgbm-pipeline-model-fe",
-            name=f"{self.catalog_name}.{self.schema_name}.hotel_reservation_model_fe",
+            model_uri=f"runs:/{self.run_id}/{self.model_type}-pipeline-model-fe",
+            name=full_model_name,
             tags=self.tags,
         )
         logger.info(f"✅ Model registered as version {registered_model.version}.")
@@ -243,7 +244,7 @@ class FeatureLookUpModel:
 
         client = MlflowClient()
         client.set_registered_model_alias(
-            name=f"{self.catalog_name}.{self.schema_name}.hotel_reservation_model_fe",
+            name=full_model_name,
             alias="latest-model",
             version=latest_version,
         )
@@ -258,15 +259,17 @@ class FeatureLookUpModel:
         :param X: DataFrame containing the input features.
         :return: DataFrame containing the predictions.
         """
-        logger.info("Loading model from MLflow alias 'production'...")
-        model_uri = f"models:/{self.catalog_name}.{self.schema_name}.hotel_reservation_model_fe@latest-model"
-        
-        logger.info("Model successfully loaded.")
+        full_model_name = f"{self.model_name}-fe"  # ✅ même logique que dans register_model()
 
-        # Make predictions
+        logger.info(f"Loading model '{full_model_name}' from MLflow alias 'latest-model'...")
+        model_uri = f"models:/{full_model_name}@latest-model"
+
+        logger.info("Model successfully loaded from registry.")
+
+        # Make predictions using Databricks Feature Engineering client
         predictions = self.fe.score_batch(model_uri=model_uri, df=X)
-        
-        # Return predictions as a DataFrame
+
+        logger.info("✅ Predictions successfully generated.")
         return predictions
 
     @timeit
@@ -310,18 +313,24 @@ class FeatureLookUpModel:
         :return: True if the current model performs better, False otherwise.
         """
         client = MlflowClient()
-        latest_model_version = client.get_model_version_by_alias(name=self.model_name, alias="latest-model")
-        latest_model_uri = f"models:/{self.catalog_name}.{self.schema_name}.hotel_reservation_model_fe@latest-model"
+        try:
+            latest_model_version = client.get_model_version_by_alias(name=self.model_name, alias="latest-model")
+            latest_model_uri = f"models:/{latest_model_version.model_id}"
 
-        result = mlflow.models.evaluate(
-            latest_model_uri,
-            self.eval_data,
-            targets=self.config.target,
-            model_type="classifier",
-            evaluators=["default"],
-        )
-        metrics_old = result.metrics
-        logger.info(f"Latest model F1-score: {metrics_old['f1_score']}")
+            result = mlflow.models.evaluate(
+                latest_model_uri,
+                self.eval_data,
+                targets=self.config.target,
+                model_type="classifier",
+                evaluators=["default"],
+            )
+            metrics_old = result.metrics
+            logger.info(f"Latest model F1-score: {metrics_old['f1_score']}")
+        except:
+            logger.info(f"No model exist yet. Set F1-score to Zero")
+            metrics_old = {}
+            metrics_old["f1_score"] = 0
+        
         logger.info(f"Current model F1-score: {self.metrics['f1_score']}")
         if self.metrics["f1_score"] >= metrics_old["f1_score"]:
             logger.info("💥 Current model performs better. Returning True.")
