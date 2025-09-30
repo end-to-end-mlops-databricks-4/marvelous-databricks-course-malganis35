@@ -1,3 +1,21 @@
+# Databricks notebook source
+# install dependencies
+# %pip install -e ..
+
+# COMMAND ----------
+
+# restart python
+# %restart_python
+
+# COMMAND ----------
+
+# system path update, must be after %restart_python
+# caution! This is not a great approach
+# from pathlib import Path
+# import sys
+# sys.path.append(str(Path.cwd().parent / 'src'))
+
+
 # COMMAND ----------
 
 # Generate a temporary token: databricks auth token --host https://dbc-f122dc18-1b68.cloud.databricks.com
@@ -74,7 +92,8 @@ tags = Tags(**tags_dict)
 test_set = spark.table(f"{config.catalog_name}.{config.schema_name}.{config.test_table}").limit(10)
 
 # Drop feature lookup columns and target
-X_test = test_set.drop("no_of_weekend_nights", "no_of_week_nights", config.target)
+# X_test = test_set.drop("no_of_weekend_nights", "no_of_week_nights", config.target)
+X_test = test_set
 
 # COMMAND ----------
 

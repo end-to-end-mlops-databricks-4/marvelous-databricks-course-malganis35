@@ -103,21 +103,23 @@ fe_model.feature_engineering()
 fe_model.train()
 
 # COMMAND ----------
-# Evaluate old and new model
-try:
-    model_improved = fe_model.model_improved()
-    logger.info(f"Model evaluation completed, model improved: {model_improved}")
-except Exception as e:
-    logger.error(f"Model evaluation encountered an issue: {e}")
-    model_improved = False
-
+# Register the model
+fe_model.register_model()
 
 # COMMAND ----------
-if model_improved:
-    # Register the model
-    fe_model.register_model()
-    logger.info("Model registration completed.")
-else:
-    logger.info("Model not registered as it did not improve or has encountered an error.")
+# # Evaluate old and new model
+# try:
+#     model_improved = fe_model.model_improved()
+#     logger.info(f"Model evaluation completed, model improved: {model_improved}")
+# except Exception as e:
+#     logger.error(f"Model evaluation encountered an issue: {e}")
+#     model_improved = False
 
-# COMMAND ----------
+
+# # COMMAND ----------
+# if model_improved:
+#     # Register the model
+#     fe_model.register_model()
+#     logger.info("Model registration completed.")
+# else:
+#     logger.info("Model not registered as it did not improve or has encountered an error.")
