@@ -36,9 +36,9 @@ class DataProcessor:
         :return: A cleaned and feature-engineered pandas DataFrame.
         """
         self._drop_unused_columns()
-        self._create_features()
-        self._log_and_scale_numeric()
-        self._cleanup_columns()
+        # self._create_features()
+        # self._log_and_scale_numeric()
+        self._drop_dupplicates
 
         return self.df
 
@@ -46,8 +46,10 @@ class DataProcessor:
         """Drop unused or unnecessary columns from the DataFrame.
 
         Specifically removes 'Booking_ID' if present.
+        Removes: 'arrival_date'
         """
         self.df.drop(columns=["Booking_ID"], errors="ignore", inplace=True)
+        self.df.drop(columns=["arrival_date"], errors="ignore", inplace=True)
 
     def _create_features(self) -> None:
         """Create engineered features in the DataFrame.
@@ -76,13 +78,13 @@ class DataProcessor:
         ]
         scaler = StandardScaler()
         self.df[numerical_cols] = scaler.fit_transform(self.df[numerical_cols])
+        
+    def _drop_dupplicates(self) -> None:
+        """Drop optional dupplicates data
 
-    def _cleanup_columns(self) -> None:
-        """Drop temporary or redundant date columns from the DataFrame.
-
-        Removes: 'arrival_date'
+        Applies drop dupplicates from pandas
         """
-        self.df.drop(columns=["arrival_date"], errors="ignore", inplace=True)
+        self.df = self.df.drop_duplicates()
 
     @timeit
     def split_data(self, test_size: float = 0.2, random_state: int = 42) -> tuple[pd.DataFrame, pd.DataFrame]:
