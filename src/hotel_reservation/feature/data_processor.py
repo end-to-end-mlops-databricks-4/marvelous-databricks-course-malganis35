@@ -48,7 +48,7 @@ class DataProcessor:
         Specifically removes 'Booking_ID' if present.
         Removes: 'arrival_date'
         """
-        self.df.drop(columns=["Booking_ID"], errors="ignore", inplace=True)
+        # self.df.drop(columns=["Booking_ID"], errors="ignore", inplace=True)
         self.df.drop(columns=["arrival_date"], errors="ignore", inplace=True)
 
     def _create_features(self) -> None:
