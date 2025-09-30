@@ -5,6 +5,8 @@ prd:
   raw_data_file: "Hotel Reservations.csv"
   train_table: hotel_reservations_train_set
   test_table: hotel_reservations_test_set
+  feature_table_name: hotel_reservations_features
+  feature_function_name: calculate_house_age
 acc:
   catalog_name: mlops_acc
   schema_name: caotrido
