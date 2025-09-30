@@ -52,7 +52,8 @@ class FeatureLookUpModel:
         self.train_table = self.config.train_table
         self.test_table = self.config.test_table
         self.model_type = self.config.model_type
-        self.model_name = f"{self.catalog_name}.{self.schema_name}.{self.config.model_name}"
+        self.model_name_fe = f"{self.catalog_name}.{self.schema_name}.{self.config.model_name_fe}"
+        self.eval_data = self.test_table
 
         # Define table names and function name
         self.feature_table_name = f"{self.catalog_name}.{self.schema_name}.{self.feature_table_name}"
@@ -233,7 +234,7 @@ class FeatureLookUpModel:
 
         Registers the model and sets alias to 'latest-model'.
         """
-        full_model_name = f"{self.model_name}-fe"
+        full_model_name = f"{self.model_name_fe}"
         registered_model = mlflow.register_model(
             model_uri=f"runs:/{self.run_id}/{self.model_type}-pipeline-model-fe",
             name=full_model_name,
@@ -261,7 +262,7 @@ class FeatureLookUpModel:
         :param X: DataFrame containing the input features.
         :return: DataFrame containing the predictions.
         """
-        full_model_name = f"{self.model_name}-fe"  # ✅ même logique que dans register_model()
+        full_model_name = f"{self.model_name_fe}"  # ✅ même logique que dans register_model()
 
         logger.info(f"Loading model '{full_model_name}' from MLflow alias 'latest-model'...")
         model_uri = f"models:/{full_model_name}@latest-model"
@@ -308,7 +309,7 @@ class FeatureLookUpModel:
             self.spark.sql(query)
         logger.info("Hotel Reservations features table updated successfully.")
 
-    def model_improved(self, test_set: DataFrame) -> bool:
+    def model_improved(self) -> bool:
         """Evaluate the model performance on the test set.
 
         Compares the current model with the latest registered model using F1-score.
@@ -316,7 +317,7 @@ class FeatureLookUpModel:
         """
         client = MlflowClient()
         try:
-            latest_model_version = client.get_model_version_by_alias(name=self.model_name, alias="latest-model")
+            latest_model_version = client.get_model_version_by_alias(name=self.model_name_fe, alias="latest-model")
             latest_model_uri = f"models:/{latest_model_version.model_id}"
 
             result = mlflow.models.evaluate(
