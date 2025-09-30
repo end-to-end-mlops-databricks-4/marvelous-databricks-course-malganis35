@@ -6,7 +6,7 @@ prd:
   train_table: hotel_reservations_train_set
   test_table: hotel_reservations_test_set
   feature_table_name: hotel_reservations_features
-  feature_function_name: calculate_house_age
+  feature_function_name: calculate_total_nights
 acc:
   catalog_name: mlops_acc
   schema_name: caotrido
@@ -14,6 +14,8 @@ acc:
   raw_data_file: "Hotel Reservations.csv"
   train_table: hotel_reservations_train_set
   test_table: hotel_reservations_test_set
+  feature_table_name: hotel_reservations_features
+  feature_function_name: calculate_total_nights
 dev:
   catalog_name: mlops_dev
   schema_name: caotrido
@@ -21,6 +23,8 @@ dev:
   raw_data_file: "Hotel Reservations.csv"
   train_table: hotel_reservations_train_set
   test_table: hotel_reservations_test_set
+  feature_table_name: hotel_reservations_features
+  feature_function_name: calculate_total_nights
 
 # Data Sources
 data_source:
@@ -30,6 +34,7 @@ data_source:
 
 experiment_name_basic: "/Shared/experiments/hotel_reservations_caotrido" # /Users/caotri.do881@gmail.com/hotel-reservation-basic
 experiment_name_custom: "/Shared/experiments/hotel_reservations_custom_caotrido" # /Users/caotri.do881@gmail.com/hotel-reservation-custom
+experiment_name_fe: "/Shared/experiments/hotel_reservations_fe_caotrido"
 model_name: hotel_reservation_LR
 model_type: logistic-regression
 
