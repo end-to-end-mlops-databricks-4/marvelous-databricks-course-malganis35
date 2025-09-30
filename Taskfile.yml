@@ -76,7 +76,7 @@ tasks:
     desc: Run unit test and coverage
     cmds:
       - task: test-install
-      - pytest --cov src/hotel_reservation --cov-report=html:_artifact/coverage_re --cov-report=term-missing --cov-config=.coveragerc
+      - uv run --extra test pytest
       - 'echo "Note: you can open the HTML report with: open _artifact/coverage_re/index.html"'
 
   qa-lines-count:
