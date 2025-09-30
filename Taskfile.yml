@@ -23,6 +23,7 @@ tasks:
   dev-install:
     desc: Sync project dependencies with optionals
     cmds:
+      - rm -rf .venv/
       - uv sync --extra dev
 
   test-install:
