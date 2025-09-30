@@ -32,6 +32,8 @@ dependencies = [
     "pretty-errors>=1.2.25",
     "kagglehub>=0.3.13",
     "boto3>=1.40.40",
+    "databricks-feature-engineering>=0.12.1",
+    "databricks-feature-lookup>=1.6.1",
 ]
 
 dynamic = ['version']
