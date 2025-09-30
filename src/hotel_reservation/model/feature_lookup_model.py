@@ -270,7 +270,7 @@ class FeatureLookUpModel:
         logger.info("Model successfully loaded from registry.")
 
         # Make predictions using Databricks Feature Engineering client
-        predictions = self.fe.score_batch(model_uri=model_uri, df=X)
+        predictions = self.fe.score_batch(model_uri=model_uri, df=X, result_type="string")
 
         logger.info("✅ Predictions successfully generated.")
         return predictions
