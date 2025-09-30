@@ -1,4 +1,3 @@
-
 # COMMAND ----------
 
 # Generate a temporary token: databricks auth token --host https://dbc-f122dc18-1b68.cloud.databricks.com
@@ -12,8 +11,6 @@ import mlflow
 import pretty_errors  # noqa: F401
 from dotenv import load_dotenv
 from loguru import logger
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import col
 
 from hotel_reservation.marvelous.common import is_databricks
 from hotel_reservation.model.feature_lookup_model import FeatureLookUpModel
@@ -78,7 +75,6 @@ test_set = spark.table(f"{config.catalog_name}.{config.schema_name}.{config.test
 
 # Drop feature lookup columns and target
 X_test = test_set.drop("no_of_weekend_nights", "no_of_week_nights", config.target)
-
 
 # COMMAND ----------
 
