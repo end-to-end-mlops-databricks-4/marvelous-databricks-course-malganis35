@@ -60,6 +60,12 @@ tasks:
       - task: dev-install
       - uv run scripts/train_register_model.py --git_sha "abcd12345" "--job_run_id" local_test_run --branch dev
 
+  fe_train_register_model:
+    desc: Run a basic experiment to train, log and register a model
+    cmds:
+      - task: dev-install
+      - uv run scripts/train_register_fe_model.py --git_sha "abcd12345" "--job_run_id" local_test_run --branch dev
+
   lint:
     desc: Run pre-commit hooks
     cmds:
