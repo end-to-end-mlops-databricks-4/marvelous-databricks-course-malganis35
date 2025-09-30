@@ -34,13 +34,14 @@ dependencies = [
     "boto3>=1.40.40",
     "databricks-feature-engineering>=0.12.1",
     "databricks-feature-lookup>=1.6.1",
+    "setuptools>=80.9.0",
 ]
 
 dynamic = ['version']
 
 [project.optional-dependencies]
 dev = ["databricks-cli>=0.18.0",
-       "databricks-connect>=16.0, <17",
+       "databricks-connect==16.3.5",
        "ipykernel>=6.29.5, <7",
        "pip>=25.0.1, <26",
        "pre-commit>=4.1.0, <5",
@@ -49,8 +50,8 @@ dev = ["databricks-cli>=0.18.0",
 test = ["pre-commit>=4.1.0, <5",
        "pytest>=8.0.0, <9",
        "pytest-cov>=5.0.0, <6",
-       "pyspark>=3.4.0, <4",
-       "pytest-mock[test]>=3.15.1",]
+       "pyspark==3.5.7",
+       "pytest-mock>=3.15.1",]
 
 [build-system]
 requires = [
