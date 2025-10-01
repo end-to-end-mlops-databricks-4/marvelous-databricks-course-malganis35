@@ -1,13 +1,14 @@
 """Modele serving module."""
 
-import mlflow
 import time
-from loguru import logger
+
+import mlflow
 from databricks.sdk import WorkspaceClient
 from databricks.sdk.service.serving import (
     EndpointCoreConfigInput,
     ServedEntityInput,
 )
+from loguru import logger
 
 
 class ModelServing:
@@ -37,9 +38,9 @@ class ModelServing:
         return latest_version
 
     def deploy_or_update_serving_endpoint(
-        self, 
-        version: str = "latest", 
-        workload_size: str = "Small", 
+        self,
+        version: str = "latest",
+        workload_size: str = "Small",
         scale_to_zero: bool = True,
         environment_vars: dict | None = None,
     ) -> None:
@@ -100,6 +101,4 @@ class ModelServing:
 
             time.sleep(check_interval)
 
-        raise TimeoutError(
-            f"❌ Timeout: endpoint '{self.endpoint_name}' did not become READY after {timeout} seconds."
-        )
+        raise TimeoutError(f"❌ Timeout: endpoint '{self.endpoint_name}' did not become READY after {timeout} seconds.")
