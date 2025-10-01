@@ -1,6 +1,8 @@
 """Modele serving module."""
 
 import mlflow
+import time
+from loguru import logger
 from databricks.sdk import WorkspaceClient
 from databricks.sdk.service.serving import (
     EndpointCoreConfigInput,
@@ -35,7 +37,11 @@ class ModelServing:
         return latest_version
 
     def deploy_or_update_serving_endpoint(
-        self, version: str = "latest", workload_size: str = "Small", scale_to_zero: bool = True
+        self, 
+        version: str = "latest", 
+        workload_size: str = "Small", 
+        scale_to_zero: bool = True,
+        environment_vars: dict | None = None,
     ) -> None:
         """Deploy or update the model serving endpoint in Databricks.
 
@@ -52,15 +58,48 @@ class ModelServing:
                 scale_to_zero_enabled=scale_to_zero,
                 workload_size=workload_size,
                 entity_version=entity_version,
+                environment_vars=environment_vars or {},
             )
         ]
 
         if not endpoint_exists:
+            logger.info(f"🚀 Creating new endpoint '{self.endpoint_name}'...")
             self.workspace.serving_endpoints.create(
                 name=self.endpoint_name,
                 config=EndpointCoreConfigInput(
                     served_entities=served_entities,
                 ),
             )
+            logger.success(f"✅ Endpoint '{self.endpoint_name}' created with model version {entity_version}")
         else:
+            logger.info(f"🔄 Endpoint '{self.endpoint_name}' already exists — updating configuration...")
             self.workspace.serving_endpoints.update_config(name=self.endpoint_name, served_entities=served_entities)
+            logger.success(f"✅ Endpoint '{self.endpoint_name}' updated with model version {entity_version}")
+
+    def wait_until_ready(self, timeout: int = 600, check_interval: int = 10) -> None:
+        """Wait for the Databricks serving endpoint to reach READY state."""
+        start_time = time.time()
+        logger.info(f"⏳ Waiting for endpoint '{self.endpoint_name}' to become READY...")
+
+        while time.time() - start_time < timeout:
+            endpoint = self.workspace.serving_endpoints.get(self.endpoint_name)
+            state = endpoint.state.ready
+            state_str = state.value if hasattr(state, "value") else state
+            config_update = getattr(endpoint.state, "config_update", None)
+
+            logger.info(f"➡️  Current state: {state_str}")
+            if config_update and hasattr(config_update, "state"):
+                logger.info(f"   - Update details: {config_update.state}")
+
+            if state_str == "READY":
+                logger.success(f"✅ Endpoint '{self.endpoint_name}' is READY to serve requests!")
+                return
+
+            if state_str == "NOT_READY" and config_update and getattr(config_update, "state", "") == "UPDATE_FAILED":
+                raise RuntimeError(f"❌ Deployment failed for endpoint '{self.endpoint_name}'")
+
+            time.sleep(check_interval)
+
+        raise TimeoutError(
+            f"❌ Timeout: endpoint '{self.endpoint_name}' did not become READY after {timeout} seconds."
+        )

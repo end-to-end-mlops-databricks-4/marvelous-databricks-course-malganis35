@@ -13,12 +13,11 @@ from typing import Any
 import mlflow
 import pretty_errors  # noqa: F401
 import requests
-from databricks.sdk import WorkspaceClient
-from databricks.sdk.service.serving import EndpointCoreConfigInput, ServedEntityInput
 from dotenv import load_dotenv
 from loguru import logger
 
 from hotel_reservation.marvelous.common import is_databricks
+from hotel_reservation.serving.model_serving import ModelServing
 from hotel_reservation.utils.config import ProjectConfig
 from hotel_reservation.utils.databricks_utils import create_spark_session
 
@@ -120,80 +119,23 @@ logger.info(f"✅ Latest READY model version: {entity_version_latest_ready}")
 
 # COMMAND ----------
 
-# -------------------------------------------------------------------------
-# Model serving deployment section
-# -------------------------------------------------------------------------
-w = WorkspaceClient()
-endpoint_name = "hotel-reservation-basic-model-serving-db"
-entity_version = entity_version_latest_ready
+serving = ModelServing(model_name=model_name_to_deploy, endpoint_name="hotel-reservation-basic-model-serving-db")
 
-served_entities = [
-    ServedEntityInput(
-        entity_name=model_name_to_deploy,
-        scale_to_zero_enabled=True,
-        workload_size="Small",
-        entity_version=entity_version,
-        environment_vars={
-            "aws_access_key_id": "{{secrets/mlops/aws_access_key_id}}",
-            "aws_secret_access_key": "{{secrets/mlops/aws_access_key}}",
-            "region_name": "eu-west-1",
-        },
-    )
-]
+logger.info("Checking that the endpoint is not busy")
+serving.wait_until_ready()
 
-existing_endpoints = [e.name for e in w.serving_endpoints.list()]
+serving.deploy_or_update_serving_endpoint(
+    version=entity_version_latest_ready,
+    environment_vars={
+        "aws_access_key_id": "{{secrets/mlops/aws_access_key_id}}",
+        "aws_secret_access_key": "{{secrets/mlops/aws_access_key}}",
+        "region_name": "eu-west-1",
+    },
+)
 
-if endpoint_name in existing_endpoints:
-    logger.info(f"🔄 Endpoint '{endpoint_name}' already exists — updating configuration...")
-    w.serving_endpoints.update_config(name=endpoint_name, served_entities=served_entities)
-    logger.info(f"✅ Endpoint '{endpoint_name}' updated with model version {entity_version}")
-else:
-    logger.info(f"🚀 Creating new endpoint '{endpoint_name}'...")
-    w.serving_endpoints.create(
-        name=endpoint_name,
-        config=EndpointCoreConfigInput(served_entities=served_entities),
-    )
-    logger.success(f"✅ Endpoint '{endpoint_name}' created with model version {entity_version}")
+logger.info("Checking when the endpoint is ready")
+serving.wait_until_ready()
 
-# COMMAND ----------
-
-
-# -------------------------------------------------------------------------
-# Wait until endpoint becomes READY
-# -------------------------------------------------------------------------
-def wait_until_endpoint_ready(
-    workspace: WorkspaceClient,
-    endpoint_name: str,
-    timeout: int = 600,
-    check_interval: int = 10,
-) -> None:
-    """Wait for the Databricks serving endpoint to reach READY state."""
-    start_time = time.time()
-    logger.info(f"⏳ Waiting for endpoint '{endpoint_name}' to become READY...")
-
-    while time.time() - start_time < timeout:
-        endpoint = workspace.serving_endpoints.get(endpoint_name)
-        state = endpoint.state.ready
-        state_str = state.value if hasattr(state, "value") else state
-        config_update = getattr(endpoint.state, "config_update", None)
-
-        logger.info(f"➡️  Current state: {state_str}")
-        if config_update and hasattr(config_update, "state"):
-            logger.info(f"   - Update details: {config_update.state}")
-
-        if state_str == "READY":
-            logger.success(f"✅ Endpoint '{endpoint_name}' is READY to serve requests!")
-            return
-
-        if state_str == "NOT_READY" and config_update and getattr(config_update, "state", "") == "UPDATE_FAILED":
-            raise RuntimeError(f"❌ Deployment failed for endpoint '{endpoint_name}'")
-
-        time.sleep(check_interval)
-
-    raise TimeoutError(f"❌ Timeout: endpoint '{endpoint_name}' did not become READY after {timeout} seconds.")
-
-
-wait_until_endpoint_ready(w, endpoint_name)
 
 # COMMAND ----------
 
