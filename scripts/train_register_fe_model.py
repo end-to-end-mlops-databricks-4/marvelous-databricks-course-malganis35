@@ -59,7 +59,7 @@ if not is_databricks():
     load_dotenv(dotenv_path=ENV_FILE, override=True)
     profile = os.getenv("PROFILE")  # os.environ["PROFILE"]
     DATABRICKS_HOST = os.getenv("DATABRICKS_HOST")
-    
+
     mlflow.set_tracking_uri(f"databricks://{profile}")
     mlflow.set_registry_uri(f"databricks-uc://{profile}")
 

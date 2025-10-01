@@ -8,14 +8,12 @@ import sys
 import time
 from typing import Any
 
-import mlflow
 import pretty_errors  # noqa: F401
 import requests
 from dotenv import load_dotenv
 from loguru import logger
 
 from hotel_reservation.marvelous.common import is_databricks
-from hotel_reservation.serving.model_serving import ModelServing
 from hotel_reservation.utils.config import ProjectConfig
 from hotel_reservation.utils.databricks_utils import create_spark_session, get_databricks_token
 
@@ -105,6 +103,7 @@ logger.info(train_set.dtypes)
 logger.info(dataframe_records[0])
 
 # COMMAND ----------
+
 
 # Endpoint call function
 def call_endpoint(record: list[dict[str, Any]]) -> tuple[int, str]:
