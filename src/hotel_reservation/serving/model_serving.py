@@ -1,84 +1,125 @@
-"""Modele serving module."""
+"""Model serving management module for Databricks.
+
+This module provides a `ModelServing` class to automate the deployment and
+management of model serving endpoints on Databricks. It integrates with MLflow
+and the Databricks SDK to handle endpoint creation, update, monitoring, and
+state management with retry and readiness checks.
+"""
 
 import time
 
 import mlflow
 from databricks.sdk import WorkspaceClient
-from databricks.sdk.service.serving import (
-    EndpointCoreConfigInput,
-    ServedEntityInput,
-)
+from databricks.sdk.errors import ResourceConflict
+from databricks.sdk.service.serving import EndpointCoreConfigInput, ServedEntityInput
 from loguru import logger
 
 
 class ModelServing:
-    """Manages model serving in Databricks.
+    """Manage Databricks model serving endpoints.
 
-    This class provides functionality to deploy and update model serving endpoints.
+    This class provides methods to deploy, update, and monitor Databricks
+    serving endpoints linked to registered MLflow models.
+
+    Args:
+        model_name (str): Fully qualified name of the model (e.g., `"catalog.schema.model"`).
+        endpoint_name (str): Name of the Databricks serving endpoint.
+
     """
 
     def __init__(self, model_name: str, endpoint_name: str) -> None:
-        """Initialize the Model Serving Manager.
-
-        :param model_name: Name of the model to be served
-        :param endpoint_name: Name of the serving endpoint
-        """
         self.workspace = WorkspaceClient()
         self.endpoint_name = endpoint_name
         self.model_name = model_name
 
+    # -------------------------------------------------------------------------
+    # Model Version Utilities
+    # -------------------------------------------------------------------------
     def get_latest_model_version(self) -> str:
-        """Retrieve the latest version of the model.
+        """Retrieve the latest model version using the alias `"latest-model"`.
 
-        :return: Latest version of the model as a string
+        Returns:
+            str: The latest model version number.
+
         """
         client = mlflow.MlflowClient()
         latest_version = client.get_model_version_by_alias(self.model_name, alias="latest-model").version
-        print(f"Latest model version: {latest_version}")
+        logger.info(f"📦 Latest model version by alias 'latest-model': {latest_version}")
         return latest_version
 
-    def deploy_or_update_serving_endpoint(
-        self,
-        version: str = "latest",
-        workload_size: str = "Small",
-        scale_to_zero: bool = True,
-        environment_vars: dict | None = None,
-    ) -> None:
-        """Deploy or update the model serving endpoint in Databricks.
+    def get_latest_ready_version(self) -> str:
+        """Find the latest model version with status `READY` in Unity Catalog.
 
-        :param version: Version of the model to deploy, defaults to "latest"
-        :param workload_size: Workload size (number of concurrent requests), defaults to "Small"
-        :param scale_to_zero: If True, endpoint scales to 0 when unused, defaults to True
+        Returns:
+            str: The latest `READY` version of the model.
+
+        Raises:
+            ValueError: If no `READY` version is found for the model.
+
         """
-        endpoint_exists = any(item.name == self.endpoint_name for item in self.workspace.serving_endpoints.list())
-        entity_version = self.get_latest_model_version() if version == "latest" else version
+        client = mlflow.MlflowClient()
+        logger.info(f"🔍 Searching for READY versions of model '{self.model_name}'...")
 
-        served_entities = [
-            ServedEntityInput(
-                entity_name=self.model_name,
-                scale_to_zero_enabled=scale_to_zero,
-                workload_size=workload_size,
-                entity_version=entity_version,
-                environment_vars=environment_vars or {},
-            )
+        ready_versions = [
+            int(mv.version) for mv in client.search_model_versions(f"name='{self.model_name}'") if mv.status == "READY"
         ]
 
-        if not endpoint_exists:
-            logger.info(f"🚀 Creating new endpoint '{self.endpoint_name}'...")
-            self.workspace.serving_endpoints.create(
-                name=self.endpoint_name,
-                config=EndpointCoreConfigInput(
-                    served_entities=served_entities,
-                ),
-            )
-            logger.success(f"✅ Endpoint '{self.endpoint_name}' created with model version {entity_version}")
-        else:
-            logger.info(f"🔄 Endpoint '{self.endpoint_name}' already exists — updating configuration...")
-            self.workspace.serving_endpoints.update_config(name=self.endpoint_name, served_entities=served_entities)
-            logger.success(f"✅ Endpoint '{self.endpoint_name}' updated with model version {entity_version}")
+        if not ready_versions:
+            raise ValueError(f"No READY version found for model '{self.model_name}'")
+
+        latest_ready_version = str(max(ready_versions))
+        logger.success(f"✅ Latest READY model version: {latest_ready_version}")
+        return latest_ready_version
+
+    # -------------------------------------------------------------------------
+    # Endpoint State Management
+    # -------------------------------------------------------------------------
+    def is_updating(self) -> bool:
+        """Check whether the endpoint configuration is currently being updated.
+
+        Returns:
+            bool: `True` if the endpoint is updating, `False` otherwise.
+
+        """
+        endpoint = self.workspace.serving_endpoints.get(self.endpoint_name)
+        config_update = getattr(endpoint.state, "config_update", None)
+        return bool(config_update and getattr(config_update, "state", None) == "IN_PROGRESS")
+
+    def wait_until_not_updating(self, timeout: int = 300, check_interval: int = 10) -> None:
+        """Wait until the endpoint finishes its current update process.
+
+        Args:
+            timeout (int, optional): Maximum wait time in seconds. Defaults to `300`.
+            check_interval (int, optional): Interval between checks in seconds. Defaults to `10`.
+
+        Raises:
+            TimeoutError: If the endpoint remains updating after the timeout period.
+
+        """
+        start_time = time.time()
+        logger.info(f"⏳ Waiting for endpoint '{self.endpoint_name}' to finish current update...")
+
+        while time.time() - start_time < timeout:
+            if not self.is_updating():
+                logger.success(f"✅ Endpoint '{self.endpoint_name}' is no longer updating.")
+                return
+            logger.info("🔁 Endpoint still updating... waiting...")
+            time.sleep(check_interval)
+
+        raise TimeoutError(f"❌ Timeout: endpoint '{self.endpoint_name}' still updating after {timeout} seconds.")
 
     def wait_until_ready(self, timeout: int = 600, check_interval: int = 10) -> None:
-        """Wait for the Databricks serving endpoint to reach READY state."""
+        """Wait until the Databricks serving endpoint reaches the `READY` state.
+
+        Args:
+            timeout (int, optional): Maximum wait time in seconds. Defaults to `600`.
+            check_interval (int, optional): Interval between status checks in seconds. Defaults to `10`.
+
+        Raises:
+            RuntimeError: If the endpoint update fails.
+            TimeoutError: If the endpoint does not become `READY` within the timeout.
+
+        """
         start_time = time.time()
         logger.info(f"⏳ Waiting for endpoint '{self.endpoint_name}' to become READY...")
 
@@ -102,3 +143,76 @@ class ModelServing:
             time.sleep(check_interval)
 
         raise TimeoutError(f"❌ Timeout: endpoint '{self.endpoint_name}' did not become READY after {timeout} seconds.")
+
+    # -------------------------------------------------------------------------
+    # Deployment / Update Logic
+    # -------------------------------------------------------------------------
+    def deploy_or_update_serving_endpoint(
+        self,
+        version: str = "latest",
+        workload_size: str = "Small",
+        scale_to_zero: bool = True,
+        environment_vars: dict | None = None,
+        max_retries: int = 5,
+        retry_interval: int = 20,
+    ) -> None:
+        """Deploy or update a Databricks model serving endpoint.
+
+        Automatically creates a new endpoint if it does not exist, or updates
+        the configuration if it already exists. Includes retry logic to handle
+        `ResourceConflict` errors during concurrent updates.
+
+        Args:
+            version (str, optional): Model version to deploy. Defaults to `"latest"`.
+            workload_size (str, optional): Workload size (e.g., `"Small"`, `"Medium"`, `"Large"`). Defaults to `"Small"`.
+            scale_to_zero (bool, optional): Whether to scale endpoint to 0 when idle. Defaults to `True`.
+            environment_vars (dict, optional): Environment variables to inject into the serving environment. Defaults to `None`.
+            max_retries (int, optional): Maximum number of retry attempts on conflict. Defaults to `5`.
+            retry_interval (int, optional): Wait time in seconds between retries. Defaults to `20`.
+
+        Raises:
+            ResourceConflict: If the endpoint cannot be updated after all retries.
+
+        """
+        endpoint_exists = any(item.name == self.endpoint_name for item in self.workspace.serving_endpoints.list())
+        entity_version = self.get_latest_model_version() if version == "latest" else version
+
+        served_entities = [
+            ServedEntityInput(
+                entity_name=self.model_name,
+                scale_to_zero_enabled=scale_to_zero,
+                workload_size=workload_size,
+                entity_version=entity_version,
+                environment_vars=environment_vars or {},
+            )
+        ]
+
+        # Create new endpoint
+        if not endpoint_exists:
+            logger.info(f"🚀 Creating new endpoint '{self.endpoint_name}'...")
+            self.workspace.serving_endpoints.create(
+                name=self.endpoint_name,
+                config=EndpointCoreConfigInput(served_entities=served_entities),
+            )
+            logger.success(f"✅ Endpoint '{self.endpoint_name}' created with model version {entity_version}")
+            return
+
+        # Update existing endpoint with retry handling
+        for attempt in range(1, max_retries + 1):
+            try:
+                if self.is_updating():
+                    logger.warning(f"⚠️ Endpoint '{self.endpoint_name}' is updating — waiting before retry...")
+                    self.wait_until_not_updating()
+
+                logger.info(f"🔄 Attempt {attempt}/{max_retries}: updating endpoint '{self.endpoint_name}'...")
+                self.workspace.serving_endpoints.update_config(name=self.endpoint_name, served_entities=served_entities)
+                logger.success(f"✅ Endpoint '{self.endpoint_name}' updated with model version {entity_version}")
+                return
+
+            except ResourceConflict as e:
+                if attempt < max_retries:
+                    logger.warning(f"⏳ Resource conflict detected — waiting {retry_interval}s before retry...")
+                    time.sleep(retry_interval)
+                else:
+                    logger.error(f"❌ Failed after {max_retries} retries — endpoint still busy.")
+                    raise e

@@ -5,9 +5,12 @@
 import argparse
 import os
 import sys
+import time
+from typing import Any
 
 import mlflow
 import pretty_errors  # noqa: F401
+import requests
 from dotenv import load_dotenv
 from loguru import logger
 
@@ -53,10 +56,6 @@ if not is_databricks():
     load_dotenv(dotenv_path=ENV_FILE, override=True)
     profile = os.getenv("PROFILE")
     DATABRICKS_HOST = os.getenv("DATABRICKS_HOST")
-    
-    mlflow.set_tracking_uri(f"databricks://{profile}")
-    mlflow.set_registry_uri(f"databricks-uc://{profile}")
-    
 
 # COMMAND ----------
 
@@ -70,40 +69,70 @@ os.environ["DATABRICKS_TOKEN"] = db_token  # required by Databricks SDK / Connec
 os.environ["DBR_HOST"] = DATABRICKS_HOST
 os.environ["DATABRICKS_HOST"] = DATABRICKS_HOST
 
-logger.info(f"✅ Temporary token acquired (expires at {token_data['expiry']})")
-
 # COMMAND ----------
 
 # Load configuration and Spark session
 config = ProjectConfig.from_yaml(config_path=CONFIG_FILE, env=args.branch)
 spark = create_spark_session()
 
-model_name_to_deploy = f"{config.catalog_name}.{config.schema_name}.{config.model_name}"
+# COMMAND ----------
+
+# Prepare sample request data
+required_columns = [
+    "arrival_month",
+    "arrival_year",
+    "avg_price_per_room",
+    "lead_time",
+    "no_of_adults",
+    "no_of_children",
+    "no_of_previous_bookings_not_canceled",
+    "no_of_previous_cancellations",
+    "no_of_special_requests",
+    "no_of_week_nights",
+    "no_of_weekend_nights",
+    "repeated_guest",
+    "required_car_parking_space",
+    "market_segment_type",
+    "room_type_reserved",
+    "type_of_meal_plan",
+]
+
+train_set = spark.table(f"{config.catalog_name}.{config.schema_name}.{config.train_table}").toPandas()
+sampled_records = train_set[required_columns].sample(n=1000, replace=True).to_dict(orient="records")
+dataframe_records = [[record] for record in sampled_records]
+
+logger.info(train_set.dtypes)
+logger.info(dataframe_records[0])
 
 # COMMAND ----------
 
-# Main script to serve the endpoint of the model
-serving = ModelServing(model_name=model_name_to_deploy, endpoint_name="hotel-reservation-basic-model-serving-db")
+# Endpoint call function
+def call_endpoint(record: list[dict[str, Any]]) -> tuple[int, str]:
+    """Call the Databricks model serving endpoint with a given input record."""
+    serving_endpoint = (
+        f"{os.environ['DBR_HOST']}/serving-endpoints/hotel-reservation-basic-model-serving-db/invocations"
+    )
 
-if args.model_version == "auto":
-    logger.info("Model Version is set to default 'auto'. Finding the last version of the model in Unity Catalog")
-    entity_version_latest_ready = serving.get_latest_ready_version()
-    logger.info(f"Version of the model that will be deployed: {entity_version_latest_ready}")
-else:
-    entity_version_latest_ready = args.model_version
-    logger.info(f"Version of the model defined by the user and that will be deployed: {entity_version_latest_ready}")
+    response = requests.post(
+        serving_endpoint,
+        headers={"Authorization": f"Bearer {os.environ['DBR_TOKEN']}"},
+        json={"dataframe_records": record},
+    )
+    return response.status_code, response.text
 
-logger.info("Checking that the endpoint is not busy")
-serving.wait_until_ready()
 
-serving.deploy_or_update_serving_endpoint(
-    version=entity_version_latest_ready,
-    environment_vars={
-        "aws_access_key_id": "{{secrets/mlops/aws_access_key_id}}",
-        "aws_secret_access_key": "{{secrets/mlops/aws_access_key}}",
-        "region_name": "eu-west-1",
-    },
-)
+# Test with one sample
+status_code, response_text = call_endpoint(dataframe_records[0])
+logger.debug(f"Response Status: {status_code}")
+logger.debug(f"Response Text: {response_text}")
 
-logger.info("Checking when the endpoint is ready")
-serving.wait_until_ready()
+# COMMAND ----------
+
+# Simple load test
+total = 10
+for i in range(total):
+    logger.debug(f"➡️ Sending request {i + 1}/{total}")
+    status_code, response_text = call_endpoint(dataframe_records[i])
+    logger.debug(f"Response Status: {status_code}")
+    logger.debug(f"Response Text: {response_text}")
+    time.sleep(0.2)
