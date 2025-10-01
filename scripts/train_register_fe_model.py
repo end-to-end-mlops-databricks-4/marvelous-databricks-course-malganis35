@@ -22,7 +22,7 @@ from loguru import logger
 from hotel_reservation.marvelous.common import is_databricks
 from hotel_reservation.model.feature_lookup_model import FeatureLookUpModel
 from hotel_reservation.utils.config import ProjectConfig, Tags
-from hotel_reservation.utils.databricks_utils import create_spark_session
+from hotel_reservation.utils.databricks_utils import create_spark_session, get_databricks_token
 
 ## COMMAND ----------
 # Global user setup
@@ -58,8 +58,20 @@ ENV_FILE = f"{root_path}/{args.env}"
 if not is_databricks():
     load_dotenv(dotenv_path=ENV_FILE, override=True)
     profile = os.getenv("PROFILE")  # os.environ["PROFILE"]
+    DATABRICKS_HOST = os.getenv("DATABRICKS_HOST")
+    
     mlflow.set_tracking_uri(f"databricks://{profile}")
     mlflow.set_registry_uri(f"databricks-uc://{profile}")
+
+    # Get a temporary token for Databricks Connect & SDK
+    token_data = get_databricks_token(DATABRICKS_HOST)
+    db_token = token_data["access_token"]
+
+    # Define the variable for Databricks SDK
+    os.environ["DATABRICKS_TOKEN"] = db_token
+    os.environ["DBR_TOKEN"] = db_token
+    os.environ["DATABRICKS_HOST"] = DATABRICKS_HOST
+    os.environ["DBR_HOST"] = DATABRICKS_HOST
 
 logger.info(f"MLflow Tracking URI: {mlflow.get_tracking_uri()}")
 logger.info(f"MLflow Registry URI: {mlflow.get_registry_uri()}")
