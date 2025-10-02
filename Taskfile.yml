@@ -41,7 +41,7 @@ tasks:
     desc: Test on a demo script
     cmds:
       - task: dev-install
-      - uv run notebooks/run_upload_data.py --env dev --env-file .env --config project_config.yml
+      - uv run notebooks/utils/run_upload_data.py --env dev --env-file .env --config project_config.yml
 
   run-process-data:
     desc: Test on a pre-processing script
@@ -53,7 +53,7 @@ tasks:
     desc: Create the directory on Databricks for MLflow experiments
     cmds:
       - task: dev-install
-      - uv run notebooks/run_create_mlflow_workspace.py
+      - uv run notebooks/utils/run_create_mlflow_workspace.py
 
   train_register_model:
     desc: Run a basic experiment to train, log and register a model
@@ -115,8 +115,8 @@ tasks:
     desc: Clean all data, schema and experiments in Databricks
     cmds:
       - task: dev-install
-      - uv run notebooks/run_cleanup_mlflow_experiments.py
-      - uv run notebooks/run_cleanup_data.py
+      - uv run notebooks/utils/run_cleanup_mlflow_experiments.py
+      - uv run notebooks/utils/run_cleanup_data.py
 
   digest:
     desc: Make a git digest of the repository
