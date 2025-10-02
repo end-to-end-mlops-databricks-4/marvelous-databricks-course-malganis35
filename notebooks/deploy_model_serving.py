@@ -11,10 +11,9 @@ import pretty_errors  # noqa: F401
 from dotenv import load_dotenv
 from loguru import logger
 
-from hotel_reservation.marvelous.common import is_databricks
 from hotel_reservation.serving.model_serving import ModelServing
 from hotel_reservation.utils.config import ProjectConfig
-from hotel_reservation.utils.databricks_utils import create_spark_session, get_databricks_token
+from hotel_reservation.utils.databricks_utils import create_spark_session, get_databricks_token, is_databricks
 
 # COMMAND ----------
 

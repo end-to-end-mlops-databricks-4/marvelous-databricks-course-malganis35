@@ -11,10 +11,9 @@ import pretty_errors  # noqa: F401
 from dotenv import load_dotenv
 from loguru import logger
 
-from hotel_reservation.marvelous.common import is_databricks
 from hotel_reservation.model.basic_model import BasicModel
 from hotel_reservation.utils.config import ProjectConfig, Tags
-from hotel_reservation.utils.databricks_utils import create_spark_session
+from hotel_reservation.utils.databricks_utils import create_spark_session, is_databricks
 
 ## COMMAND ----------
 # Global user setup
