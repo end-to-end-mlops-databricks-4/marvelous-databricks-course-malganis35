@@ -98,8 +98,7 @@ name = "cz_conventional_commits"
 version_provider = "pep621"
 tag_format = "v$version"
 version_files = [
-  "pyproject.toml:^version =",
-  "VERSION"
+  "version.txt"
 ]
 bump_message = "chore(release): bump version $current_version → $new_version [skip ci]"
 update_changelog_on_bump = true
