@@ -1,13 +1,13 @@
-import pytest
-import time
 from unittest.mock import MagicMock, patch
+
+import pytest
 from databricks.sdk.errors import ResourceConflict
 
 from hotel_reservation.serving.model_serving import ModelServing
 
 
 @pytest.fixture
-def mock_workspace():
+def mock_workspace() -> MagicMock:
     """Mock the Databricks WorkspaceClient and its serving_endpoints."""
     mock_ws = MagicMock()
     mock_ws.serving_endpoints.get = MagicMock()
@@ -18,8 +18,8 @@ def mock_workspace():
 
 
 @pytest.fixture
-def model_serving(mock_workspace):
-    """Patch WorkspaceClient to return the mocked workspace."""
+def model_serving(mock_workspace: MagicMock) -> ModelServing:
+    """Return a ModelServing instance using a mocked Databricks workspace."""
     with patch("hotel_reservation.serving.model_serving.WorkspaceClient", return_value=mock_workspace):
         return ModelServing(model_name="catalog.schema.model", endpoint_name="test-endpoint")
 
@@ -28,7 +28,8 @@ def model_serving(mock_workspace):
 # Model version utilities
 # -----------------------------------------------------------------------------
 @patch("hotel_reservation.serving.model_serving.mlflow.MlflowClient")
-def test_get_latest_model_version(mock_mlflow_client, model_serving):
+def test_get_latest_model_version(mock_mlflow_client: MagicMock, model_serving: ModelServing) -> None:
+    """Test that get_latest_model_version retrieves the latest model version correctly."""
     mock_client = mock_mlflow_client.return_value
     mock_client.get_model_version_by_alias.return_value.version = "42"
 
@@ -39,7 +40,8 @@ def test_get_latest_model_version(mock_mlflow_client, model_serving):
 
 
 @patch("hotel_reservation.serving.model_serving.mlflow.MlflowClient")
-def test_get_latest_ready_version_found(mock_mlflow_client, model_serving):
+def test_get_latest_ready_version_found(mock_mlflow_client: MagicMock, model_serving: ModelServing) -> None:
+    """Test that get_latest_ready_version returns the latest READY version."""
     mock_client = mock_mlflow_client.return_value
     mock_client.search_model_versions.return_value = [
         MagicMock(version="1", status="READY"),
@@ -52,7 +54,8 @@ def test_get_latest_ready_version_found(mock_mlflow_client, model_serving):
 
 
 @patch("hotel_reservation.serving.model_serving.mlflow.MlflowClient")
-def test_get_latest_ready_version_not_found(mock_mlflow_client, model_serving):
+def test_get_latest_ready_version_not_found(mock_mlflow_client: MagicMock, model_serving: ModelServing) -> None:
+    """Test that get_latest_ready_version raises ValueError when no READY version is found."""
     mock_client = mock_mlflow_client.return_value
     mock_client.search_model_versions.return_value = [
         MagicMock(version="1", status="PENDING"),
@@ -66,7 +69,8 @@ def test_get_latest_ready_version_not_found(mock_mlflow_client, model_serving):
 # -----------------------------------------------------------------------------
 # Endpoint state management
 # -----------------------------------------------------------------------------
-def test_is_updating_true(model_serving, mock_workspace):
+def test_is_updating_true(model_serving: ModelServing, mock_workspace: MagicMock) -> None:
+    """Test that is_updating returns True when update state is IN_PROGRESS."""
     mock_endpoint = MagicMock()
     mock_endpoint.state.config_update.state = "IN_PROGRESS"
     mock_workspace.serving_endpoints.get.return_value = mock_endpoint
@@ -74,7 +78,8 @@ def test_is_updating_true(model_serving, mock_workspace):
     assert model_serving.is_updating() is True
 
 
-def test_is_updating_false(model_serving, mock_workspace):
+def test_is_updating_false(model_serving: ModelServing, mock_workspace: MagicMock) -> None:
+    """Test that is_updating returns False when update state is COMPLETED."""
     mock_endpoint = MagicMock()
     mock_endpoint.state.config_update.state = "COMPLETED"
     mock_workspace.serving_endpoints.get.return_value = mock_endpoint
@@ -83,21 +88,26 @@ def test_is_updating_false(model_serving, mock_workspace):
 
 
 @patch("time.sleep", return_value=None)
-def test_wait_until_not_updating_completes(mock_sleep, model_serving):
+def test_wait_until_not_updating_completes(mock_sleep: MagicMock, model_serving: ModelServing) -> None:
+    """Test that wait_until_not_updating completes successfully."""
     model_serving.is_updating = MagicMock(side_effect=[True, False])
     model_serving.wait_until_not_updating(timeout=5, check_interval=1)
     assert model_serving.is_updating.call_count == 2
 
 
 @patch("time.sleep", return_value=None)
-def test_wait_until_not_updating_timeout(mock_sleep, model_serving):
+def test_wait_until_not_updating_timeout(mock_sleep: MagicMock, model_serving: ModelServing) -> None:
+    """Test that wait_until_not_updating raises TimeoutError when stuck updating."""
     model_serving.is_updating = MagicMock(return_value=True)
     with pytest.raises(TimeoutError):
         model_serving.wait_until_not_updating(timeout=1, check_interval=1)
 
 
 @patch("time.sleep", return_value=None)
-def test_wait_until_ready_success(mock_sleep, model_serving, mock_workspace):
+def test_wait_until_ready_success(
+    mock_sleep: MagicMock, model_serving: ModelServing, mock_workspace: MagicMock
+) -> None:
+    """Test that wait_until_ready returns when endpoint is READY."""
     mock_endpoint = MagicMock()
     mock_endpoint.state.ready = "READY"
     mock_workspace.serving_endpoints.get.return_value = mock_endpoint
@@ -106,7 +116,10 @@ def test_wait_until_ready_success(mock_sleep, model_serving, mock_workspace):
 
 
 @patch("time.sleep", return_value=None)
-def test_wait_until_ready_fails_with_update_failed(mock_sleep, model_serving, mock_workspace):
+def test_wait_until_ready_fails_with_update_failed(
+    mock_sleep: MagicMock, model_serving: ModelServing, mock_workspace: MagicMock
+) -> None:
+    """Test that wait_until_ready raises RuntimeError when deployment fails."""
     mock_endpoint = MagicMock()
     mock_endpoint.state.ready = "NOT_READY"
     mock_endpoint.state.config_update.state = "UPDATE_FAILED"
@@ -117,7 +130,10 @@ def test_wait_until_ready_fails_with_update_failed(mock_sleep, model_serving, mo
 
 
 @patch("time.sleep", return_value=None)
-def test_wait_until_ready_timeout(mock_sleep, model_serving, mock_workspace):
+def test_wait_until_ready_timeout(
+    mock_sleep: MagicMock, model_serving: ModelServing, mock_workspace: MagicMock
+) -> None:
+    """Test that wait_until_ready raises TimeoutError when endpoint never becomes READY."""
     mock_endpoint = MagicMock()
     mock_endpoint.state.ready = "NOT_READY"
     mock_endpoint.state.config_update.state = "IN_PROGRESS"
@@ -130,8 +146,8 @@ def test_wait_until_ready_timeout(mock_sleep, model_serving, mock_workspace):
 # -----------------------------------------------------------------------------
 # Deployment logic
 # -----------------------------------------------------------------------------
-def test_deploy_creates_new_endpoint(model_serving, mock_workspace):
-    # No existing endpoints
+def test_deploy_creates_new_endpoint(model_serving: ModelServing, mock_workspace: MagicMock) -> None:
+    """Test that a new serving endpoint is created if none exists."""
     mock_workspace.serving_endpoints.list.return_value = []
     model_serving.get_latest_model_version = MagicMock(return_value="1")
 
@@ -141,8 +157,8 @@ def test_deploy_creates_new_endpoint(model_serving, mock_workspace):
     mock_workspace.serving_endpoints.update_config.assert_not_called()
 
 
-def test_deploy_updates_existing_endpoint(model_serving, mock_workspace):
-    # Endpoint already exists
+def test_deploy_updates_existing_endpoint(model_serving: ModelServing, mock_workspace: MagicMock) -> None:
+    """Test that deploy_or_update_serving_endpoint updates an existing endpoint."""
     mock_item = MagicMock()
     mock_item.name = "test-endpoint"
     mock_workspace.serving_endpoints.list.return_value = [mock_item]
@@ -157,7 +173,10 @@ def test_deploy_updates_existing_endpoint(model_serving, mock_workspace):
 
 
 @patch("time.sleep", return_value=None)
-def test_deploy_retries_on_resource_conflict(mock_sleep, model_serving, mock_workspace):
+def test_deploy_retries_on_resource_conflict(
+    mock_sleep: MagicMock, model_serving: ModelServing, mock_workspace: MagicMock
+) -> None:
+    """Test that deploy_or_update_serving_endpoint retries when ResourceConflict occurs."""
     mock_item = MagicMock()
     mock_item.name = "test-endpoint"
     mock_workspace.serving_endpoints.list.return_value = [mock_item]
@@ -166,8 +185,8 @@ def test_deploy_retries_on_resource_conflict(mock_sleep, model_serving, mock_wor
     model_serving.is_updating = MagicMock(return_value=False)
 
     mock_workspace.serving_endpoints.update_config.side_effect = [
-        ResourceConflict("conflict"),  # first call fails
-        None,  # second call succeeds
+        ResourceConflict("conflict"),
+        None,
     ]
 
     model_serving.deploy_or_update_serving_endpoint(max_retries=2, retry_interval=0)
@@ -176,7 +195,10 @@ def test_deploy_retries_on_resource_conflict(mock_sleep, model_serving, mock_wor
 
 
 @patch("time.sleep", return_value=None)
-def test_deploy_fails_after_max_retries(mock_sleep, model_serving, mock_workspace):
+def test_deploy_fails_after_max_retries(
+    mock_sleep: MagicMock, model_serving: ModelServing, mock_workspace: MagicMock
+) -> None:
+    """Test that deploy_or_update_serving_endpoint raises ResourceConflict after max retries."""
     mock_item = MagicMock()
     mock_item.name = "test-endpoint"
     mock_workspace.serving_endpoints.list.return_value = [mock_item]
