@@ -75,35 +75,35 @@ resources:
               - "${var.is_test}"
           libraries:
            - whl: ./dist/*.whl #custom libraries that will be installed in the cluster
-        # - task_key: "train_model"
-        #   # job_cluster_key: "house-price-cluster"
-        #   existing_cluster_id: "0925-180914-5nzxv7hw"
-        #   depends_on:
-        #     - task_key: "preprocessing"
-        #   spark_python_task:
-        #     python_file: "scripts/02.train_register_fe_model.py"
-        #     parameters:
-        #       - "--root_path"
-        #       - "${workspace.root_path}"
-        #       - "--env"
-        #       - "${var.env}"
-        #       - "--git_sha"
-        #       - "${var.git_sha}"
-        #       - "--job_run_id"
-        #       - "{{job.run_id}}"
-        #       - "--branch"
-        #       - "${var.branch}"
-        #       - "--is_test"
-        #       - "${var.is_test}"
-        #   libraries:
-        #     - whl: ./dist/*.whl
-        # - task_key: model_updated
-        #   condition_task:
-        #     op: "EQUAL_TO"
-        #     left: "{{tasks.train_model.values.model_updated}}"
-        #     right: "1"
-        #   depends_on:
-        #     - task_key: "train_model"
+        - task_key: "train_model"
+          # job_cluster_key: "house-price-cluster"
+          existing_cluster_id: "0925-180914-5nzxv7hw"
+          depends_on:
+            - task_key: "preprocessing"
+          spark_python_task:
+            python_file: "scripts/02.train_register_model.py"
+            parameters:
+              - "--root_path"
+              - "${workspace.root_path}"
+              - "--env"
+              - "${var.env}"
+              - "--git_sha"
+              - "${var.git_sha}"
+              - "--job_run_id"
+              - "{{job.run_id}}"
+              - "--branch"
+              - "${var.branch}"
+              - "--is_test"
+              - "${var.is_test}"
+          libraries:
+            - whl: ./dist/*.whl
+        - task_key: model_updated
+          condition_task:
+            op: "EQUAL_TO"
+            left: "{{tasks.train_model.values.model_updated}}"
+            right: "1"
+          depends_on:
+            - task_key: "train_model"
         # - task_key: "deploy_model"
         #   depends_on:
         #     - task_key: "model_updated"
