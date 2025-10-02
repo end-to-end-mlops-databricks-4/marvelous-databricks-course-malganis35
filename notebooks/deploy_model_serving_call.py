@@ -105,9 +105,9 @@ logger.info(dataframe_records[0])
 # Endpoint call function
 def call_endpoint(record: list[dict[str, Any]]) -> tuple[int, str]:
     """Call the Databricks model serving endpoint with a given input record."""
-    serving_endpoint = (
-        f"{os.environ['DBR_HOST']}/serving-endpoints/hotel-reservation-basic-model-serving-db/invocations"
-    )
+    serving_endpoint = f"{os.environ['DBR_HOST']}/serving-endpoints/{config.endpoint_name}/invocations"
+
+    logger.debug(f"Calling the endpoint url: {serving_endpoint}")
 
     response = requests.post(
         serving_endpoint,

@@ -39,6 +39,8 @@ model_name: hotel_reservation_lr
 model_name_fe: hotel_reservation_lr_fe
 model_type: logistic-regression
 
+endpoint_name: hotel-reservation-basic-model-serving-db
+endpoint_name_fe: hotel-reservation-fe-model-serving-db
 
 parameters:
   C: 1.0

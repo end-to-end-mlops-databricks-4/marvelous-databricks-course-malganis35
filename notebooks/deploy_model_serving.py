@@ -82,7 +82,7 @@ model_name_to_deploy = f"{config.catalog_name}.{config.schema_name}.{config.mode
 # COMMAND ----------
 
 # Main script to serve the endpoint of the model
-serving = ModelServing(model_name=model_name_to_deploy, endpoint_name="hotel-reservation-basic-model-serving-db")
+serving = ModelServing(model_name=model_name_to_deploy, endpoint_name=config.endpoint_name)
 
 if args.model_version == "auto":
     logger.info("Model Version is set to default 'auto'. Finding the last version of the model in Unity Catalog")

@@ -55,6 +55,8 @@ def sample_config() -> ProjectConfig:
         feature_table_name="mock_feature_table",
         feature_function_name="mock_feature_function",
         experiment_name_fe="/Users/mock/fe",
+        endpoint_name="endpoint_model",
+        endpoint_name_fe="endpoint_fe_model",
     )
 
 
@@ -86,6 +88,8 @@ def mock_config() -> ProjectConfig:
         feature_table_name="mock_feature_table",
         feature_function_name="mock_feature_function",
         experiment_name_fe="/Users/mock/fe",
+        endpoint_name="endpoint_model",
+        endpoint_name_fe="endpoint_fe_model",
     )
 
 
