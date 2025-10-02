@@ -28,7 +28,6 @@ if "ipykernel" in sys.modules:
         config = "project_config.yml"
         env = ".env"
         branch = "dev"
-        model_version = "auto"
 
     args = Args()
 else:
@@ -38,7 +37,6 @@ else:
     parser.add_argument("--config", type=str, default="project_config.yml")
     parser.add_argument("--env", type=str, default=".env")
     parser.add_argument("--branch", type=str, default="dev", required=True, help="Project branch to use")
-    parser.add_argument("--model_version", type=str, default="auto")
     args = parser.parse_args()
 
 root_path = args.root_path
