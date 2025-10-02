@@ -60,6 +60,8 @@ def create_spark_session() -> "pyspark.sql.SparkSession":
         spark = builder.remote(serverless=True).getOrCreate()
 
     logger.info("✅ Spark session initialized successfully via Databricks Connect")
+    logger.info("You might need to wait a few seconds or minutes for the cluster to start ...")
+
     return spark
 
 
