@@ -164,34 +164,36 @@ def generate_synthetic_data(df: pd.DataFrame, drift: bool = False, num_rows: int
     synthetic_data = pd.DataFrame()
 
     for column in df.columns:
-        if column == "Id":
+        if column == "Booking_ID":
             continue
 
         if pd.api.types.is_numeric_dtype(df[column]):
-            if column in {"arrival_year"}:  # Handle year-based columns separately
+            if column in {"arrival_year"}:
                 synthetic_data[column] = np.random.randint(df[column].min(), df[column].max() + 1, num_rows)
             else:
                 synthetic_data[column] = np.random.normal(df[column].mean(), df[column].std(), num_rows)
 
                 if column in {  
-                                "arrival_month",
-                                "arrival_date",
-                                "lead_time", 
-                                "no_of_adults",
-                                "no_of_children",
-                                "no_of_previous_bookings_not_canceled",
-                                "no_of_previous_cancellations",
-                                "no_of_special_requests",
-                                "no_of_week_nights",
-                                "no_of_weekend_nights",
-                                "repeated_guest",
-                                "required_car_parking_space",
-                            }:
-                    synthetic_data[column] = np.maximum(0, synthetic_data[column])  # Ensure values are non-negative
+                    "arrival_month",
+                    "arrival_date",
+                    "lead_time", 
+                    "no_of_adults",
+                    "no_of_children",
+                    "no_of_previous_bookings_not_canceled",
+                    "no_of_previous_cancellations",
+                    "no_of_special_requests",
+                    "no_of_week_nights",
+                    "no_of_weekend_nights",
+                    "repeated_guest",
+                    "required_car_parking_space",
+                }:
+                    synthetic_data[column] = np.maximum(0, synthetic_data[column])  # Ensure non-negative
 
         elif pd.api.types.is_categorical_dtype(df[column]) or pd.api.types.is_object_dtype(df[column]):
             synthetic_data[column] = np.random.choice(
-                df[column].unique(), num_rows, p=df[column].value_counts(normalize=True)
+                df[column].dropna().unique(),
+                num_rows,
+                p=df[column].value_counts(normalize=True).reindex(df[column].dropna().unique(), fill_value=0).values,
             )
 
         elif pd.api.types.is_datetime64_any_dtype(df[column]):
@@ -203,9 +205,9 @@ def generate_synthetic_data(df: pd.DataFrame, drift: bool = False, num_rows: int
             )
 
         else:
-            synthetic_data[column] = np.random.choice(df[column], num_rows)
+            synthetic_data[column] = np.random.choice(df[column].dropna(), num_rows)
 
-    # Convert relevant numeric columns to integers
+    # Type alignment with Databricks schema
     int_columns = {
         "arrival_date",
         "arrival_month",
@@ -221,33 +223,47 @@ def generate_synthetic_data(df: pd.DataFrame, drift: bool = False, num_rows: int
         "repeated_guest",
         "required_car_parking_space",
     }
+
     for col in int_columns.intersection(df.columns):
-        synthetic_data[col] = synthetic_data[col].astype(np.int32)
+        synthetic_data[col] = synthetic_data[col].round().astype(np.int32)  # ✅ int32 (Spark IntegerType)
 
-    # Only process columns if they exist in synthetic_data
-    for col in ["avg_price_per_room"]:
+    # Floats
+    if "avg_price_per_room" in synthetic_data.columns:
+        synthetic_data["avg_price_per_room"] = (
+            pd.to_numeric(synthetic_data["avg_price_per_room"], errors="coerce").astype(np.float64)
+        )
+
+    # Strings
+    string_columns = [
+        "Booking_ID",
+        "type_of_meal_plan",
+        "room_type_reserved",
+        "market_segment_type",
+        "booking_status",
+    ]
+    for col in string_columns:
         if col in synthetic_data.columns:
-            synthetic_data[col] = pd.to_numeric(synthetic_data[col], errors="coerce")
-            synthetic_data[col] = synthetic_data[col].astype(np.float64)
+            synthetic_data[col] = synthetic_data[col].astype(str)
 
-    timestamp_base = int(time.time() * 1000)
-    synthetic_data["Id"] = [str(timestamp_base + i) for i in range(num_rows)]
+    # Add timestamp column (optional for later merge)
+    # timestamp_base = int(time.time() * 1000)
+    # synthetic_data["Id"] = [str(timestamp_base + i) for i in range(num_rows)]
 
     if drift:
-        # Skew the top features to introduce drift
-        top_features = ["avg_price_per_room", "lead_time"]  # Select top 2 features
-        for feature in top_features:
+        # Introduce drift in selected features
+        for feature in ["avg_price_per_room", "lead_time"]:
             if feature in synthetic_data.columns:
                 synthetic_data[feature] = synthetic_data[feature] * 2
 
-        # Set YearBuilt to within the last 2 years
+        # Adjust arrival_year drift
         current_year = pd.Timestamp.now().year
         if "arrival_year" in synthetic_data.columns:
-            synthetic_data["arrival_year"] = np.random.randint(current_year - 2, current_year + 1, num_rows)
+            synthetic_data["arrival_year"] = np.random.randint(current_year - 2, current_year + 1, num_rows).astype(np.int32)
 
     return synthetic_data
 
+
 @timeit
 def generate_test_data(df: pd.DataFrame, drift: bool = False, num_rows: int = 100) -> pd.DataFrame:
-    """Generate test data matching input DataFrame distributions with optional drift."""
+    """Generate test data matching Databricks schema with optional drift."""
     return generate_synthetic_data(df, drift, num_rows)
