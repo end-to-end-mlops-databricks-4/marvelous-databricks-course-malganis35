@@ -26,6 +26,7 @@ if "ipykernel" in sys.modules:
         root_path = ".."
         config = "project_config.yml"
         env = ".env"
+        branch = "dev"
 
     args = Args()
 else:
