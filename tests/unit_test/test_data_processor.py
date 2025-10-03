@@ -10,13 +10,6 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from hotel_reservation.feature.data_processor import (
-    DataProcessor,  # noqa: E402
-    generate_synthetic_data,
-    generate_test_data,
-)
-from hotel_reservation.utils.config import ProjectConfig, Tags  # noqa: E402
-
 # ---------------------------------------------------------------------
 # Patch pyspark before importing DataProcessor
 # ---------------------------------------------------------------------
@@ -33,6 +26,16 @@ mock_pyspark.sql = mock_sql
 sys.modules["pyspark"] = mock_pyspark
 sys.modules["pyspark.sql"] = mock_sql
 sys.modules["pyspark.sql.functions"] = mock_functions
+
+# ---------------------------------------------------------------------
+# Import now the module (local imports must come after patch)
+# ---------------------------------------------------------------------
+from hotel_reservation.feature.data_processor import (  # noqa: E402
+    DataProcessor,
+    generate_synthetic_data,
+    generate_test_data,
+)
+from hotel_reservation.utils.config import ProjectConfig, Tags  # noqa: E402
 
 
 @pytest.fixture
