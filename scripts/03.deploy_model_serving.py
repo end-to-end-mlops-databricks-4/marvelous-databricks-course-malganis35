@@ -3,18 +3,14 @@
 # COMMAND ----------
 
 import argparse
-import os
-import sys
 
-import mlflow
 import pretty_errors  # noqa: F401
-from dotenv import load_dotenv
 from loguru import logger
 from pyspark.dbutils import DBUtils
 
 from hotel_reservation.serving.model_serving import ModelServing
 from hotel_reservation.utils.config import ProjectConfig
-from hotel_reservation.utils.databricks_utils import create_spark_session, get_databricks_token, is_databricks
+from hotel_reservation.utils.databricks_utils import create_spark_session
 
 # COMMAND ----------
 
@@ -49,7 +45,7 @@ parser.add_argument(
     default="auto",
     type=str,
     required=False,
-    help="Specify model version to deploy. Use 'auto' to take the latest from training task."
+    help="Specify model version to deploy. Use 'auto' to take the latest from training task.",
 )
 
 args = parser.parse_args()

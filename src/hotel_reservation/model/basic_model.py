@@ -189,7 +189,7 @@ class BasicModel:
             alias="latest-model",
             version=latest_version,
         )
-        
+
         return latest_version
 
     @timeit

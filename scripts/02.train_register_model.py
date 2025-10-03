@@ -3,18 +3,14 @@
 # Databricks notebook source
 
 import argparse
-import os
-import sys
 
-import mlflow
 import pretty_errors  # noqa: F401
-from dotenv import load_dotenv
 from loguru import logger
 from pyspark.dbutils import DBUtils
 
 from hotel_reservation.model.basic_model import BasicModel
 from hotel_reservation.utils.config import ProjectConfig, Tags
-from hotel_reservation.utils.databricks_utils import create_spark_session, is_databricks
+from hotel_reservation.utils.databricks_utils import create_spark_session
 
 # COMMAND ----------
 
@@ -113,7 +109,7 @@ logger.info(f"Model evaluation completed, model improved: {model_improved}")
 is_test = args.is_test
 
 # when running test, always register and deploy
-if is_test==args.is_test:
+if is_test == args.is_test:
     model_improved = True
 
 # COMMAND ----------

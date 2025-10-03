@@ -1,8 +1,5 @@
 """Module for preprocessing hotel reservation data."""
 
-import datetime
-import time
-
 import numpy as np
 import pandas as pd
 from loguru import logger
@@ -149,6 +146,7 @@ class DataProcessor:
             "SET TBLPROPERTIES (delta.enableChangeDataFeed = true);"
         )
 
+
 @timeit
 def generate_synthetic_data(df: pd.DataFrame, drift: bool = False, num_rows: int = 50) -> pd.DataFrame:
     """Generate synthetic data matching input DataFrame distributions with optional drift.
@@ -173,10 +171,10 @@ def generate_synthetic_data(df: pd.DataFrame, drift: bool = False, num_rows: int
             else:
                 synthetic_data[column] = np.random.normal(df[column].mean(), df[column].std(), num_rows)
 
-                if column in {  
+                if column in {
                     "arrival_month",
                     "arrival_date",
-                    "lead_time", 
+                    "lead_time",
                     "no_of_adults",
                     "no_of_children",
                     "no_of_previous_bookings_not_canceled",
@@ -229,9 +227,9 @@ def generate_synthetic_data(df: pd.DataFrame, drift: bool = False, num_rows: int
 
     # Floats
     if "avg_price_per_room" in synthetic_data.columns:
-        synthetic_data["avg_price_per_room"] = (
-            pd.to_numeric(synthetic_data["avg_price_per_room"], errors="coerce").astype(np.float64)
-        )
+        synthetic_data["avg_price_per_room"] = pd.to_numeric(
+            synthetic_data["avg_price_per_room"], errors="coerce"
+        ).astype(np.float64)
 
     # Strings
     string_columns = [
@@ -258,7 +256,9 @@ def generate_synthetic_data(df: pd.DataFrame, drift: bool = False, num_rows: int
         # Adjust arrival_year drift
         current_year = pd.Timestamp.now().year
         if "arrival_year" in synthetic_data.columns:
-            synthetic_data["arrival_year"] = np.random.randint(current_year - 2, current_year + 1, num_rows).astype(np.int32)
+            synthetic_data["arrival_year"] = np.random.randint(current_year - 2, current_year + 1, num_rows).astype(
+                np.int32
+            )
 
     return synthetic_data
 
