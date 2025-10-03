@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build_and_test:
+  pytest_and_checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
@@ -23,6 +23,12 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@0c5e2b8115b80b4c7c5ddf6ffdd634974642d182 #v5.4.1
 
+      - name: configure private repo
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          git config --global url."https://x-access-token:$GITHUB_TOKEN@github.com/end-to-end-mlops-databricks-3".insteadOf "https://github.com/end-to-end-mlops-databricks-3"
+
       - name: Install the dependencies
         run: |
           uv sync --extra test
@@ -33,4 +39,6 @@ jobs:
 
       - name: run pytest
         run: |
-          uv run pytest
+          # Run the test that are not marked ci_exclude
+          # To make a test not runned, add the decorator to the test: @pytest.mark.ci_exclude
+          uv run pytest -m "not ci_exclude"
