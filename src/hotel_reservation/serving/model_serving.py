@@ -10,7 +10,7 @@ import time
 
 import mlflow
 from databricks.sdk import WorkspaceClient
-from databricks.sdk.errors import ResourceConflict
+from databricks.sdk.errors import ResourceConflict, ResourceDoesNotExist
 from databricks.sdk.service.serving import EndpointCoreConfigInput, ServedEntityInput
 from loguru import logger
 
@@ -109,20 +109,25 @@ class ModelServing:
         raise TimeoutError(f"❌ Timeout: endpoint '{self.endpoint_name}' still updating after {timeout} seconds.")
 
     def wait_until_ready(self, timeout: int = 600, check_interval: int = 10) -> None:
-        """Wait until the Databricks serving endpoint reaches the `READY` state.
+        """Wait until the Databricks serving endpoint reaches the READY state.
 
         Args:
-            timeout (int, optional): Maximum wait time in seconds. Defaults to `600`.
-            check_interval (int, optional): Interval between status checks in seconds. Defaults to `10`.
+        timeout (int, optional): Maximum wait time in seconds. Defaults to 600.
+        check_interval (int, optional): Interval between status checks in seconds. Defaults to 10.
 
         Raises:
-            RuntimeError: If the endpoint update fails.
-            TimeoutError: If the endpoint does not become `READY` within the timeout.
-
+        RuntimeError: If the endpoint update fails.
+        TimeoutError: If the endpoint does not become READY within the timeout.
         """
         start_time = time.time()
         logger.info(f"⏳ Waiting for endpoint '{self.endpoint_name}' to become READY...")
 
+        try:
+            endpoint = self.workspace.serving_endpoints.get(self.endpoint_name)
+        except ResourceDoesNotExist:
+            logger.warning(f"⚠️ Endpoint '{self.endpoint_name}' does not exist yet. Skipping wait — it will be created later.")
+            return
+        
         while time.time() - start_time < timeout:
             endpoint = self.workspace.serving_endpoints.get(self.endpoint_name)
             state = endpoint.state.ready
