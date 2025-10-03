@@ -32,6 +32,9 @@ variables:
   env:
     description: environment
     default: dev
+  model_version:
+    description: model version to deploy (use 'auto' for latest)
+    default: auto  # or "5" for example if you want to deploy the specifi version 5
 
 resources:
   jobs:
@@ -104,23 +107,25 @@ resources:
             right: "1"
           depends_on:
             - task_key: "train_model"
-        # - task_key: "deploy_model"
-        #   depends_on:
-        #     - task_key: "model_updated"
-        #       outcome: "true"
-        #   # job_cluster_key: "house-price-cluster"
-        #   existing_cluster_id: "0925-180914-5nzxv7hw"
-        #   spark_python_task:
-        #     python_file: "scripts/03.deploy_model.py"
-        #     parameters:
-        #       - "--root_path"
-        #       - "${workspace.root_path}"
-        #       - "--env"
-        #       - "${var.env}"
-        #       - "--is_test"
-        #       - "${var.is_test}"
-        #   libraries:
-        #     - whl: ./dist/*.whl
+        - task_key: "deploy_model"
+          depends_on:
+            - task_key: "model_updated"
+              outcome: "true"
+          # job_cluster_key: "house-price-cluster"
+          existing_cluster_id: "0925-180914-5nzxv7hw"
+          spark_python_task:
+            python_file: "scripts/03.deploy_model_serving.py"
+            parameters:
+              - "--root_path"
+              - "${workspace.root_path}"
+              - "--env"
+              - "${var.env}"
+              - "--is_test"
+              - "${var.is_test}"
+              - "--model_version"
+              - "${var.model_version}"
+          libraries:
+            - whl: ./dist/*.whl
         # - task_key: post_commit_status_required
         #   condition_task:
         #     op: "EQUAL_TO"
