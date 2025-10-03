@@ -3,7 +3,7 @@
 import numpy as np
 import pandas as pd
 from loguru import logger
-from pyspark.sql import SparkSession
+from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.functions import current_timestamp, to_utc_timestamp
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -101,50 +101,123 @@ class DataProcessor:
         return train_set, test_set
 
     @timeit
-    def save_to_catalog(self, train_set: pd.DataFrame, test_set: pd.DataFrame) -> None:
-        """Save the train and test sets into Databricks Delta tables.
+    def save_to_catalog(self, train_set: pd.DataFrame, test_set: pd.DataFrame, write_mode: str = "overwrite") -> None:
+        """Save the train and test sets into Databricks Delta tables with mode control and CDF on first creation.
 
-        :param train_set: The training DataFrame to be saved.
-        :param test_set: The test DataFrame to be saved.
+        :param train_set: pandas DataFrame (train)
+        :param test_set: pandas DataFrame (test)
+        :param write_mode: 'overwrite', 'append', or 'upsert'
         """
-        train_set_with_timestamp = self.spark.createDataFrame(train_set).withColumn(
-            "update_timestamp_utc", to_utc_timestamp(current_timestamp(), "UTC")
-        )
 
-        test_set_with_timestamp = self.spark.createDataFrame(test_set).withColumn(
-            "update_timestamp_utc", to_utc_timestamp(current_timestamp(), "UTC")
-        )
+        def _write_with_mode(spark_df: DataFrame, table_name: str, merge_key: str = "Booking_ID") -> None:
+            full_table_name = f"{self.config.catalog_name}.{self.config.schema_name}.{table_name}"
 
-        train_set_with_timestamp.write.mode("overwrite").saveAsTable(
-            f"{self.config.catalog_name}.{self.config.schema_name}.{self.config.train_table}"
-        )
+            # 1) Existence de la table
+            table_exists = self._check_table_exists(full_table_name)
 
-        logger.info(
-            f"Train set saved to {self.config.catalog_name}.{self.config.schema_name}.{self.config.train_table}"
-        )
+            # 2) Ajouter un timestamp technique
+            df_with_ts = spark_df.withColumn("update_timestamp_utc", to_utc_timestamp(current_timestamp(), "UTC"))
 
-        test_set_with_timestamp.write.mode("overwrite").saveAsTable(
-            f"{self.config.catalog_name}.{self.config.schema_name}.{self.config.test_table}"
-        )
+            # Nb lines before writing to Unity Catalog
+            previous_count = self._get_table_row_count(full_table_name) if table_exists else 0
+            new_count = df_with_ts.count()
 
-        logger.info(f"Test set saved to {self.config.catalog_name}.{self.config.schema_name}.{self.config.test_table}")
+            logger.debug(f"📊 Table: {full_table_name}")
+            logger.debug(f"    → Existing rows: {previous_count:,}")
+            logger.debug(f"    → Incoming rows: {new_count:,}")
 
-    @timeit
-    def enable_change_data_feed(self) -> None:
-        """Enable Change Data Feed (CDF) on the Delta tables for train and test sets.
+            # 3) Si la table n'existe pas → création + CDF
+            if not table_exists:
+                logger.warning(f"Table {full_table_name} not found. Creating it in 'overwrite' mode.")
+                (
+                    df_with_ts.write.mode("overwrite")
+                    .option("mergeSchema", "true")  # utile si le schéma évolue
+                    .saveAsTable(full_table_name)
+                )
+                logger.success(f"Table {full_table_name} created.")
+                self._enable_change_data_feed(full_table_name)  # ✅ activer CDF à la création
+                logger.info(f"CDF enabled for {full_table_name}.")
+                return  # première exécution: on s'arrête ici
 
-        This method runs ALTER TABLE commands to activate delta.enableChangeDataFeed=true
-        on both train and test tables in the Databricks catalog.
+            # 4) Si la table existe → appliquer write_mode
+            if write_mode in {"overwrite", "append"}:
+                logger.info(f"Writing to {full_table_name} with mode '{write_mode}'")
+                (df_with_ts.write.mode(write_mode).option("mergeSchema", "true").saveAsTable(full_table_name))
+            elif write_mode == "upsert":
+                logger.info(f"Performing UPSERT into {full_table_name} on key '{merge_key}'")
+                if merge_key not in df_with_ts.columns:
+                    raise ValueError(
+                        f"UPSERT requested but merge key '{merge_key}' missing from data columns: {df_with_ts.columns}"
+                    )
+                self._merge_delta_table(df_with_ts, full_table_name, merge_key=merge_key)
+            else:
+                raise ValueError(f"Invalid write_mode: {write_mode}")
+
+            logger.success(f"Data successfully written to {full_table_name} in mode '{write_mode}'.")
+
+            # ✅ Check after writing to Unity Catalog
+            final_count = self._get_table_row_count(full_table_name)
+            diff = final_count - previous_count
+
+            logger.debug("Checking consistency of the data after writting in Unity Catalog")
+            logger.debug(f"    → Rows after write: {final_count:,}")
+            logger.debug(f"    → Change: {diff:+,} rows")
+
+            if final_count == previous_count and write_mode != "overwrite":
+                logger.warning(f"⚠️ No new rows detected in {full_table_name}. Check your write mode or merge logic.")
+            elif final_count < previous_count:
+                logger.error(f"❌ Row count decreased in {full_table_name}! Possible data loss.")
+            else:
+                logger.success(f"✅ Write completed successfully for {full_table_name}.")
+
+        # pandas → Spark
+        train_spark_df = self.spark.createDataFrame(train_set)
+        test_spark_df = self.spark.createDataFrame(test_set)
+
+        _write_with_mode(train_spark_df, self.config.train_table, merge_key="Booking_ID")
+        _write_with_mode(test_spark_df, self.config.test_table, merge_key="Booking_ID")
+
+    def _check_table_exists(self, full_table_name: str) -> bool:
+        """Return True if the fully qualified table exists in Unity Catalog."""
+        try:
+            self.spark.sql(f"DESCRIBE TABLE {full_table_name}")
+            return True
+        except Exception:
+            return False
+
+    def _enable_change_data_feed(self, full_table_name: str) -> None:
+        """Enable Delta Change Data Feed for a table."""
+        try:
+            self.spark.sql(f"ALTER TABLE {full_table_name} SET TBLPROPERTIES (delta.enableChangeDataFeed = true)")
+            logger.success(f"CDF enabled for {full_table_name}")
+        except Exception as e:
+            logger.error(f"Failed to enable CDF on {full_table_name}: {e}")
+
+    def _merge_delta_table(self, new_data_df: DataFrame, full_table_name: str, merge_key: str) -> None:
+        """Perform upsert (merge) into an existing Delta table on the given key."""
+        # Vue temporaire des updates
+        temp_view = f"updates_{abs(hash(full_table_name)) % 10_000_000}"
+        new_data_df.createOrReplaceTempView(temp_view)
+
+        merge_sql = f"""
+        MERGE INTO {full_table_name} AS target
+        USING {temp_view} AS source
+        ON target.{merge_key} = source.{merge_key}
+        WHEN MATCHED THEN
+        UPDATE SET *
+        WHEN NOT MATCHED THEN
+        INSERT *
         """
-        self.spark.sql(
-            f"ALTER TABLE {self.config.catalog_name}.{self.config.schema_name}.{self.config.train_table} "
-            "SET TBLPROPERTIES (delta.enableChangeDataFeed = true);"
-        )
+        self.spark.sql(merge_sql)
 
-        self.spark.sql(
-            f"ALTER TABLE {self.config.catalog_name}.{self.config.schema_name}.{self.config.test_table} "
-            "SET TBLPROPERTIES (delta.enableChangeDataFeed = true);"
-        )
+    def _get_table_row_count(self, full_table_name: str) -> int:
+        """Return the number of rows in the target table if it exists."""
+        try:
+            count_df = self.spark.sql(f"SELECT COUNT(*) AS count FROM {full_table_name}")
+            return count_df.collect()[0]["count"]
+        except Exception:
+            # Table doesn't exist or unreadable
+            return 0
 
 
 @timeit

@@ -35,6 +35,9 @@ variables:
   model_version:
     description: model version to deploy (use 'auto' for latest)
     default: auto  # or "5" for example if you want to deploy the specifi version 5
+  write_mode:
+    description: write mode for saving data (overwrite, append, or upsert)
+    default: append
 
 resources:
   jobs:
@@ -76,6 +79,8 @@ resources:
               - "${var.env}"
               - "--is_test"
               - "${var.is_test}"
+              - "--write_mode"
+              - "${var.write_mode}"
           libraries:
            - whl: ./dist/*.whl #custom libraries that will be installed in the cluster
         - task_key: "train_model"
