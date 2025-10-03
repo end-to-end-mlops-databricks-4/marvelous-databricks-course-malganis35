@@ -28,6 +28,7 @@ if "ipykernel" in sys.modules:
         env = ".env"
         branch = "dev"
         is_test = 0
+        write_mode = "append"
 
     args = Args()
 else:
@@ -38,6 +39,13 @@ else:
     parser.add_argument("--env", type=str, default=".env")
     parser.add_argument("--branch", type=str, default="dev", help="branch of the project")
     parser.add_argument("--is_test", type=int, default=0, help="synthetic data (0) and test data (1)")
+    parser.add_argument(
+        "--write_mode",
+        type=str,
+        default="append",
+        choices=["overwrite", "append", "upsert"],
+        help="How to write data to the catalog: overwrite, append, or upsert",
+    )
     args = parser.parse_args()
 
 root_path = args.root_path
@@ -45,6 +53,7 @@ CONFIG_FILE = f"{root_path}/{args.config}"
 ENV_FILE = f"{root_path}/{args.env}"
 ENVIRONMENT_CHOICE = args.branch
 is_test = args.is_test
+write_mode = args.write_mode
 
 # COMMAND ----------
 
@@ -100,6 +109,6 @@ logger.info("Split the data into train and test sets")
 X_train, X_test = data_processor.split_data()
 
 logger.info("Saving data to catalog")
-data_processor.save_to_catalog(X_train, X_test)
+data_processor.save_to_catalog(X_train, X_test, write_mode=write_mode)
 
 # COMMAND ----------

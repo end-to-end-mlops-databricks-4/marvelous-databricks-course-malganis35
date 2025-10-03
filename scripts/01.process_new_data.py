@@ -41,6 +41,15 @@ parser.add_argument(
     required=True,
 )
 
+parser.add_argument(
+    "--write_mode",
+    action="store",
+    default="append",
+    type=str,
+    choices=["overwrite", "append", "upsert"],
+    help="How to write data to the catalog: overwrite, append, or upsert",
+)
+
 args = parser.parse_args()
 root_path = args.root_path
 config_path = f"{root_path}/files/project_config.yml"
@@ -48,6 +57,7 @@ config_path = f"{root_path}/files/project_config.yml"
 config = ProjectConfig.from_yaml(config_path=config_path, env=args.env)
 
 is_test = args.is_test
+write_mode = args.write_mode
 
 logger.info("Configuration loaded:")
 logger.info(yaml.dump(config, default_flow_style=False))
@@ -94,6 +104,6 @@ logger.info("Split the data into train and test sets")
 X_train, X_test = data_processor.split_data()
 
 logger.info("Saving data to catalog")
-data_processor.save_to_catalog(X_train, X_test)
+data_processor.save_to_catalog(X_train, X_test, write_mode=write_mode)
 
 # COMMAND ----------
