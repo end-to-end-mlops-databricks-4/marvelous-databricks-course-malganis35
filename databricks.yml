@@ -126,35 +126,35 @@ resources:
               - "${var.model_version}"
           libraries:
             - whl: ./dist/*.whl
-        # - task_key: post_commit_status_required
-        #   condition_task:
-        #     op: "EQUAL_TO"
-        #     left: "${var.is_test}"
-        #     right: "1"
-        #   depends_on:
-        #     - task_key: "deploy_model"
-        # - task_key: "post_commit_status" #only for integration test
-        #   depends_on:
-        #     - task_key: "post_commit_status_required"
-        #       outcome: "true"
-        #   # job_cluster_key: "house-price-cluster"
-        #   existing_cluster_id: "0925-180914-5nzxv7hw"
-        #   spark_python_task:
-        #     python_file: "scripts/04.post_commit_status.py"
-        #     parameters:
-        #       - "post_commit_check"
-        #       - "--job_run_id"
-        #       - "{{job.run_id}}"
-        #       - "--job_id"
-        #       - "{{job.id}}"
-        #       - "--git_sha"
-        #       - "${var.git_sha}"
-        #       - "--repo"
-        #       - "${var.repo}"
-        #       - "--org"
-        #       - "${var.org}"
-        #   libraries:
-        #     - whl: ./dist/*.whl
+        - task_key: post_commit_status_required
+          condition_task:
+            op: "EQUAL_TO"
+            left: "${var.is_test}"
+            right: "1"
+          depends_on:
+            - task_key: "deploy_model"
+        - task_key: "post_commit_status" #only for integration test
+          depends_on:
+            - task_key: "post_commit_status_required"
+              outcome: "true"
+          # job_cluster_key: "house-price-cluster"
+          existing_cluster_id: "0925-180914-5nzxv7hw"
+          spark_python_task:
+            python_file: "scripts/04.post_commit_status.py"
+            parameters:
+              - "post_commit_check"
+              - "--job_run_id"
+              - "{{job.run_id}}"
+              - "--job_id"
+              - "{{job.id}}"
+              - "--git_sha"
+              - "${var.git_sha}"
+              - "--repo"
+              - "${var.repo}"
+              - "--org"
+              - "${var.org}"
+          libraries:
+            - whl: ./dist/*.whl
 
 targets:
   dev:
