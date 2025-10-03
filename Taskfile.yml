@@ -49,6 +49,12 @@ tasks:
       - task: dev-install
       - uv run notebooks/process_data.py
 
+  run-process-new-data:
+    desc: Test on a pre-processing script
+    cmds:
+      - task: dev-install
+      - uv run notebooks/process_new_data.py
+
   run_create_mlflow_workspace:
     desc: Create the directory on Databricks for MLflow experiments
     cmds:
