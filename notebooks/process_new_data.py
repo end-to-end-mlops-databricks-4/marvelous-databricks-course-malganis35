@@ -71,7 +71,7 @@ logger.info(f"Dataset shape: {df.shape}")
 
 # COMMAND ----------
 logger.info("Generating data ...")
-if is_test==0:
+if is_test == 0:
     # Generate synthetic data.
     # This is mimicking a new data arrival. In real world, this would be a new batch of data.
     # df is passed to infer schema
@@ -82,7 +82,7 @@ else:
     # This is mimicking a new data arrival. This is a valid example for integration testing.
     new_data = generate_test_data(df, num_rows=10)
     logger.success("✅ Test data generated successfully.")
-    
+
 logger.debug("===== Information about the dataset: =====")
 logger.debug(f"Size of the dataset: {new_data.shape}")
 logger.debug("Top 10 lines of the dataset:")

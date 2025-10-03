@@ -118,6 +118,7 @@ class ModelServing:
         Raises:
         RuntimeError: If the endpoint update fails.
         TimeoutError: If the endpoint does not become READY within the timeout.
+
         """
         start_time = time.time()
         logger.info(f"⏳ Waiting for endpoint '{self.endpoint_name}' to become READY...")
@@ -125,9 +126,11 @@ class ModelServing:
         try:
             endpoint = self.workspace.serving_endpoints.get(self.endpoint_name)
         except ResourceDoesNotExist:
-            logger.warning(f"⚠️ Endpoint '{self.endpoint_name}' does not exist yet. Skipping wait — it will be created later.")
+            logger.warning(
+                f"⚠️ Endpoint '{self.endpoint_name}' does not exist yet. Skipping wait — it will be created later."
+            )
             return
-        
+
         while time.time() - start_time < timeout:
             endpoint = self.workspace.serving_endpoints.get(self.endpoint_name)
             state = endpoint.state.ready

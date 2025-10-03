@@ -10,6 +10,13 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from hotel_reservation.feature.data_processor import (
+    DataProcessor,  # noqa: E402
+    generate_synthetic_data,
+    generate_test_data,
+)
+from hotel_reservation.utils.config import ProjectConfig, Tags  # noqa: E402
+
 # ---------------------------------------------------------------------
 # Patch pyspark before importing DataProcessor
 # ---------------------------------------------------------------------
@@ -26,12 +33,6 @@ mock_pyspark.sql = mock_sql
 sys.modules["pyspark"] = mock_pyspark
 sys.modules["pyspark.sql"] = mock_sql
 sys.modules["pyspark.sql.functions"] = mock_functions
-
-# ---------------------------------------------------------------------
-# Now import the module under test (E402 ignored intentionally)
-# ---------------------------------------------------------------------
-from hotel_reservation.feature.data_processor import DataProcessor  # noqa: E402
-from hotel_reservation.utils.config import ProjectConfig, Tags  # noqa: E402
 
 
 @pytest.fixture
@@ -187,3 +188,48 @@ def test_enable_change_data_feed_calls_spark_sql(mock_config: ProjectConfig) -> 
     mock_spark.sql.assert_any_call(expected_train_sql)
     mock_spark.sql.assert_any_call(expected_test_sql)
     assert mock_spark.sql.call_count == 2
+
+
+def test_generate_synthetic_data_basic() -> None:
+    """Test that generate_synthetic_data creates a valid synthetic dataset."""
+    df = pd.DataFrame(
+        {
+            "lead_time": [10, 20, 30],
+            "avg_price_per_room": [100.0, 200.0, 150.0],
+            "arrival_year": [2023, 2023, 2024],
+            "booking_status": ["Canceled", "Not_Canceled", "Canceled"],
+        }
+    )
+
+    synthetic = generate_synthetic_data(df, drift=False, num_rows=10)
+    assert list(synthetic.columns) == list(df.columns)
+    assert len(synthetic) == 10
+    assert np.issubdtype(synthetic["arrival_year"].dtype, np.integer)
+    assert synthetic["avg_price_per_room"].dtype == np.float64
+
+
+def test_generate_synthetic_data_with_drift_changes_values() -> None:
+    """Test that drift=True modifies numeric and year columns as expected."""
+    df = pd.DataFrame(
+        {
+            "lead_time": [5, 10, 15],
+            "avg_price_per_room": [50.0, 100.0, 150.0],
+            "arrival_year": [2020, 2021, 2022],
+        }
+    )
+
+    synthetic_drift = generate_synthetic_data(df, drift=True, num_rows=5)
+    assert (synthetic_drift["avg_price_per_room"] > df["avg_price_per_room"].max()).any()
+    assert (synthetic_drift["lead_time"] > df["lead_time"].max()).any()
+    assert synthetic_drift["arrival_year"].between(pd.Timestamp.now().year - 2, pd.Timestamp.now().year).all()
+
+
+def test_generate_test_data_delegates_to_generate_synthetic_data(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that generate_test_data delegates correctly to generate_synthetic_data."""
+    df = pd.DataFrame({"lead_time": [1, 2, 3]})
+    mock_func = MagicMock(return_value=pd.DataFrame({"lead_time": [10, 20]}))
+    monkeypatch.setattr("hotel_reservation.feature.data_processor.generate_synthetic_data", mock_func)
+
+    result = generate_test_data(df, drift=True, num_rows=2)
+    mock_func.assert_called_once_with(df, True, 2)
+    assert isinstance(result, pd.DataFrame)
