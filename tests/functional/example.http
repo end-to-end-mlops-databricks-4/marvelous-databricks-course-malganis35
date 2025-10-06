@@ -1,0 +1,10 @@
+
+### Get a token
+# databricks auth token --host https://dbc-f122dc18-1b68.cloud.databricks.com
+curl \
+  -X POST \
+  -H "Authorization: Bearer $PASTE_YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d@data.json \
+  https://dbc-f122dc18-1b68.cloud.databricks.com/serving-endpoints/hotel-reservation-basic-model-serving-db/invocations
+
