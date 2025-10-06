@@ -102,14 +102,9 @@ class DataProcessor:
 
     @timeit
     def save_to_catalog(self, train_set: pd.DataFrame, test_set: pd.DataFrame, write_mode: str = "overwrite") -> None:
-        """Save the train and test sets into Databricks Delta tables with mode control and CDF on first creation.
+        """Save the train and test sets into Databricks Delta tables with mode control and CDF on first creation."""
 
-        :param train_set: pandas DataFrame (train)
-        :param test_set: pandas DataFrame (test)
-        :param write_mode: 'overwrite', 'append', or 'upsert'
-        """
-
-        def _safe_format_count(value):
+        def _safe_format_count(value: int | float | str) -> str:
             """Safely format numeric or mocked values for logging."""
             try:
                 return f"{int(value):,}"
@@ -119,13 +114,9 @@ class DataProcessor:
         def _write_with_mode(spark_df: DataFrame, table_name: str, merge_key: str = "Booking_ID") -> None:
             full_table_name = f"{self.config.catalog_name}.{self.config.schema_name}.{table_name}"
 
-            # 1) Existence de la table
             table_exists = self._check_table_exists(full_table_name)
-
-            # 2) Ajouter un timestamp technique (utiliser le même mock que le test surveille)
             spark_df = spark_df.withColumn("update_timestamp_utc", to_utc_timestamp(current_timestamp(), "UTC"))
 
-            # 3) Nombre de lignes avant/après
             previous_count = self._get_table_row_count(full_table_name) if table_exists else 0
             new_count = getattr(spark_df, "count", lambda: 0)()
 
@@ -133,7 +124,6 @@ class DataProcessor:
             logger.debug(f"    → Existing rows: {_safe_format_count(previous_count)}")
             logger.debug(f"    → Incoming rows: {_safe_format_count(new_count)}")
 
-            # 4) Si la table n'existe pas → création + CDF
             if not table_exists:
                 logger.warning(f"Table {full_table_name} not found. Creating it in 'overwrite' mode.")
                 (spark_df.write.mode("overwrite").option("mergeSchema", "true").saveAsTable(full_table_name))
@@ -142,7 +132,6 @@ class DataProcessor:
                 logger.info(f"CDF enabled for {full_table_name}.")
                 return
 
-            # 5) Si la table existe → appliquer le mode d’écriture
             if write_mode in {"overwrite", "append"}:
                 logger.info(f"Writing to {full_table_name} with mode '{write_mode}'")
                 (spark_df.write.mode(write_mode).option("mergeSchema", "true").saveAsTable(full_table_name))
@@ -158,19 +147,18 @@ class DataProcessor:
 
             logger.success(f"Data successfully written to {full_table_name} in mode '{write_mode}'.")
 
-            # 6) Vérification post-écriture
             final_count = self._get_table_row_count(full_table_name)
             diff = (
                 final_count - previous_count
-                if all(isinstance(v, (int, float)) for v in [final_count, previous_count])
+                if all(isinstance(v, int | float) for v in [final_count, previous_count])
                 else "?"
             )
 
             logger.debug("Checking consistency of the data after writing in Unity Catalog")
             logger.debug(f"    → Rows after write: {_safe_format_count(final_count)}")
-            logger.debug(f"    → Change: {diff:+,}" if isinstance(diff, (int, float)) else f"    → Change: {diff}")
+            logger.debug(f"    → Change: {diff:+,}" if isinstance(diff, int | float) else f"    → Change: {diff}")
 
-            if isinstance(final_count, (int, float)) and isinstance(previous_count, (int, float)):
+            if isinstance(final_count, int | float) and isinstance(previous_count, int | float):
                 if final_count == previous_count and write_mode != "overwrite":
                     logger.warning(
                         f"⚠️ No new rows detected in {full_table_name}. Check your write mode or merge logic."
