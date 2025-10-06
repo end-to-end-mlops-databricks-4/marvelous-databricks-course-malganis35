@@ -30,6 +30,7 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+devbox.lock
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -46,6 +47,7 @@ htmlcov/
 .tox/
 .coverage
 .coverage.*
+.coveragec
 .cache
 nosetests.xml
 coverage.xml
