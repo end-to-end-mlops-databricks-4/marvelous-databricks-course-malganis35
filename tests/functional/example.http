@@ -7,4 +7,3 @@ curl \
   -H "Content-Type: application/json" \
   -d@data.json \
   https://dbc-f122dc18-1b68.cloud.databricks.com/serving-endpoints/hotel-reservation-basic-model-serving-db/invocations
-
