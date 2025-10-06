@@ -100,7 +100,7 @@ tag_format = "v$version"
 version_files = [
   "version.txt"
 ]
-bump_message = "chore(release): bump version $current_version → $new_version [skip ci]"
+bump_message = "chore(release): bump version $current_version → $new_version"
 update_changelog_on_bump = true
 changelog_incremental = true
 pre_bump_hooks = [
