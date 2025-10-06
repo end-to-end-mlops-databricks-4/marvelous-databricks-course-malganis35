@@ -1,4 +1,4 @@
-"""Basic model implementation.
+"""Custom model implementation.
 
 infer_signature (from mlflow.models) → Captures input-output schema for model tracking.
 
@@ -17,6 +17,7 @@ from delta.tables import DeltaTable
 from loguru import logger
 from mlflow import MlflowClient
 from mlflow.data.dataset_source import DatasetSource
+from mlflow.exceptions import RestException
 from mlflow.models import infer_signature
 from pyspark.sql import SparkSession
 from sklearn.base import BaseEstimator
@@ -58,7 +59,7 @@ class SklearnModelWithProba(mlflow.pyfunc.PythonModel):
             results.append(
                 {
                     "prediction": int(p),
-                    "label": "Cancelled" if p == 1 else "Not_Canceled",
+                    "label": "Cancelled" if p == 0 else "Not_Canceled",
                     "probability": float(pr),
                 }
             )
@@ -257,6 +258,11 @@ class CustomModel:
 
         logger.info("Model successfully loaded.")
 
+        # Convert Spark → Pandas if needed
+        if hasattr(input_data, "toPandas"):
+            logger.info("Converting Spark DataFrame to Pandas for prediction...")
+            input_data = input_data.toPandas()
+
         # Make predictions
         results = model.predict(input_data)
 
@@ -264,36 +270,83 @@ class CustomModel:
         results_df = pd.DataFrame(results)
         return results_df
 
+    def _get_baseline_model_uri(self) -> str | None:
+        """Return the URI of the baseline model used for comparison.
+
+        The method attempts to find the most relevant reference model:
+        - Uses the alias @latest-model if it exists,
+        - Otherwise falls back to the latest registered version,
+        - Returns None if no registered model exists yet.
+        """
+        client = MlflowClient(registry_uri=mlflow.get_registry_uri())
+
+        try:
+            alias_info = client.get_model_version_by_alias(
+                name=self.model_name,
+                alias="latest-model",
+            )
+            v = alias_info.version
+            logger.info(f"Baseline: using alias @latest-model (version {v})")
+            return f"models:/{self.model_name}/{v}"  # 👈 important: on fixe la version exacte
+        except Exception as e:
+            logger.info(f"No alias 'latest-model' (fallback to latest version). Reason: {e}")
+
+        try:
+            latest_versions = client.get_latest_versions(self.model_name)
+            if latest_versions:
+                v = latest_versions[0].version
+                logger.info(f"Baseline: using last registered version: {v}")
+                return f"models:/{self.model_name}/{v}"
+        except RestException as e:
+            logger.info(f"No registered versions found. Reason: {e}")
+
+        logger.info("No registered model found. Treat as first run.")
+        return None
+
     @timeit
     def model_improved(self) -> bool:
-        """Evaluate the model performance on the test set.
+        """Compare the current model (metrics already computed in log_model).
 
-        Compares the current model with the latest registered model using F1-score.
-        :return: True if the current model performs better, False otherwise.
+        Compares the model against the best registered model (alias @latest-model if available,
+        otherwise the latest registered version). Returns True if the new model's
+        F1-score is greater than or equal to the baseline.
         """
-        client = MlflowClient()
-        try:
-            latest_model_version = client.get_model_version_by_alias(name=self.model_name, alias="latest-model")
-            latest_model_uri = f"models:/{latest_model_version.model_id}"
+        logger.info(f"Active registry URI before fetching alias: {mlflow.get_registry_uri()}")
 
-            result = mlflow.models.evaluate(
-                latest_model_uri,
-                self.eval_data,
-                targets=self.config.target,
-                model_type="classifier",
-                evaluators=["default"],
-            )
-            metrics_old = result.metrics
-            logger.info(f"Latest model F1-score: {metrics_old['f1_score']}")
-        except Exception:
-            logger.info("No model exist yet. Set F1-score to Zero")
-            metrics_old = {}
-            metrics_old["f1_score"] = 0
+        baseline_uri = self._get_baseline_model_uri()
+        new_f1 = float(self.metrics["f1_score"])
 
-        logger.info(f"Current model F1-score: {self.metrics['f1_score']}")
-        if self.metrics["f1_score"] >= metrics_old["f1_score"]:
-            logger.info("💥 Current model performs better. Returning True.")
+        if baseline_uri is None:
+            # Premier run : pas de modèle de référence
+            logger.info(f"No baseline model. Current model F1-score: {new_f1} → will register.")
             return True
+
+        # Évaluer manuellement (sans mlflow.evaluate) car le modèle retourne un dict
+        baseline_model = mlflow.pyfunc.load_model(baseline_uri)
+        # Faire les prédictions du modèle baseline
+        preds_df = pd.DataFrame(baseline_model.predict(self.X_test))
+        if "prediction" not in preds_df.columns:
+            raise ValueError("Expected key 'prediction' in baseline model output.")
+
+        y_pred = preds_df["prediction"]
+        y_true = self.y_test.copy()
+
+        # Harmoniser les labels de y_true (string → int)
+        y_true = y_true.replace(
+            {
+                "Canceled": 0,
+                "Not_Canceled": 1,
+            }
+        )
+        y_true = y_true.astype(int)
+
+        old_f1 = f1_score(y_true, y_pred, average="weighted", zero_division=0)
+        logger.info(f"Baseline F1-score: {old_f1}")
+        logger.info(f"Current  F1-score: {new_f1}")
+
+        improved = new_f1 >= old_f1
+        if improved:
+            logger.info("💥 Current model performs better or equal. Returning True.")
         else:
-            logger.info("⛔ Current model does not improve over latest. Returning False.")
-            return False
+            logger.info("⛔ Current model is worse. Returning False.")
+        return improved
