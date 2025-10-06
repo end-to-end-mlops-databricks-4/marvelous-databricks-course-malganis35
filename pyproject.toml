@@ -95,7 +95,7 @@ docstring-code-format = true
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version_provider = "pep621"
+version = "0.0.1"
 tag_format = "v$version"
 version_files = [
   "version.txt"
