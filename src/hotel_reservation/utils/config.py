@@ -28,10 +28,12 @@ class ProjectConfig(BaseModel):
     experiment_name_custom: str | None
     experiment_name_fe: str | None
     model_name: str | None
+    model_name_custom: str | None
     model_name_fe: str | None
     model_type: str | None
     model_config = {"protected_namespaces": ()}
     endpoint_name: str | None
+    endpoint_name_custom: str | None
     endpoint_name_fe: str | None
 
     @classmethod
