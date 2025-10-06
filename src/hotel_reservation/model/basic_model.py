@@ -232,6 +232,11 @@ class BasicModel:
 
         logger.info("Model successfully loaded.")
 
+        # Convert Spark → Pandas if needed
+        if hasattr(input_data, "toPandas"):
+            logger.info("Converting Spark DataFrame to Pandas for prediction...")
+            input_data = input_data.toPandas()
+        
         # Make predictions
         predictions = model.predict(input_data)
 
