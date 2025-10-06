@@ -10,7 +10,7 @@ import pretty_errors  # noqa: F401
 import yaml
 from loguru import logger
 
-from hotel_reservation.feature.data_processor import DataProcessor, generate_synthetic_data, generate_test_data
+from hotel_reservation.feature.data_processor import DataProcessor
 from hotel_reservation.utils.config import ProjectConfig
 from hotel_reservation.utils.databricks_utils import create_spark_session
 
