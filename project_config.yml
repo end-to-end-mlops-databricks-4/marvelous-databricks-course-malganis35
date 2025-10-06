@@ -2,7 +2,7 @@ prd:
   catalog_name: mlops_prd
   schema_name: caotrido
   volume_name: data
-  raw_data_file: "Hotel Reservations.csv"
+  raw_data_file: "Hotel_Reservations.csv"
   train_table: hotel_reservations_train_set
   test_table: hotel_reservations_test_set
   feature_table_name: hotel_reservations_features
@@ -11,7 +11,7 @@ acc:
   catalog_name: mlops_acc
   schema_name: caotrido
   volume_name: data
-  raw_data_file: "Hotel Reservations.csv"
+  raw_data_file: "Hotel_Reservations.csv"
   train_table: hotel_reservations_train_set
   test_table: hotel_reservations_test_set
   feature_table_name: hotel_reservations_features
@@ -20,7 +20,7 @@ dev:
   catalog_name: mlops_dev
   schema_name: caotrido
   volume_name: data
-  raw_data_file: "Hotel Reservations.csv"
+  raw_data_file: "Hotel_Reservations.csv"
   train_table: hotel_reservations_train_set
   test_table: hotel_reservations_test_set
   feature_table_name: hotel_reservations_features
