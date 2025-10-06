@@ -271,7 +271,7 @@ class BasicModel:
 
         logger.info(f"Current model F1-score: {self.metrics['f1_score']}")
         if self.metrics["f1_score"] >= metrics_old["f1_score"]:
-            logger.info("💥 Current model performs better. Returning True.")
+            logger.info("💥 Current model performs better or equal. Returning True.")
             return True
         else:
             logger.info("⛔ Current model does not improve over latest. Returning False.")
