@@ -21,6 +21,7 @@ mock_sql.SparkSession = MagicMock()
 mock_functions = types.ModuleType("pyspark.sql.functions")
 mock_functions.current_timestamp = MagicMock()
 mock_functions.to_utc_timestamp = MagicMock()
+mock_sql.DataFrame = MagicMock()
 
 mock_pyspark.sql = mock_sql
 sys.modules["pyspark"] = mock_pyspark
@@ -151,14 +152,14 @@ def test_save_to_catalog_calls_spark_write(
     mock_current_ts.return_value = MagicMock(name="current_timestamp")
     mock_to_utc_ts.return_value = MagicMock(name="utc_timestamp")
 
-    processor.spark.createDataFrame.return_value.withColumn.return_value.write.mode.return_value.saveAsTable = (
-        MagicMock()
-    )
+    (
+        processor.spark.createDataFrame.return_value.withColumn.return_value.write.mode.return_value.option.return_value.saveAsTable
+    ) = MagicMock()
 
     df_train, df_test = processor.split_data()
     processor.save_to_catalog(df_train, df_test)
 
-    calls = processor.spark.createDataFrame.return_value.withColumn.return_value.write.mode.return_value.saveAsTable.call_args_list
+    calls = processor.spark.createDataFrame.return_value.withColumn.return_value.write.mode.return_value.option.return_value.saveAsTable.call_args_list
     assert len(calls) == 2
 
 
@@ -236,3 +237,109 @@ def test_generate_test_data_delegates_to_generate_synthetic_data(monkeypatch: py
     result = generate_test_data(df, drift=True, num_rows=2)
     mock_func.assert_called_once_with(df, True, 2)
     assert isinstance(result, pd.DataFrame)
+
+
+def test__safe_format_count_handles_non_numeric(processor):
+    """Test indirect de _safe_format_count via _write_with_mode (valeur non numérique)."""
+    mock_spark_df = MagicMock()
+    processor._check_table_exists = MagicMock(return_value=True)
+    processor._get_table_row_count = MagicMock(return_value="abc")  # force non-numérique
+    processor.spark.createDataFrame.return_value = mock_spark_df
+    mock_spark_df.withColumn.return_value = mock_spark_df
+    mock_spark_df.write.mode.return_value.option.return_value.saveAsTable = MagicMock()
+
+    df_train, df_test = processor.split_data()
+    # On veut juste vérifier que ça ne plante pas
+    processor.save_to_catalog(df_train, df_test)
+    assert True
+
+
+def test_save_to_catalog_creates_table_when_not_exists(processor):
+    """Vérifie création table quand inexistante."""
+    mock_spark_df = MagicMock()
+    processor.spark.createDataFrame.return_value = mock_spark_df
+    mock_spark_df.withColumn.return_value = mock_spark_df
+    mock_spark_df.count.return_value = 5
+
+    processor._check_table_exists = MagicMock(return_value=False)
+    processor._enable_change_data_feed = MagicMock()
+    processor._get_table_row_count = MagicMock(return_value=0)
+
+    mock_spark_df.write.mode.return_value.option.return_value.saveAsTable = MagicMock()
+
+    df_train, df_test = processor.split_data()
+    processor.save_to_catalog(df_train, df_test)
+
+    assert processor._enable_change_data_feed.called
+
+
+def test_save_to_catalog_upsert_calls_merge(processor):
+    """Vérifie que le mode upsert appelle _merge_delta_table."""
+    processor._check_table_exists = MagicMock(return_value=True)
+    processor._get_table_row_count = MagicMock(return_value=5)
+    processor._merge_delta_table = MagicMock()
+
+    mock_spark_df = MagicMock()
+    mock_spark_df.columns = ["Booking_ID", "col1"]
+    processor.spark.createDataFrame.return_value = mock_spark_df
+    mock_spark_df.withColumn.return_value = mock_spark_df
+    mock_spark_df.write.mode.return_value.option.return_value.saveAsTable = MagicMock()
+
+    df_train, df_test = processor.split_data()
+    processor.save_to_catalog(df_train, df_test, write_mode="upsert")
+
+    assert processor._merge_delta_table.call_count == 2
+
+
+def test_save_to_catalog_invalid_mode_raises(processor):
+    """Vérifie qu'un mode invalide lève ValueError."""
+    df_train, df_test = processor.split_data()
+    with pytest.raises(ValueError, match="Invalid write_mode"):
+        processor.save_to_catalog(df_train, df_test, write_mode="invalid")
+
+
+def test_enable_change_data_feed_handles_error(processor):
+    """Vérifie qu'une erreur dans spark.sql est loggée et non bloquante."""
+    processor.spark.sql.side_effect = Exception("Mock SQL error")
+    processor._enable_change_data_feed("catalog.schema.table")  # ne doit pas lever
+    assert True
+
+
+def test_merge_delta_table_executes_sql(processor):
+    """Vérifie la génération correcte du SQL de merge."""
+    mock_df = MagicMock()
+    processor.spark.sql = MagicMock()
+    processor._merge_delta_table(mock_df, "catalog.schema.table", "Booking_ID")
+    sql = processor.spark.sql.call_args[0][0]
+    assert "MERGE INTO catalog.schema.table" in sql
+    assert "WHEN NOT MATCHED THEN" in sql
+    assert "INSERT *" in sql
+
+
+def test_get_table_row_count_success_and_error(processor):
+    """Vérifie le comptage avec succès et exception."""
+    mock_count_df = MagicMock()
+    mock_count_df.collect.return_value = [{"count": 42}]
+    processor.spark.sql.return_value = mock_count_df
+    assert processor._get_table_row_count("mock.table") == 42
+
+    processor.spark.sql.side_effect = Exception("boom")
+    assert processor._get_table_row_count("mock.table") == 0
+
+
+def test_generate_synthetic_data_with_datetime():
+    """Test génération avec colonne datetime."""
+    import pandas as pd
+
+    from hotel_reservation.feature.data_processor import generate_synthetic_data
+
+    df = pd.DataFrame(
+        {
+            "booking_status": ["Canceled", "Not_Canceled"],
+            "created_at": pd.to_datetime(["2023-01-01", "2023-02-01"]),
+        }
+    )
+
+    result = generate_synthetic_data(df, drift=False, num_rows=5)
+    assert "created_at" in result.columns
+    assert pd.api.types.is_datetime64_any_dtype(result["created_at"])
