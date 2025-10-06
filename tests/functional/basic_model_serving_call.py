@@ -54,9 +54,14 @@ if not is_databricks():
 
 # COMMAND ----------
 
-# Generate a temporary Databricks access token using the CLI
-token_data = get_databricks_token(DATABRICKS_HOST)
-db_token = token_data["access_token"]
+if os.getenv("DATABRICKS_TOKEN"):
+    logger.debug("Existing databricks token in .env file")
+    db_token = os.getenv("DATABRICKS_TOKEN")
+else:
+    logger.debug("No databricks token in .env file. Getting a temporary token ...")
+    token_data = get_databricks_token(DATABRICKS_HOST)
+    db_token = token_data["access_token"]
+    logger.info(f"✅ Temporary token acquired (expires at {token_data['expiry']})")
 
 # Set both env var pairs for all consumers
 os.environ["DBR_TOKEN"] = db_token  # used by custom requests
