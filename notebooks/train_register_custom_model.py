@@ -90,7 +90,6 @@ logger.info("Model is logged in MLFlow Experiments.")
 model_improved = custom_model.model_improved()
 logger.info(f"Model evaluation completed, model improved: {model_improved}")
 
-model_improved = True
 # COMMAND ----------
 if model_improved:
     # Register the model
