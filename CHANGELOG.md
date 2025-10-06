@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project uses [Conventional Commits](https://www.conventionalcommits.org/) with [Commitizen](https://github.com/commitizen/cz-cli).
 
+## v0.2.0 (2025-10-06)
+
+### Feat
+
+- adapt script to ipython or cli execution
+- **basic_model**: add comparison perf of old and new model
+- add task for creating experiment workspace and train_register models
+- **wiki**: add wiki project documentation
+- add script to create and delete experiment for script train_and_register_model.py
+- add scripts to train, log experiment and register model in UC
+- add basic_model.py module from course
+- **uv**: update uv lock file
+- **taskfile**: add command to display databricks config
+- **pyproject**: add boto3 to dep
+- **devbox**: add act to local compute github actions
+
+### Fix
+
+- force .env to overwrite environment variable (e.g., PROFILE)
+- add marvelous common module to avoid issue with github (to be corrected)
+- **config**: change experiment folder name to avoid dupplication with other students
+- **taskfile**: update task command with right env (dev, test) for each task
+
+### Refactor
+
+- add __init__ file for module marvelous
+
 ## v0.1.0 (2025-10-06)
 
 ### Feat
