@@ -37,19 +37,19 @@ tasks:
       - task: dev-install
       - uv run notebooks/demo.py
 
-  run-upload-data:
+  run_upload_data:
     desc: Test on a demo script
     cmds:
       - task: dev-install
       - uv run notebooks/utils/run_upload_data.py --env dev --env-file .env --config project_config.yml
 
-  run-process-data:
+  run_process_data:
     desc: Test on a pre-processing script
     cmds:
       - task: dev-install
       - uv run notebooks/process_data.py
 
-  run-process-new-data:
+  run_process_new_data:
     desc: Test on a pre-processing script
     cmds:
       - task: dev-install
@@ -61,25 +61,25 @@ tasks:
       - task: dev-install
       - uv run notebooks/utils/run_create_mlflow_workspace.py
 
-  train_register_model:
+  run_train_register_model:
     desc: Run a basic experiment to train, log and register a model
     cmds:
       - task: dev-install
       - uv run notebooks/train_register_model.py --git_sha "abcd12345" "--job_run_id" local_test_run --branch dev
 
-  fe_train_register_model:
+  run_fe_train_register_model:
     desc: Run a basic experiment to train, log and register a model
     cmds:
       - task: dev-install
       - uv run notebooks/train_register_fe_model.py --git_sha "abcd12345" "--job_run_id" local_test_run --branch dev
 
-  deploy_model_serving:
+  run_deploy_model_serving:
     desc: Deploy a model serving endpoint in Databricks from the model
     cmds:
       - task: dev-install
       - uv run notebooks/deploy_model_serving.py --branch dev
 
-  test_model_serving:
+  run_test_model_serving:
     desc: Test the deployed model serving endpoint in Databricks
     cmds:
       - task: dev-install
