@@ -108,7 +108,7 @@ class ModelServing:
 
         raise TimeoutError(f"❌ Timeout: endpoint '{self.endpoint_name}' still updating after {timeout} seconds.")
 
-    def wait_until_ready(self, timeout: int = 600, check_interval: int = 10) -> None:
+    def wait_until_ready(self, timeout: int = 1200, check_interval: int = 10) -> None:
         """Wait until the Databricks serving endpoint reaches the READY state.
 
         Args:
