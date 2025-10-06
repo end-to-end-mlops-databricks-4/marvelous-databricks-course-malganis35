@@ -17,11 +17,13 @@ def config_yaml_content() -> dict[str, Any]:
     """
     return {
         "endpoint_name": "endpoint_model",
+        "endpoint_name_custom": "endpoint_custom_model",
         "endpoint_name_fe": "endpoint_fe_model",
         "experiment_name_basic": "/exp/basic",
         "experiment_name_custom": "/exp/custom",
         "experiment_name_fe": "/exp/fe",  # ✅ ajouté ici
         "model_name": "test_model",
+        "model_name_custom": "test_model",
         "model_name_fe": "test_model",
         "model_type": "logistic-regression",
         "num_features": ["f1", "f2"],

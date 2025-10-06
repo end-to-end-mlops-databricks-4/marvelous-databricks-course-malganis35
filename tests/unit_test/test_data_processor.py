@@ -54,13 +54,15 @@ def sample_config() -> ProjectConfig:
         test_table="test_table",
         experiment_name_basic="/dummy/exp/basic",
         experiment_name_custom="/dummy/exp/custom",
+        experiment_name_fe="/dummy/exp/fe",
         model_name="dummy_model",
+        model_name_custom="dummy_model",
         model_name_fe="dummy_model",
         model_type="logistic-regression",
         feature_table_name="mock_feature_table",
         feature_function_name="mock_feature_function",
-        experiment_name_fe="/Users/mock/fe",
         endpoint_name="endpoint_model",
+        endpoint_name_custom="endpoint_custom_model",
         endpoint_name_fe="endpoint_fe_model",
     )
 
@@ -87,13 +89,15 @@ def mock_config() -> ProjectConfig:
         raw_data_file="dummy.csv",
         experiment_name_basic="/Users/mock/basic",
         experiment_name_custom="/Users/mock/custom",
+        experiment_name_fe="/Users/mock/fe",
         model_name="mock_model",
+        model_name_custom="dummy_model",
         model_name_fe="dummy_model",
         model_type="logistic-regression",
         feature_table_name="mock_feature_table",
         feature_function_name="mock_feature_function",
-        experiment_name_fe="/Users/mock/fe",
         endpoint_name="endpoint_model",
+        endpoint_name_custom="endpoint_fe_model",
         endpoint_name_fe="endpoint_fe_model",
     )
 
