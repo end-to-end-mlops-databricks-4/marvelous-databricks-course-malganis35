@@ -239,7 +239,7 @@ def test_generate_test_data_delegates_to_generate_synthetic_data(monkeypatch: py
     assert isinstance(result, pd.DataFrame)
 
 
-def test__safe_format_count_handles_non_numeric(processor):
+def test__safe_format_count_handles_non_numeric(processor: DataProcessor) -> None:
     """Test indirect de _safe_format_count via _write_with_mode (valeur non numérique)."""
     mock_spark_df = MagicMock()
     processor._check_table_exists = MagicMock(return_value=True)
@@ -254,7 +254,7 @@ def test__safe_format_count_handles_non_numeric(processor):
     assert True
 
 
-def test_save_to_catalog_creates_table_when_not_exists(processor):
+def test_save_to_catalog_creates_table_when_not_exists(processor: DataProcessor) -> None:
     """Vérifie création table quand inexistante."""
     mock_spark_df = MagicMock()
     processor.spark.createDataFrame.return_value = mock_spark_df
@@ -273,7 +273,7 @@ def test_save_to_catalog_creates_table_when_not_exists(processor):
     assert processor._enable_change_data_feed.called
 
 
-def test_save_to_catalog_upsert_calls_merge(processor):
+def test_save_to_catalog_upsert_calls_merge(processor: DataProcessor) -> None:
     """Vérifie que le mode upsert appelle _merge_delta_table."""
     processor._check_table_exists = MagicMock(return_value=True)
     processor._get_table_row_count = MagicMock(return_value=5)
@@ -291,21 +291,21 @@ def test_save_to_catalog_upsert_calls_merge(processor):
     assert processor._merge_delta_table.call_count == 2
 
 
-def test_save_to_catalog_invalid_mode_raises(processor):
+def test_save_to_catalog_invalid_mode_raises(processor: DataProcessor) -> None:
     """Vérifie qu'un mode invalide lève ValueError."""
     df_train, df_test = processor.split_data()
     with pytest.raises(ValueError, match="Invalid write_mode"):
         processor.save_to_catalog(df_train, df_test, write_mode="invalid")
 
 
-def test_enable_change_data_feed_handles_error(processor):
+def test_enable_change_data_feed_handles_error(processor: DataProcessor) -> None:
     """Vérifie qu'une erreur dans spark.sql est loggée et non bloquante."""
     processor.spark.sql.side_effect = Exception("Mock SQL error")
     processor._enable_change_data_feed("catalog.schema.table")  # ne doit pas lever
     assert True
 
 
-def test_merge_delta_table_executes_sql(processor):
+def test_merge_delta_table_executes_sql(processor: DataProcessor) -> None:
     """Vérifie la génération correcte du SQL de merge."""
     mock_df = MagicMock()
     processor.spark.sql = MagicMock()
@@ -316,7 +316,7 @@ def test_merge_delta_table_executes_sql(processor):
     assert "INSERT *" in sql
 
 
-def test_get_table_row_count_success_and_error(processor):
+def test_get_table_row_count_success_and_error(processor: DataProcessor) -> None:
     """Vérifie le comptage avec succès et exception."""
     mock_count_df = MagicMock()
     mock_count_df.collect.return_value = [{"count": 42}]
@@ -327,7 +327,7 @@ def test_get_table_row_count_success_and_error(processor):
     assert processor._get_table_row_count("mock.table") == 0
 
 
-def test_generate_synthetic_data_with_datetime():
+def test_generate_synthetic_data_with_datetime() -> None:
     """Test génération avec colonne datetime."""
     import pandas as pd
 
