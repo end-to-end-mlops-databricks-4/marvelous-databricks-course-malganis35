@@ -1,17 +1,16 @@
 """Script to test predictions using the latest registered hotel_reservation model."""
 
 import os
-import sys
-import pandas as pd
-from loguru import logger
-from dotenv import load_dotenv
+
 import mlflow
+import pandas as pd
+from dotenv import load_dotenv
+from loguru import logger
 
 # Imports du projet
 from hotel_reservation.model.custom_model import CustomModel
 from hotel_reservation.utils.config import ProjectConfig, Tags
 from hotel_reservation.utils.databricks_utils import create_spark_session, is_databricks
-
 
 if __name__ == "__main__":
     # --- Setup général ---
@@ -62,44 +61,46 @@ if __name__ == "__main__":
     ]
 
     # --- Exemple de données à prédire ---
-    example_data = pd.DataFrame([
-        {
-            "arrival_month": 8,
-            "arrival_year": 2024,
-            "avg_price_per_room": 110.50,
-            "lead_time": 45,
-            "no_of_adults": 2,
-            "no_of_children": 1,
-            "no_of_previous_bookings_not_canceled": 0,
-            "no_of_previous_cancellations": 0,
-            "no_of_special_requests": 2,
-            "no_of_week_nights": 5,
-            "no_of_weekend_nights": 2,
-            "repeated_guest": 0,
-            "required_car_parking_space": 1,
-            "market_segment_type": "Online",
-            "room_type_reserved": "Deluxe",
-            "type_of_meal_plan": "Meal Plan 1",
-        },
-        {
-            "arrival_month": 3,
-            "arrival_year": 2025,
-            "avg_price_per_room": 80.75,
-            "lead_time": 10,
-            "no_of_adults": 1,
-            "no_of_children": 0,
-            "no_of_previous_bookings_not_canceled": 2,
-            "no_of_previous_cancellations": 1,
-            "no_of_special_requests": 0,
-            "no_of_week_nights": 3,
-            "no_of_weekend_nights": 0,
-            "repeated_guest": 1,
-            "required_car_parking_space": 0,
-            "market_segment_type": "Corporate",
-            "room_type_reserved": "Standard",
-            "type_of_meal_plan": "Not Selected",
-        }
-    ])
+    example_data = pd.DataFrame(
+        [
+            {
+                "arrival_month": 8,
+                "arrival_year": 2024,
+                "avg_price_per_room": 110.50,
+                "lead_time": 45,
+                "no_of_adults": 2,
+                "no_of_children": 1,
+                "no_of_previous_bookings_not_canceled": 0,
+                "no_of_previous_cancellations": 0,
+                "no_of_special_requests": 2,
+                "no_of_week_nights": 5,
+                "no_of_weekend_nights": 2,
+                "repeated_guest": 0,
+                "required_car_parking_space": 1,
+                "market_segment_type": "Online",
+                "room_type_reserved": "Deluxe",
+                "type_of_meal_plan": "Meal Plan 1",
+            },
+            {
+                "arrival_month": 3,
+                "arrival_year": 2025,
+                "avg_price_per_room": 80.75,
+                "lead_time": 10,
+                "no_of_adults": 1,
+                "no_of_children": 0,
+                "no_of_previous_bookings_not_canceled": 2,
+                "no_of_previous_cancellations": 1,
+                "no_of_special_requests": 0,
+                "no_of_week_nights": 3,
+                "no_of_weekend_nights": 0,
+                "repeated_guest": 1,
+                "required_car_parking_space": 0,
+                "market_segment_type": "Corporate",
+                "room_type_reserved": "Standard",
+                "type_of_meal_plan": "Not Selected",
+            },
+        ]
+    )
 
     # --- Harmonisation des données ---
     logger.info("🧾 Données brutes d'entrée :")

@@ -236,7 +236,7 @@ class BasicModel:
         if hasattr(input_data, "toPandas"):
             logger.info("Converting Spark DataFrame to Pandas for prediction...")
             input_data = input_data.toPandas()
-        
+
         # Make predictions
         predictions = model.predict(input_data)
 

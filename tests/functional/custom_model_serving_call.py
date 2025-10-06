@@ -5,9 +5,7 @@
 import argparse
 import os
 import sys
-import time
 from typing import Any
-import json
 
 import pretty_errors  # noqa: F401
 import requests

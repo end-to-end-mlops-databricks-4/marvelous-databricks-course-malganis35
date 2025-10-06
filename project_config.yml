@@ -36,7 +36,7 @@ experiment_name_basic: "/Shared/experiments/hotel_reservations_caotrido" # /User
 experiment_name_custom: "/Shared/experiments/hotel_reservations_custom_caotrido" # /Users/caotri.do881@gmail.com/hotel-reservation-custom
 experiment_name_fe: "/Shared/experiments/hotel_reservations_fe_caotrido"
 model_name: hotel_reservation_lr
-model_name_custom: hotel_reservation_custom
+model_name_custom: hotel_reservation_lr_custom
 model_name_fe: hotel_reservation_lr_fe
 model_type: logistic-regression
 

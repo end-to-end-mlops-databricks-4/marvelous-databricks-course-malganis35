@@ -10,6 +10,7 @@ catalog_name, schema_name → Database schema names for Databricks tables.
 """
 
 import mlflow
+import mlflow.pyfunc
 import numpy as np
 import pandas as pd
 from delta.tables import DeltaTable
@@ -18,12 +19,12 @@ from mlflow import MlflowClient
 from mlflow.data.dataset_source import DatasetSource
 from mlflow.models import infer_signature
 from pyspark.sql import SparkSession
+from sklearn.base import BaseEstimator
 from sklearn.compose import ColumnTransformer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
-import mlflow.pyfunc
 
 from hotel_reservation.utils.config import ProjectConfig, Tags
 from hotel_reservation.utils.timer import timeit
@@ -36,24 +37,33 @@ class Result:
         """Initialize metrics dictionary."""
         self.metrics = {}
 
+
 class SklearnModelWithProba(mlflow.pyfunc.PythonModel):
     """Wrapper MLflow model that outputs both prediction and probability."""
 
-    def __init__(self, sklearn_model):
+    def __init__(self, sklearn_model: BaseEstimator) -> None:
+        """Initialize the wrapper with a scikit-learn model."""
         self.model = sklearn_model
 
-    def predict(self, context, model_input: pd.DataFrame):
+    def predict(
+        self,
+        context: mlflow.pyfunc.PythonModelContext,
+        model_input: pd.DataFrame,
+    ) -> list[dict[str, float | str | int]]:
         """Return both prediction label and probability."""
         proba = self.model.predict_proba(model_input)[:, 1]
         preds = (proba >= 0.5).astype(int)
-        results = []
-        for p, pr in zip(preds, proba):
-            results.append({
-                "prediction": int(p),
-                "label": "Cancelled" if p == 1 else "Not_Canceled",
-                "probability": float(pr),
-            })
+        results: list[dict[str, float | str | int]] = []
+        for p, pr in zip(preds, proba, strict=False):
+            results.append(
+                {
+                    "prediction": int(p),
+                    "label": "Cancelled" if p == 1 else "Not_Canceled",
+                    "probability": float(pr),
+                }
+            )
         return results
+
 
 class CustomModel:
     """A basic model class for hotel_reservation prediction using LogisticRegression.
