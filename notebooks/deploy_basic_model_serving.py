@@ -112,7 +112,7 @@ except Exception as e:
     logger.warning(f"Issue linked to {e}")
     serving.deploy_or_update_serving_endpoint(
         version=entity_version_latest_ready,
-    )    
+    )
 
 logger.info("Checking when the endpoint is ready")
 serving.wait_until_ready()
