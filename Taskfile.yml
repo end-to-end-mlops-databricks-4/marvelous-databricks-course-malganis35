@@ -61,11 +61,11 @@ tasks:
       - task: dev-install
       - uv run notebooks/utils/run_create_mlflow_workspace.py
 
-  run_train_register_model:
+  run_train_register_basic_model:
     desc: Run a basic experiment to train, log and register a model
     cmds:
       - task: dev-install
-      - uv run notebooks/train_register_model.py --git_sha "abcd12345" "--job_run_id" local_test_run --branch dev
+      - uv run notebooks/train_register_basic_model.py --git_sha "abcd12345" "--job_run_id" local_test_run --branch dev
 
   run_fe_train_register_model:
     desc: Run a basic experiment to train, log and register a model
@@ -73,17 +73,17 @@ tasks:
       - task: dev-install
       - uv run notebooks/train_register_fe_model.py --git_sha "abcd12345" "--job_run_id" local_test_run --branch dev
 
-  run_deploy_model_serving:
+  run_deploy_basic_model_serving:
     desc: Deploy a model serving endpoint in Databricks from the model
     cmds:
       - task: dev-install
-      - uv run notebooks/deploy_model_serving.py --branch dev
+      - uv run notebooks/deploy_basic_model_serving.py --branch dev
 
-  run_test_model_serving:
+  run_test_basic_model_serving:
     desc: Test the deployed model serving endpoint in Databricks
     cmds:
       - task: dev-install
-      - uv run tests/functional/deploy_model_serving_call.py --branch dev
+      - uv run tests/functional/basic_model_serving_call.py --branch dev
 
   lint:
     desc: Run pre-commit hooks
