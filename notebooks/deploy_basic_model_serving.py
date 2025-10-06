@@ -60,16 +60,20 @@ if not is_databricks():
 # COMMAND ----------
 
 # Generate a temporary Databricks access token using the CLI
-token_data = get_databricks_token(DATABRICKS_HOST)
-db_token = token_data["access_token"]
+if os.getenv("DATABRICKS_TOKEN"):
+    logger.debug("Existing databricks token in .env file")
+    db_token = os.getenv("DATABRICKS_TOKEN")
+else:
+    logger.debug("No databricks token in .env file. Getting a temporary token ...")
+    token_data = get_databricks_token(DATABRICKS_HOST)
+    db_token = token_data["access_token"]
+    logger.info(f"✅ Temporary token acquired (expires at {token_data['expiry']})")
 
 # Set both env var pairs for all consumers
 os.environ["DBR_TOKEN"] = db_token  # used by custom requests
 os.environ["DATABRICKS_TOKEN"] = db_token  # required by Databricks SDK / Connect
 os.environ["DBR_HOST"] = DATABRICKS_HOST
 os.environ["DATABRICKS_HOST"] = DATABRICKS_HOST
-
-logger.info(f"✅ Temporary token acquired (expires at {token_data['expiry']})")
 
 # COMMAND ----------
 
@@ -95,14 +99,20 @@ else:
 logger.info("Checking that the endpoint is not busy")
 serving.wait_until_ready()
 
-serving.deploy_or_update_serving_endpoint(
-    version=entity_version_latest_ready,
-    environment_vars={
-        "aws_access_key_id": "{{secrets/mlops/aws_access_key_id}}",
-        "aws_secret_access_key": "{{secrets/mlops/aws_access_key}}",
-        "region_name": "eu-west-1",
-    },
-)
+try:
+    serving.deploy_or_update_serving_endpoint(
+        version=entity_version_latest_ready,
+        environment_vars={
+            "aws_access_key_id": "{{secrets/mlops/aws_access_key_id}}",
+            "aws_secret_access_key": "{{secrets/mlops/aws_access_key}}",
+            "region_name": "eu-west-1",
+        },
+    )
+except Exception as e:
+    logger.warning(f"Issue linked to {e}")
+    serving.deploy_or_update_serving_endpoint(
+        version=entity_version_latest_ready,
+    )    
 
 logger.info("Checking when the endpoint is ready")
 serving.wait_until_ready()
