@@ -5,8 +5,9 @@
 import argparse
 import os
 import sys
-from typing import Any
+import time
 
+import pandas as pd
 import pretty_errors  # noqa: F401
 import requests
 from dotenv import load_dotenv
@@ -23,7 +24,7 @@ if "ipykernel" in sys.modules:
     class Args:
         """Mock arguments used when running interactively."""
 
-        root_path = ".."
+        root_path = "../.."
         config = "project_config.yml"
         env = ".env"
         branch = "dev"
@@ -53,9 +54,14 @@ if not is_databricks():
 
 # COMMAND ----------
 
-# Generate a temporary Databricks access token using the CLI
-token_data = get_databricks_token(DATABRICKS_HOST)
-db_token = token_data["access_token"]
+if os.getenv("DATABRICKS_TOKEN"):
+    logger.debug("Existing databricks token in .env file")
+    db_token = os.getenv("DATABRICKS_TOKEN")
+else:
+    logger.debug("No databricks token in .env file. Getting a temporary token ...")
+    token_data = get_databricks_token(DATABRICKS_HOST)
+    db_token = token_data["access_token"]
+    logger.info(f"✅ Temporary token acquired (expires at {token_data['expiry']})")
 
 # Set both env var pairs for all consumers
 os.environ["DBR_TOKEN"] = db_token  # used by custom requests
@@ -93,85 +99,60 @@ required_columns = [
 
 train_set = spark.table(f"{config.catalog_name}.{config.schema_name}.{config.train_table}").toPandas()
 sampled_records = train_set[required_columns].sample(n=1000, replace=True).to_dict(orient="records")
-dataframe_records = [[record] for record in sampled_records]
+# dataframe_records = [[record] for record in sampled_records]
 
 logger.info(train_set.dtypes)
-logger.info(dataframe_records[0])
+# logger.info(dataframe_records[0])
 
 # COMMAND ----------
 
 
-# Endpoint call function
-def call_endpoint(record: list[dict[str, Any]]) -> dict[str, Any]:
-    """Call the Databricks model serving endpoint and parse the response robustly."""
-    serving_endpoint = f"{os.environ['DBR_HOST']}/serving-endpoints/{config.endpoint_name}/invocations"
-    headers = {"Authorization": f"Bearer {os.environ['DBR_TOKEN']}"}
+def call_endpoint(dataset: pd.DataFrame) -> tuple[int, dict]:
+    """Send a Pandas DataFrame to the Databricks Serving endpoint.
 
-    logger.debug(f"Calling endpoint: {serving_endpoint}")
+    Sends the request and returns the HTTP status code and the JSON response.
+    """
+    url = "https://dbc-c36d09ec-dbbe.cloud.databricks.com/serving-endpoints/hotel-reservation-custom-model-serving-db/invocations"
+    headers = {
+        "Authorization": f"Bearer {os.environ.get('DATABRICKS_TOKEN')}",
+        "Content-Type": "application/json",
+    }
 
-    response = requests.post(serving_endpoint, headers=headers, json={"dataframe_records": record})
+    # Vérification du type d'entrée
+    if not isinstance(dataset, pd.DataFrame):
+        raise ValueError("❌ dataset must be a pandas DataFrame")
 
+    # Conversion en format attendu par Databricks Serving
+    payload = {"dataframe_split": dataset.to_dict(orient="split")}
+
+    # Appel du endpoint
+    response = requests.post(url, headers=headers, json=payload)
+
+    # Gestion des erreurs HTTP
     if response.status_code != 200:
-        logger.error(f"❌ Endpoint error {response.status_code}: {response.text}")
-        return {"status": "error", "code": response.status_code, "response": response.text}
+        raise Exception(f"Request failed with status {response.status_code}: {response.text}")
 
-    # Parse response safely
-    try:
-        result_json = response.json()
-        logger.debug(f"Raw response: {result_json}")
-
-        # Case 1️⃣ — direct predictions field
-        if "predictions" in result_json:
-            preds = result_json["predictions"]
-
-        # Case 2️⃣ — MLflow Serving “outputs” key
-        elif "outputs" in result_json:
-            preds = result_json["outputs"]
-
-        else:
-            preds = result_json
-
-        # Case 3️⃣ — Predictions contain dicts (probability + label)
-        if isinstance(preds[0], dict):
-            pred = preds[0]
-            label = pred.get("label", str(pred.get("prediction", "unknown")))
-            probability = pred.get("probability", None)
-            return {"label": label, "probability": probability}
-
-        # Case 4️⃣ — Simple list of numeric predictions
-        elif isinstance(preds[0], list):
-            prob = preds[0][1] if len(preds[0]) > 1 else preds[0][0]
-            pred_class = int(prob >= 0.5)
-            label = "cancelled" if pred_class == 1 else "not_cancelled"
-            return {"label": label, "probability": prob}
-
-        # Case 5️⃣ — Simple scalar or string
-        else:
-            value = preds[0]
-            if isinstance(value, str):
-                label = value
-                probability = None
-            else:
-                probability = float(value)
-                label = "cancelled" if probability >= 0.5 else "not_cancelled"
-            return {"label": label, "probability": probability}
-
-    except Exception as e:
-        logger.error(f"⚠️ Unable to parse response: {e}")
-        return {"status": "error", "raw_response": response.text}
+    # Retourne la réponse JSON brute
+    return response.status_code, response.json()
 
 
-# Test with one sample
-result = call_endpoint(dataframe_records[0])
-logger.info(f"✅ Parsed response: {result}")
+# Test on 1 line
+sample_df = pd.DataFrame([sampled_records[0]])
+
+# Endpoint call
+status_code, response_text = call_endpoint(sample_df)
+
+# Print the json
+logger.debug(f"Response Status: {status_code}")
+logger.debug(f"Response Text: {response_text}")
 
 # COMMAND ----------
 
 # Simple load test
-# total = 10
-# for i in range(total):
-#     logger.debug(f"➡️ Sending request {i + 1}/{total}")
-#     status_code, response_text = call_endpoint(dataframe_records[i])
-#     logger.debug(f"Response Status: {status_code}")
-#     logger.debug(f"Response Text: {response_text}")
-#     time.sleep(0.2)
+total = 10
+for i in range(total):
+    logger.debug(f"➡️ Sending request {i + 1}/{total}")
+    status_code, response_text = call_endpoint(pd.DataFrame([sampled_records[i]]))
+    logger.debug(f"Response Status: {status_code}")
+    logger.debug(f"Response Text: {response_text}")
+    time.sleep(0.2)

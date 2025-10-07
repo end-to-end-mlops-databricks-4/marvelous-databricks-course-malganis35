@@ -116,6 +116,12 @@ tasks:
       - task: dev-install
       - uv run tests/functional/basic_model_serving_call.py --branch dev
 
+  run_test_custom_model_serving:
+    desc: Test the deployed model serving endpoint in Databricks
+    cmds:
+      - task: dev-install
+      - uv run tests/functional/custom_model_serving_call.py --branch dev
+
   lint:
     desc: Run pre-commit hooks
     cmds:
