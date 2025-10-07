@@ -39,6 +39,14 @@ jobs:
           client_secret = ${{ secrets.DATABRICKS_CLIENT_SECRET }}
           EOF
 
+      - name: Debug Secrets
+        run: |
+          echo "Client ID present: ${DATABRICKS_CLIENT_ID:+yes}"
+          echo "Client Secret present: ${DATABRICKS_CLIENT_SECRET:+yes}"
+        env:
+          DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+          DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+
       - name: Install uv
         uses: astral-sh/setup-uv@0c5e2b8115b80b4c7c5ddf6ffdd634974642d182 #v5.4.1
 
