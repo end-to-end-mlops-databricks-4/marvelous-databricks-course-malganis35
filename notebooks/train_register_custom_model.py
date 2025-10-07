@@ -14,6 +14,7 @@ from loguru import logger
 from hotel_reservation.model.custom_model import CustomModel
 from hotel_reservation.utils.config import ProjectConfig, Tags
 from hotel_reservation.utils.databricks_utils import create_spark_session, is_databricks
+from hotel_reservation import __version__ as hotel_reservation_v
 
 ## COMMAND ----------
 # Global user setup
@@ -66,7 +67,10 @@ tags = Tags(**tags_dict)
 # COMMAND ----------
 # Initialize model
 # Initialize model with the config path
-custom_model = CustomModel(config=config, tags=tags, spark=spark)
+custom_model = CustomModel(
+    config=config, tags=tags, spark=spark,
+    code_paths=[f"{root_path}/dist/hotel_reservation-{hotel_reservation_v}-py3-none-any.whl"]
+    )
 logger.info("Model initialized.")
 
 # COMMAND ----------

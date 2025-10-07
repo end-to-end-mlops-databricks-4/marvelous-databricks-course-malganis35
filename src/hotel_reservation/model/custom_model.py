@@ -19,6 +19,7 @@ from mlflow import MlflowClient
 from mlflow.data.dataset_source import DatasetSource
 from mlflow.exceptions import RestException
 from mlflow.models import infer_signature
+from mlflow.utils.environment import _mlflow_conda_env
 from pyspark.sql import SparkSession
 from sklearn.base import BaseEstimator
 from sklearn.compose import ColumnTransformer
@@ -30,6 +31,8 @@ from sklearn.preprocessing import OneHotEncoder
 from hotel_reservation.utils.config import ProjectConfig, Tags
 from hotel_reservation.utils.timer import timeit
 
+import yaml
+from pathlib import Path
 
 class Result:
     """Container for storing model evaluation metrics."""
@@ -72,7 +75,7 @@ class CustomModel:
     This class handles data loading, feature preparation, model training, and MLflow logging.
     """
 
-    def __init__(self, config: ProjectConfig, tags: Tags, spark: SparkSession) -> None:
+    def __init__(self, config: ProjectConfig, tags: Tags, spark: SparkSession, code_paths: list[str]) -> None:
         """Initialize the model with project configuration.
 
         :param config: Project configuration object
@@ -95,6 +98,7 @@ class CustomModel:
         self.model_name = f"{self.catalog_name}.{self.schema_name}.{self.config.model_name_custom}"
         self.model_type = self.config.model_type
         self.tags = tags.model_dump()
+        self.code_paths = code_paths
 
     @timeit
     def load_data(self) -> None:
@@ -149,6 +153,14 @@ class CustomModel:
     def log_model(self) -> None:
         """Log the model using MLflow."""
         mlflow.set_experiment(self.experiment_name)
+        
+        ####################################################
+        additional_pip_deps = ["pyspark==3.5.0"]
+        for package in self.code_paths:
+            whl_name = package.split("/")[-1]
+            additional_pip_deps.append(f"./code/{whl_name}")
+        ####################################################
+        
         with mlflow.start_run(tags=self.tags) as run:
             self.run_id = run.info.run_id
 
@@ -173,11 +185,50 @@ class CustomModel:
 
             wrapped_model = SklearnModelWithProba(self.pipeline)
 
+            #############################################################
+            # ✅ Define custom conda environment for MLflow logging
+            # conda_env = {
+            #     "channels": ["conda-forge"],
+            #     "dependencies": [
+            #         "python=3.11.9",
+            #         "pip<=25.2",
+            #         {
+            #             "pip": [
+            #                 "mlflow==3.1.1",
+            #                 "cloudpickle==3.1.1",
+            #                 "databricks-connect==16.3.5",
+            #                 "numpy==1.26.4",
+            #                 "pandas==2.3.0",
+            #                 "psutil==7.1.0",
+            #                 "scikit-learn==1.7.0",
+            #                 "scipy==1.16.0",
+            #                 "-e ."
+            #             ]
+            #         },
+            #     ],
+            #     "name": "mlflow-env",
+            # }
+            
+            # # Write it to file so MLflow can version it
+            # env_path = Path("conda_env_custom.yaml")
+            # with open(env_path, "w") as f:
+            #     yaml.safe_dump(conda_env, f)
+            # logger.info(f"✅ Custom conda environment written to {env_path}")
+            conda_env = _mlflow_conda_env(additional_pip_deps=additional_pip_deps)
+            
+            #############################################################
+            
             mlflow.pyfunc.log_model(
                 artifact_path=f"{self.model_type}-pipeline-custom-model",
                 python_model=wrapped_model,
                 signature=signature,
                 input_example=self.X_test[0:1],
+                ##################################
+                # conda_env=str(env_path),
+                # code_paths=["src"],
+                conda_env=conda_env,
+                code_paths=self.code_paths,
+                ##################################
             )
 
             # Evaluate classification metrics

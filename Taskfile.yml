@@ -71,6 +71,7 @@ tasks:
     desc: Run a basic experiment to train, log and register a custom model (LR with output with probabilities)
     cmds:
       - task: dev-install
+      - uv build .
       - uv run notebooks/train_register_custom_model.py --git_sha "abcd12345" "--job_run_id" local_test_run --branch dev
 
   run_train_register_fe_model:
