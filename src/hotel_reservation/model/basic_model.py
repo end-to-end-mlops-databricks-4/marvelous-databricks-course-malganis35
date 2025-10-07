@@ -276,7 +276,7 @@ class BasicModel:
 
         logger.info("No registered model found. Treat as first run.")
         return None
-    
+
     @timeit
     def model_improved(self) -> bool:
         """Compare the current model (metrics already computed in log_model).
@@ -286,7 +286,6 @@ class BasicModel:
         F1-score is greater than or equal to the baseline.
         :return: True if the current model performs better, False otherwise.
         """
-        
         logger.info(f"Active registry URI before fetching alias: {mlflow.get_registry_uri()}")
 
         baseline_uri = self._get_baseline_model_uri()
@@ -314,4 +313,3 @@ class BasicModel:
         else:
             logger.info("⛔ Current model is worse. Returning False.")
         return improved
-
