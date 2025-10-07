@@ -359,10 +359,12 @@ class CustomModel:
         Compares the model against the best registered model (alias @latest-model if available,
         otherwise the latest registered version). Returns True if the new model's
         F1-score is greater than or equal to the baseline.
+        :return: True if the current model performs better, False otherwise.
         """
         logger.info(f"Active registry URI before fetching alias: {mlflow.get_registry_uri()}")
 
         baseline_uri = self._get_baseline_model_uri()
+        logger.debug(f"Baseline URI: {baseline_uri}")
         new_f1 = float(self.metrics["f1_score"])
 
         if baseline_uri is None:
