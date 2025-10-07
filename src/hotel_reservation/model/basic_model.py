@@ -225,7 +225,7 @@ class BasicModel:
         :param input_data: Pandas DataFrame containing input features for prediction.
         :return: Pandas DataFrame with predictions.
         """
-        logger.info("Loading model from MLflow alias 'production'...")
+        logger.info("Loading model from MLflow alias 'latest-model'...")
 
         model_uri = f"models:/{self.model_name}@latest-model"
         model = mlflow.sklearn.load_model(model_uri)
