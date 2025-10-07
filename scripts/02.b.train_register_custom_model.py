@@ -84,8 +84,8 @@ dbutils = DBUtils(spark)
 # Initialize model
 # Initialize model with the config path
 custom_model = CustomModel(
-    config=config, 
-    tags=tags, 
+    config=config,
+    tags=tags,
     spark=spark,
     code_paths=[f"{root_path}/dist/hotel_reservation-{hotel_reservation_v}-py3-none-any.whl"],
 )
