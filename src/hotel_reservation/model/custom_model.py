@@ -31,8 +31,6 @@ from sklearn.preprocessing import OneHotEncoder
 from hotel_reservation.utils.config import ProjectConfig, Tags
 from hotel_reservation.utils.timer import timeit
 
-import yaml
-from pathlib import Path
 
 class Result:
     """Container for storing model evaluation metrics."""
@@ -153,14 +151,14 @@ class CustomModel:
     def log_model(self) -> None:
         """Log the model using MLflow."""
         mlflow.set_experiment(self.experiment_name)
-        
+
         ####################################################
         additional_pip_deps = ["pyspark==3.5.0"]
         for package in self.code_paths:
             whl_name = package.split("/")[-1]
             additional_pip_deps.append(f"./code/{whl_name}")
         ####################################################
-        
+
         with mlflow.start_run(tags=self.tags) as run:
             self.run_id = run.info.run_id
 
@@ -208,16 +206,16 @@ class CustomModel:
             #     ],
             #     "name": "mlflow-env",
             # }
-            
+
             # # Write it to file so MLflow can version it
             # env_path = Path("conda_env_custom.yaml")
             # with open(env_path, "w") as f:
             #     yaml.safe_dump(conda_env, f)
             # logger.info(f"✅ Custom conda environment written to {env_path}")
             conda_env = _mlflow_conda_env(additional_pip_deps=additional_pip_deps)
-            
+
             #############################################################
-            
+
             mlflow.pyfunc.log_model(
                 artifact_path=f"{self.model_type}-pipeline-custom-model",
                 python_model=wrapped_model,

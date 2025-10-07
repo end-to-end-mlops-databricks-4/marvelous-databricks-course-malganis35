@@ -51,7 +51,9 @@ class MockDeltaTable:
                             @staticmethod
                             def first() -> list[int]:
                                 return [0]
+
                         return MockSelect()
+
                 return MockHistory()
 
         return MockDelta()
@@ -65,7 +67,7 @@ sys.modules["delta.tables"] = mock_tables_module
 # ---------------------------------------------------------------------
 # Import after patching
 # ---------------------------------------------------------------------
-from src.hotel_reservation.model.custom_model import CustomModel, SklearnModelWithProba  # noqa: E402
+from src.hotel_reservation.model.custom_model import CustomModel  # noqa: E402
 
 # ---------------------------------------------------------------------
 # Warning suppression
@@ -76,10 +78,13 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=ConvergenceWarning)
 warnings.filterwarnings("ignore", message="Hint: Inferred schema contains integer column")
 
+
 # ---------------------------------------------------------------------
 # Mock Config / Tags
 # ---------------------------------------------------------------------
 class MockConfig:
+    """Define a Class for Mock configuration."""
+
     num_features: list[str] = ["age", "income"]
     cat_features: list[str] = ["country"]
     target: str = "label"
@@ -94,24 +99,31 @@ class MockConfig:
 
 
 class MockTags:
+    """Define a Class for Mock Tags configuration."""
+
     def model_dump(self) -> dict[str, str]:
+        """Return mock tags as a dictionary for MLflow logging."""
         return {"project": "hotel_reservation", "stage": "dev"}
+
 
 # ---------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------
 @pytest.fixture
 def mock_config() -> MockConfig:
+    """Return a mock configuration object."""
     return MockConfig()
 
 
 @pytest.fixture
 def mock_tags() -> MockTags:
+    """Return mock tags configuration."""
     return MockTags()
 
 
 @pytest.fixture
 def mock_spark() -> MagicMock:
+    """Return a mocked SparkSession with sample hotel reservation data."""
     mock_df = MagicMock()
     mock_df.toPandas.return_value = pd.DataFrame(
         {
@@ -128,7 +140,14 @@ def mock_spark() -> MagicMock:
 
 @pytest.fixture
 def model(mock_config: MockConfig, mock_tags: MockTags, mock_spark: MagicMock) -> CustomModel:
-    return CustomModel(config=mock_config, tags=mock_tags, spark=mock_spark)
+    """Return an instance of CustomModel with mocked dependencies."""
+    return CustomModel(
+        config=mock_config,
+        tags=mock_tags,
+        spark=mock_spark,
+        code_paths=["src/hotel_reservation/model/custom_model.py"],  # Added mock code_paths
+    )
+
 
 # ---------------------------------------------------------------------
 # Tests
@@ -195,9 +214,7 @@ def test_register_model(mock_client_cls: MagicMock, mock_mlflow: MagicMock, mode
     model.register_model()
 
     mock_mlflow.register_model.assert_called_once()
-    mock_client.set_registered_model_alias.assert_called_with(
-        name=model.model_name, alias="latest-model", version=3
-    )
+    mock_client.set_registered_model_alias.assert_called_with(name=model.model_name, alias="latest-model", version=3)
 
 
 @patch("src.hotel_reservation.model.custom_model.mlflow")
