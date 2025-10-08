@@ -1,37 +1,38 @@
-
+import json
 import os
-import mlflow
+import time
+from typing import Any
+
 import pandas as pd
+import pretty_errors  # noqa: F401
 import requests
 import streamlit as st
-from mlflow.pyfunc import PyFuncModel
-from requests.auth import HTTPBasicAuth
-
-import pretty_errors  # noqa: F401
 from dotenv import load_dotenv
 from loguru import logger
+from requests.auth import HTTPBasicAuth
 
-from hotel_reservation.utils.databricks_utils import create_spark_session, get_databricks_token, is_databricks
+from hotel_reservation.utils.databricks_utils import get_databricks_token
 
 # --- USER CONFIG ---
-
-MODEL_URI = "models:/mlops_dev.caotrido.hotel_reservation_lr@latest-model"
+serving_endpoint = "https://dbc-f122dc18-1b68.cloud.databricks.com/serving-endpoints/hotel-reservation-basic-model-serving-db/invocations"  # f"{os.environ
 
 # --- FUNCTIONS ---
 
-def set_page_config():
+
+def set_page_config() -> None:
+    """Set the Page Configuration."""
     logger.info("Configure page layout")
-    st.set_page_config(page_title="Hotel Reservation Predictor", 
-                       page_icon="🏨", 
-                       layout="wide")
+    st.set_page_config(page_title="Hotel Reservation Predictor", page_icon="🏨", layout="wide")
 
 
-def set_app_config():
+def set_app_config() -> None:
+    """Set the App Configuration."""
     st.title("🔮 Hotel Reservation Classification (Databricks Unity Catalog Model)")
     st.text("Author: Cao Tri DO (alias malganis35)")
     st.markdown(
         "*This application showcases An end-to-end MLOps project developed as part of the *Marvelous MLOps Databricks Course (Cohort 4). It automates the complete lifecycle of a **hotel reservation classification model**, from **data ingestion & preprocessing** to **model training, registration, deployment, and serving** — fully orchestrated on **Databricks**. Start by making prediction in this interface*"
     )
+
 
 def get_token() -> str:
     """Retrieve an OAuth token from the Databricks workspace."""
@@ -43,11 +44,17 @@ def get_token() -> str:
     return response.json()["access_token"]
 
 
-@st.cache_resource
-def load_uc_model() -> PyFuncModel:
-    """Load the model from Unity Catalog."""
-    return mlflow.pyfunc.load_model(MODEL_URI)
+# Endpoint call function
+def call_endpoint(record: list[dict[str, Any]], serving_endpoint: str) -> tuple[int, str]:
+    """Call the Databricks model serving endpoint with a given input record."""
+    logger.debug(f"Calling the endpoint url: {serving_endpoint}")
 
+    response = requests.post(
+        serving_endpoint,
+        headers={"Authorization": f"Bearer {os.environ['DBR_TOKEN']}"},
+        json={"dataframe_records": record},
+    )
+    return response.status_code, response.text
 
 
 # --- MODEL CONFIGURATION ---
@@ -59,18 +66,18 @@ try:
     host = raw_host if raw_host.startswith("https://") else f"https://{raw_host}"
     os.environ["DATABRICKS_HOST"] = host
     os.environ["DATABRICKS_TOKEN"] = get_token()
-    
-    mlflow.set_registry_uri("databricks-uc")
-    
+
 except Exception as e:
     logger.error(f"Display error in token retrieval {e}")
-    logger.debug("Getting a token using the local .env file or requesting a temporary token if no token defined in .env file")
-    ENV_FILE = f"./.env"
+    logger.debug(
+        "Getting a token using the local .env file or requesting a temporary token if no token defined in .env file"
+    )
+    ENV_FILE = "./.env"
     load_dotenv(dotenv_path=ENV_FILE, override=True)
     profile = os.getenv("PROFILE")  # os.environ["PROFILE"]
     logger.debug(f"Detected profile: {profile}")
     DATABRICKS_HOST = os.getenv("DATABRICKS_HOST")
-    
+
     # Generate a temporary Databricks access token using the CLI
     if os.getenv("DATABRICKS_TOKEN"):
         logger.debug("Existing databricks token in .env file")
@@ -80,23 +87,25 @@ except Exception as e:
         token_data = get_databricks_token(DATABRICKS_HOST)
         db_token = token_data["access_token"]
         logger.info(f"✅ Temporary token acquired (expires at {token_data['expiry']})")
-    
-    mlflow.set_registry_uri(f"databricks-uc://{profile}")
 
-logger.debug(f"URL of the MLFlow registry used: databricks-uc://{profile}")
+    os.environ["DBR_TOKEN"] = db_token  # used by custom requests
+    os.environ["DATABRICKS_TOKEN"] = db_token  # required by Databricks SDK / Connect
+    os.environ["DBR_HOST"] = DATABRICKS_HOST
+    os.environ["DATABRICKS_HOST"] = DATABRICKS_HOST
 
 
 # --- STREAMLIT CONFIG ---
 set_page_config()
 set_app_config()
 
-model = load_uc_model()
 
 # --- SIDEBAR ---
 with st.sidebar:
     st.title("🏨 Hotel Reservation Predictor")
     st.image("./app/hotel.png", width=300)
-    st.markdown("This app predicts whether a hotel booking will be **honored or canceled** using a Databricks UC model.")
+    st.markdown(
+        "This app predicts whether a hotel booking will be **honored or canceled** using a Databricks UC model."
+    )
     st.markdown("**Instructions:**\n- Fill in booking details below\n- Click **Predict** to see the outcome")
 
 # --- INPUT LAYOUT ---
@@ -126,7 +135,9 @@ with col3:
         ["Online", "Offline", "Corporate", "Complementary", "Aviation"],
     )
     repeated_guest = st.selectbox("Repeated Guest?", [0, 1])
-    avg_price_per_room = st.number_input("Average Price per Room", min_value=20.0, max_value=500.0, value=100.0, step=5.0)
+    avg_price_per_room = st.number_input(
+        "Average Price per Room", min_value=20.0, max_value=500.0, value=100.0, step=5.0
+    )
     no_of_previous_cancellations = st.number_input("Previous Cancellations", min_value=0, max_value=10, value=0)
     no_of_previous_bookings_not_canceled = st.number_input(
         "Previous Bookings (Not Canceled)", min_value=0, max_value=10, value=1
@@ -135,24 +146,26 @@ with col3:
 
 # --- PREPARE DATAFRAME ---
 input_df = pd.DataFrame(
-    [[
-        no_of_adults,
-        no_of_children,
-        no_of_weekend_nights,
-        no_of_week_nights,
-        type_of_meal_plan,
-        required_car_parking_space,
-        room_type_reserved,
-        lead_time,
-        arrival_year,
-        arrival_month,
-        market_segment_type,
-        repeated_guest,
-        avg_price_per_room,
-        no_of_previous_cancellations,
-        no_of_previous_bookings_not_canceled,
-        no_of_special_requests,
-    ]],
+    [
+        [
+            no_of_adults,
+            no_of_children,
+            no_of_weekend_nights,
+            no_of_week_nights,
+            type_of_meal_plan,
+            required_car_parking_space,
+            room_type_reserved,
+            lead_time,
+            arrival_year,
+            arrival_month,
+            market_segment_type,
+            repeated_guest,
+            avg_price_per_room,
+            no_of_previous_cancellations,
+            no_of_previous_bookings_not_canceled,
+            no_of_special_requests,
+        ]
+    ],
     columns=[
         "no_of_adults",
         "no_of_children",
@@ -198,15 +211,37 @@ if st.button("🚀 Predict Booking Outcome"):
 
     input_df[int_columns] = input_df[int_columns].astype("int32")
     input_df[float_columns] = input_df[float_columns].astype("float64")
-    
-    logger.debug("Making the prediction ...")
-    prediction = model.predict(input_df)
 
-    # Handling output for classification (0/1)
-    outcome = "✅ Booking likely honored" if prediction[0] == 1 else "❌ Booking likely canceled"
+    dataframe_records = input_df.to_dict(orient="records")
+
+    logger.debug("Making the prediction ...")
+    # prediction = model.predict(input_df)
+
+    # Test with one sample
+    # 🕒 Spinner during processing
+    with st.spinner("⏳ The model endpoint is starting... Please wait a few seconds..."):
+        start_time = time.time()
+        status_code, response_text = call_endpoint(dataframe_records, serving_endpoint)
+        duration = time.time() - start_time
+
+    logger.debug(f"Response Status: {status_code}")
+    logger.debug(f"Response Text: {response_text}")
+
+    # Parse the JSON returned by the endpoint
+    try:
+        response_json = json.loads(response_text)
+        prediction_label = response_json.get("predictions", ["Unknown"])[0]
+        outcome_tmp = f"✅ Prediction completed: {prediction_label}"
+    except Exception as e:
+        logger.error(f"Error parsing model response: {e}")
+        outcome_tmp = f"❌ Error in prediction response: {response_text}"
+
+    outcome = "✅ Booking likely honored" if prediction_label == "Not_Canceled" else "❌ Booking likely canceled"
 
     st.subheader(outcome)
 
-    st.write("### Input summary")
+    st.markdown("---")
+
+    st.write("### 🔠 Input summary")
     st.dataframe(input_df.T.rename(columns={0: "value"}).astype(str))
     logger.success(f"✅ Prediction completed: {outcome}")

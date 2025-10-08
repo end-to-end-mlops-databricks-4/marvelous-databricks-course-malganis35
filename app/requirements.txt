@@ -5,3 +5,7 @@ requests
 pretty_errors
 loguru
 python-dotenv
+typing
+json
+time
+hotel_reservation-latest.whl
