@@ -122,6 +122,22 @@ tasks:
       - task: dev-install
       - uv run tests/functional/custom_model_serving_call.py --branch dev
 
+  run_local_streamlit_app:
+    desc: Run locally the streamlit app for testing purpose
+    cmds:
+      - task: dev-install
+      - uv run --with streamlit streamlit run app/app.py
+
+  deploy_streamlit_app:
+    desc: Deploy the streamlit app for inference
+    cmds:
+      - task: dev-install
+      - uv build
+      - cp dist/*.whl app/hotel_reservation-latest.whl
+      - sed -i '/\.whl/d' app/requirements.txt
+      - databricks bundle deploy
+      - databricks apps deploy hotel-reservation-caotrido-app
+
   lint:
     desc: Run pre-commit hooks
     cmds:

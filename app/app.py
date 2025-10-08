@@ -13,7 +13,11 @@ from loguru import logger
 
 from hotel_reservation.utils.databricks_utils import create_spark_session, get_databricks_token, is_databricks
 
-# --- STREAMLIT CONFIG ---
+# --- USER CONFIG ---
+
+MODEL_URI = "models:/mlops_dev.caotrido.hotel_reservation_lr@latest-model"
+
+# --- FUNCTIONS ---
 
 def set_page_config():
     logger.info("Configure page layout")
@@ -29,15 +33,6 @@ def set_app_config():
         "*This application showcases An end-to-end MLOps project developed as part of the *Marvelous MLOps Databricks Course (Cohort 4). It automates the complete lifecycle of a **hotel reservation classification model**, from **data ingestion & preprocessing** to **model training, registration, deployment, and serving** — fully orchestrated on **Databricks**. Start by making prediction in this interface*"
     )
 
-
-set_page_config()
-set_app_config()
-
-
-# --- MODEL CONFIGURATION ---
-# Update this path to match your Unity Catalog setup
-MODEL_URI = "models:/mlops_dev.caotrido.hotel_reservation_lr@latest-model"
-
 def get_token() -> str:
     """Retrieve an OAuth token from the Databricks workspace."""
     response = requests.post(
@@ -47,20 +42,33 @@ def get_token() -> str:
     )
     return response.json()["access_token"]
 
-if is_databricks():
+
+@st.cache_resource
+def load_uc_model() -> PyFuncModel:
+    """Load the model from Unity Catalog."""
+    return mlflow.pyfunc.load_model(MODEL_URI)
+
+
+
+# --- MODEL CONFIGURATION ---
+# Update this path to match your Unity Catalog setup
+
+try:
     # Ensure host is prefixed properly
     raw_host = os.environ["DATABRICKS_HOST"]
     host = raw_host if raw_host.startswith("https://") else f"https://{raw_host}"
     os.environ["DATABRICKS_HOST"] = host
-    
     os.environ["DATABRICKS_TOKEN"] = get_token()
     
     mlflow.set_registry_uri("databricks-uc")
-else:
+    
+except Exception as e:
+    logger.error(f"Display error in token retrieval {e}")
+    logger.debug("Getting a token using the local .env file or requesting a temporary token if no token defined in .env file")
     ENV_FILE = f"./.env"
     load_dotenv(dotenv_path=ENV_FILE, override=True)
     profile = os.getenv("PROFILE")  # os.environ["PROFILE"]
-    logger.debug(profile)
+    logger.debug(f"Detected profile: {profile}")
     DATABRICKS_HOST = os.getenv("DATABRICKS_HOST")
     
     # Generate a temporary Databricks access token using the CLI
@@ -75,12 +83,12 @@ else:
     
     mlflow.set_registry_uri(f"databricks-uc://{profile}")
 
+logger.debug(f"URL of the MLFlow registry used: databricks-uc://{profile}")
 
-@st.cache_resource
-def load_uc_model() -> PyFuncModel:
-    """Load the model from Unity Catalog."""
-    return mlflow.pyfunc.load_model(MODEL_URI)
 
+# --- STREAMLIT CONFIG ---
+set_page_config()
+set_app_config()
 
 model = load_uc_model()
 
@@ -201,4 +209,4 @@ if st.button("🚀 Predict Booking Outcome"):
 
     st.write("### Input summary")
     st.dataframe(input_df.T.rename(columns={0: "value"}).astype(str))
-    logger.success(f"Prediction completed: {outcome}")
+    logger.success(f"✅ Prediction completed: {outcome}")

@@ -5,6 +5,9 @@
 bundle:
   name: hotel-reservation-caotrido
 
+include:
+  - ressources/*.yml
+
 artifacts:
   default:
     type: whl

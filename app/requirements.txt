@@ -1,0 +1,7 @@
+streamlit
+mlflow[databricks]
+scikit-learn
+requests
+pretty_errors
+loguru
+python-dotenv
