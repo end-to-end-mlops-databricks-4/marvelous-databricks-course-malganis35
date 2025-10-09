@@ -131,10 +131,6 @@ tasks:
   deploy_streamlit_app:
     desc: Deploy the streamlit app for inference
     cmds:
-      - task: dev-install
-      - uv build
-      - cp dist/*.whl app/hotel_reservation-latest.whl
-      - sed -i '/\.whl/d' app/requirements.txt
       - databricks bundle deploy
       - databricks apps deploy hotel-reservation-caotrido-app
 

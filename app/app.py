@@ -1,5 +1,6 @@
 import json
 import os
+import subprocess
 import time
 from typing import Any
 
@@ -11,13 +12,10 @@ from dotenv import load_dotenv
 from loguru import logger
 from requests.auth import HTTPBasicAuth
 
-from hotel_reservation.utils.databricks_utils import get_databricks_token
-
 # --- USER CONFIG ---
-serving_endpoint = "https://dbc-f122dc18-1b68.cloud.databricks.com/serving-endpoints/hotel-reservation-basic-model-serving-db/invocations"  # f"{os.environ
+serving_endpoint = "https://dbc-f122dc18-1b68.cloud.databricks.com/serving-endpoints/hotel-reservation-basic-model-serving-db/invocations"
 
 # --- FUNCTIONS ---
-
 
 def set_page_config() -> None:
     """Set the Page Configuration."""
@@ -34,14 +32,40 @@ def set_app_config() -> None:
     )
 
 
-def get_token() -> str:
+def get_token(DATABRICKS_HOST: str) -> str:
     """Retrieve an OAuth token from the Databricks workspace."""
     response = requests.post(
-        f"{host}/oidc/v1/token",
+        f"{DATABRICKS_HOST}/oidc/v1/token",
         auth=HTTPBasicAuth(os.environ["DATABRICKS_CLIENT_ID"], os.environ["DATABRICKS_CLIENT_SECRET"]),
         data={"grant_type": "client_credentials", "scope": "all-apis"},
     )
     return response.json()["access_token"]
+
+
+def get_databricks_token(DATABRICKS_HOST: str) -> str:
+    """Automatically generates a Databricks temporary token via CLI.
+
+    Args:
+        DATABRICKS_HOST (str): The host URL of the Databricks instance.
+
+    Returns:
+        str: The JSON data containing the generated Databricks token.
+
+    """
+    logger.info("🔑 Automatically generating a Databricks temporary token via CLI...")
+
+    result = subprocess.run(
+        ["databricks", "auth", "token", "--host", DATABRICKS_HOST, "--output", "JSON"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+    token_data = json.loads(result.stdout)
+
+    logger.info(f"✅ Temporary token acquired (expires at {token_data['expiry']})")
+
+    return token_data
 
 
 # Endpoint call function
@@ -63,12 +87,11 @@ def call_endpoint(record: list[dict[str, Any]], serving_endpoint: str) -> tuple[
 try:
     # Ensure host is prefixed properly
     raw_host = os.environ["DATABRICKS_HOST"]
-    host = raw_host if raw_host.startswith("https://") else f"https://{raw_host}"
-    os.environ["DATABRICKS_HOST"] = host
-    os.environ["DATABRICKS_TOKEN"] = get_token()
-
+    DATABRICKS_HOST = raw_host if raw_host.startswith("https://") else f"https://{raw_host}"
+    db_token = get_token(DATABRICKS_HOST)
+    
 except Exception as e:
-    logger.error(f"Display error in token retrieval {e}")
+    logger.warning(f"Coding might be running locally. Returning: {e}")
     logger.debug(
         "Getting a token using the local .env file or requesting a temporary token if no token defined in .env file"
     )
@@ -88,11 +111,10 @@ except Exception as e:
         db_token = token_data["access_token"]
         logger.info(f"✅ Temporary token acquired (expires at {token_data['expiry']})")
 
-    os.environ["DBR_TOKEN"] = db_token  # used by custom requests
-    os.environ["DATABRICKS_TOKEN"] = db_token  # required by Databricks SDK / Connect
-    os.environ["DBR_HOST"] = DATABRICKS_HOST
-    os.environ["DATABRICKS_HOST"] = DATABRICKS_HOST
-
+os.environ["DBR_TOKEN"] = db_token
+os.environ["DATABRICKS_TOKEN"] = db_token  # required by Databricks SDK / Connect
+os.environ["DBR_HOST"] = DATABRICKS_HOST
+os.environ["DATABRICKS_HOST"] = DATABRICKS_HOST
 
 # --- STREAMLIT CONFIG ---
 set_page_config()
@@ -102,7 +124,11 @@ set_app_config()
 # --- SIDEBAR ---
 with st.sidebar:
     st.title("🏨 Hotel Reservation Predictor")
-    st.image("./app/hotel.png", width=300)
+    try:
+        st.image("./hotel.png", width=300)
+    except Exception as e:
+        logger.warning(f"Coding might be running locally. Returning: {e}")
+        st.image("./app/hotel.png", width=300)
     st.markdown(
         "This app predicts whether a hotel booking will be **honored or canceled** using a Databricks UC model."
     )
