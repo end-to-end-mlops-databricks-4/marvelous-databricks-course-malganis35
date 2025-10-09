@@ -17,6 +17,7 @@ serving_endpoint = "https://dbc-f122dc18-1b68.cloud.databricks.com/serving-endpo
 
 # --- FUNCTIONS ---
 
+
 def set_page_config() -> None:
     """Set the Page Configuration."""
     logger.info("Configure page layout")
@@ -89,7 +90,7 @@ try:
     raw_host = os.environ["DATABRICKS_HOST"]
     DATABRICKS_HOST = raw_host if raw_host.startswith("https://") else f"https://{raw_host}"
     db_token = get_token(DATABRICKS_HOST)
-    
+
 except Exception as e:
     logger.warning(f"Coding might be running locally. Returning: {e}")
     logger.debug(
