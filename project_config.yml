@@ -1,0 +1,61 @@
+prd:
+  catalog_name: mlops_prd
+  schema_name: caotrido
+  volume_name: data
+  raw_data_file: "Hotel Reservations.csv"
+  train_table: hotel_reservations_train_set
+  test_table: hotel_reservations_test_set
+acc:
+  catalog_name: mlops_acc
+  schema_name: caotrido
+  volume_name: data
+  raw_data_file: "Hotel Reservations.csv"
+  train_table: hotel_reservations_train_set
+  test_table: hotel_reservations_test_set
+dev:
+  catalog_name: mlops_dev
+  schema_name: caotrido
+  volume_name: data
+  raw_data_file: "Hotel Reservations.csv"
+  train_table: hotel_reservations_train_set
+  test_table: hotel_reservations_test_set
+
+# Data Sources
+data_source:
+  source_type: kaggle            # "kaggle" or "local"
+  kaggle_dataset: ahsan81/hotel-reservations-classification-dataset
+  local_path: ./data/raw         # if source_type = local
+
+experiment_name_basic: "/Shared/experiments/hotel_reservations" # /Users/caotri.do881@gmail.com/hotel-reservation-basic
+experiment_name_custom: "/Shared/experiments/hotel_reservations_custom" # /Users/caotri.do881@gmail.com/hotel-reservation-custom
+model_name: hotel_reservation_LR
+model_type: logistic-regression
+
+
+parameters:
+  C: 1.0
+  max_iter: 1000
+  solver: lbfgs
+
+
+num_features:
+  - arrival_month
+  - arrival_year
+  - avg_price_per_room
+  - lead_time
+  - no_of_adults
+  - no_of_children
+  - no_of_previous_bookings_not_canceled
+  - no_of_previous_cancellations
+  - no_of_special_requests
+  - no_of_week_nights
+  - no_of_weekend_nights
+  - repeated_guest
+  - required_car_parking_space
+
+cat_features:
+  - market_segment_type
+  - room_type_reserved
+  - type_of_meal_plan
+
+target: booking_status

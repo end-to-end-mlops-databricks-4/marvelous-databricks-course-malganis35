@@ -1,6 +1,6 @@
 # 🛠 Taskfile Introduction
 
-This project uses [`Taskfile`](https://taskfile.dev/) to automate common development, testing, and deployment workflows.  
+This project uses [`Taskfile`](https://taskfile.dev/) to automate common development, testing, and deployment workflows.
 `Taskfile.yml` acts like a Makefile but with modern syntax, dependency resolution, and cross-platform support.
 
 ---
@@ -20,11 +20,11 @@ task --version
 
 Taskfile provides a consistent and reliable way to:
 
-- Set up virtual environments and install dependencies  
-- Run tests and generate coverage reports  
-- Format, lint, and clean your codebase  
-- Serve reports or run MLflow locally  
-- Manage multiple dev/test environments with `uv`  
+- Set up virtual environments and install dependencies
+- Run tests and generate coverage reports
+- Format, lint, and clean your codebase
+- Serve reports or run MLflow locally
+- Manage multiple dev/test environments with `uv`
 
 ✨ No more copy-pasting shell commands — just run short, repeatable tasks!
 
@@ -68,5 +68,3 @@ task clean
 | `serve-coverage-report`                  | Serves the HTML coverage report at [http://localhost:8000](http://localhost:8000). |
 | `serve-latest-registered-model-locally`  | Downloads the latest registered MLflow model from Databricks and serves it locally via `mlflow models serve`. |
 | `help` or `default`                      | Lists all defined tasks with their descriptions. |
-
-

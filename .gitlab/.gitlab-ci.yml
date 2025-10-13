@@ -1,0 +1,145 @@
+# Source: https://www.linkedin.com/posts/hoogvliets_devops-machinelearning-softwareengineering-activity-7296832784625520640-Y28o?utm_source=share&utm_medium=member_desktop&rcm=ACoAAA7w8sUB7NiUkjg3miCJlOhFQPkKs8DRZ8Y
+# Image for all jobs: Linux + Python
+image: python:3.12-slim
+
+# List the different stages for the CI / CD
+stages:
+  - format
+  - test
+  - docs
+  - build
+  - badges
+
+# Docker in docker for building images
+services:
+  - docker:20.10.17-dind
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: "/certs"
+
+# Template to be used for multiple stages
+.list-template:
+  before_script:
+    # Installer Git
+    - apt-get update && apt-get install -y git
+    # Update pip for every job to make pipeline more robust
+    - pip install --upgrade pip
+    # Install pre-commit
+    - pip install pre-commit
+
+# Run the pre-commit hook if not done locally
+lint:
+  extends: .list-template
+  stage: format
+  script:
+    # run hook from config
+    - pre-commit run --all-files
+  when: manual
+
+# Run unittest with pytest set in package options
+coverage:
+  extends: .list-template
+  stage: test
+  before_script:
+    - pip install -r requirements.txt
+    - pip install -r requirements-dev.txt
+    - pip install -e.
+  script:
+    - pytest --cov=src/dq_text2sql tests/ --cov-report term --cov-report xml:coverage.xml --junitxml=report.xml # --cov-config=.coveragerc
+  coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
+  artifacts:
+    when: always
+    paths:
+      - report.xml
+    reports:
+      junit: report.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+  when: manual
+
+# Test the retro-compatibility of the package again multiple python version
+pytest:
+  image: "python:$VERSION"
+  extends: .list-template
+  stage: test
+  before_script:
+    - pip install -r requirements.txt
+    - pip install -r requirements-dev.txt
+    - pip install pytest
+    - pip install .
+  script:
+    - python -V
+    - pytest
+  parallel:
+    matrix:
+      - VERSION: ['3.9', '3.10', '3.11']
+  when: manual
+
+# Build python package wheel and store as artifact
+build-package:
+  stage: build
+  before_script:
+    - pip install --upgrade pip build
+  script:
+    - python -m build --wheel
+  artifacts:
+    paths:
+      - dist/*.whl
+    expire_in: 1 week
+  when: manual
+
+build-image:
+  stage: build
+  needs: ["build-package"]  # Depends on build-package
+  image: docker:20.10.17
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+  before_script:
+    - docker info
+  script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+    - docker build -t $IMAGE_TAG .
+    - docker push $IMAGE_TAG
+  when: manual
+
+build_badges:
+  stage: badges
+  before_script:
+    - apt-get update && apt-get install -y git
+  script:
+    - echo "Some script to build your code"
+    - COMMITS=$(git rev-list --count HEAD)
+    - echo '{"commits":"'$COMMITS'", "release_tag":"none"}' > badges.json
+    - cat badges.json
+  artifacts:
+    paths:
+        - badges.json
+  when: manual
+
+# Build Sphinx documentation
+build_docs:
+  stage: docs
+  before_script:
+    - apt-get update && apt-get install -y git
+    - pip install -r ./docs/dq_text2sql/requirements.txt
+    - pip install Sphinx sphinx-rtd-theme
+  script:
+    - sphinx-build -b html ./docs/mlops_course public_tmp/
+  artifacts:
+    paths:
+      - public_tmp
+  when: manual
+
+# Deploy Sphinx documentation Artifact to Gitlab Pages
+pages:
+  stage: docs
+  needs: ["build_docs"]  # Dépend on build_docs
+  script:
+    - mv public_tmp public
+    - echo "Documentation deployed" > public/deploy.txt
+  artifacts:
+    paths:
+      - public
+  when: manual

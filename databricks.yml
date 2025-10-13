@@ -1,0 +1,19 @@
+# This is a Databricks asset bundle definition for marvelous-databricks-course-malganis35.
+# The Databricks extension requires databricks.yml configuration file.
+# See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
+
+bundle:
+  name: marvelous-databricks-course-malganis35
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://dbc-f122dc18-1b68.cloud.databricks.com/
+
+  ## Optionally, there could be 'staging' or 'prod' targets here.
+  #
+  # prod:
+  #   workspace:
+  #     host: https://dbc-c2e8445d-159d.cloud.databricks.com
