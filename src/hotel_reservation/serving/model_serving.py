@@ -4,6 +4,8 @@ This module provides a `ModelServing` class to automate the deployment and
 management of model serving endpoints on Databricks. It integrates with MLflow
 and the Databricks SDK to handle endpoint creation, update, monitoring, and
 state management with retry and readiness checks.
+
+Compatible with Databricks SDK >= 0.55.0.
 """
 
 import time
@@ -11,7 +13,12 @@ import time
 import mlflow
 from databricks.sdk import WorkspaceClient
 from databricks.sdk.errors import ResourceConflict, ResourceDoesNotExist
-from databricks.sdk.service.serving import EndpointCoreConfigInput, ServedEntityInput
+from databricks.sdk.service.serving import (
+    EndpointCoreConfigInput, 
+    ServedEntityInput,
+    AiGatewayConfig,
+    AiGatewayInferenceTableConfig,
+)
 from loguru import logger
 
 
@@ -24,13 +31,25 @@ class ModelServing:
     Args:
         model_name (str): Fully qualified name of the model (e.g., `"catalog.schema.model"`).
         endpoint_name (str): Name of the Databricks serving endpoint.
+        catalog_name (str, optional): Unity Catalog name for inference tables.
+        schema_name (str, optional): Unity Schema name for inference tables.
+        monitoring_table_suffix (str, optional): Prefix for inference tables. Defaults to "endpoint_logs".
 
     """
 
-    def __init__(self, model_name: str, endpoint_name: str) -> None:
+    def __init__(self, 
+                 model_name: str, 
+                 endpoint_name: str,
+                 catalog_name: str | None = None,
+                 schema_name: str | None = None,
+                 monitoring_table_suffix: str = "endpoint_logs",
+                 ) -> None:
         self.workspace = WorkspaceClient()
         self.endpoint_name = endpoint_name
         self.model_name = model_name
+        self.catalog_name = catalog_name
+        self.schema_name = schema_name
+        self.monitoring_table_suffix = f"{model_name}_{monitoring_table_suffix}"
 
     # -------------------------------------------------------------------------
     # Model Version Utilities
@@ -161,10 +180,11 @@ class ModelServing:
         workload_size: str = "Small",
         scale_to_zero: bool = True,
         environment_vars: dict | None = None,
+        enable_inference_tables: bool = False,
         max_retries: int = 5,
         retry_interval: int = 20,
     ) -> None:
-        """Deploy or update a Databricks model serving endpoint.
+        """Deploy or update a Databricks model serving endpoint with optional AI Gateway inference tables.
 
         Automatically creates a new endpoint if it does not exist, or updates
         the configuration if it already exists. Includes retry logic to handle
@@ -195,12 +215,32 @@ class ModelServing:
             )
         ]
 
+        # Optional AI Gateway inference table configuration
+        ai_gateway_cfg = None
+        if enable_inference_tables:
+            if not (self.catalog_name and self.schema_name):
+                raise ValueError(
+                    "To enable inference tables, both catalog_name and schema_name must be provided."
+                )
+            ai_gateway_cfg = AiGatewayConfig(
+                inference_table_config=AiGatewayInferenceTableConfig(
+                    enabled=True,
+                    catalog_name=self.catalog_name,
+                    schema_name=self.schema_name,
+                    monitoring_table_suffix=self.monitoring_table_suffix,
+                )
+            )
+            logger.info(
+                f"🧠 Enabling AI Gateway inference tables: {self.catalog_name}.{self.schema_name}.{self.monitoring_table_suffix}_*"
+            )
+
         # Create new endpoint
         if not endpoint_exists:
             logger.info(f"🚀 Creating new endpoint '{self.endpoint_name}'...")
             self.workspace.serving_endpoints.create(
                 name=self.endpoint_name,
                 config=EndpointCoreConfigInput(served_entities=served_entities),
+                ai_gateway=ai_gateway_cfg,
             )
             logger.success(f"✅ Endpoint '{self.endpoint_name}' created with model version {entity_version}")
             return
@@ -214,6 +254,15 @@ class ModelServing:
 
                 logger.info(f"🔄 Attempt {attempt}/{max_retries}: updating endpoint '{self.endpoint_name}'...")
                 self.workspace.serving_endpoints.update_config(name=self.endpoint_name, served_entities=served_entities)
+                
+                # If inference tables are enabled, ensure AI Gateway config is applied
+                if ai_gateway_cfg:
+                    self.workspace.serving_endpoints.put_ai_gateway(
+                        name=self.endpoint_name,
+                        inference_table_config=ai_gateway_cfg.inference_table_config,
+                    )
+                    logger.success(f"🧩 AI Gateway inference tables enabled for endpoint '{self.endpoint_name}'")
+
                 logger.success(f"✅ Endpoint '{self.endpoint_name}' updated with model version {entity_version}")
                 return
 

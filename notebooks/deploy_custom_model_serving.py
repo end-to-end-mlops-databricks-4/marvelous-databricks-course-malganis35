@@ -86,7 +86,11 @@ model_name_to_deploy = f"{config.catalog_name}.{config.schema_name}.{config.mode
 # COMMAND ----------
 
 # Main script to serve the endpoint of the model
-serving = ModelServing(model_name=model_name_to_deploy, endpoint_name=config.endpoint_name_custom)
+serving = ModelServing(model_name=model_name_to_deploy,             
+                       endpoint_name=config.endpoint_name_custom,
+                       catalog_name=config.catalog_name,
+                       schema_name=config.schema_name,
+                       )
 
 if args.model_version == "auto":
     logger.info("Model Version is set to default 'auto'. Finding the last version of the model in Unity Catalog")
@@ -108,11 +112,13 @@ try:
             "aws_secret_access_key": "{{secrets/mlops/aws_access_key}}",
             "region_name": "eu-west-1",
         },
+        enable_inference_tables=True,
     )
 except Exception as e:
     logger.warning(f"Error in deploying. Backing to simple deployment without secrets. Issue linked to: {e}")
     serving.deploy_or_update_serving_endpoint(
         version=entity_version_latest_ready,
+        enable_inference_tables=True,
     )
 
 logger.info("Checking when the endpoint is ready")
