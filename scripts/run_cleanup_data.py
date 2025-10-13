@@ -6,8 +6,8 @@ import argparse
 from databricks.sdk import WorkspaceClient
 from loguru import logger
 
-from mlops_course.data.cleanup import delete_schema, delete_volume
-from mlops_course.data.config_loader import load_env, load_project_config
+from hotel_reservation.data.cleanup import delete_schema, delete_volume
+from hotel_reservation.data.config_loader import load_env, load_project_config
 
 
 def main() -> None:

@@ -6,8 +6,8 @@ import argparse
 
 from loguru import logger
 
-from mlops_course.data.config_loader import load_env, load_project_config
-from mlops_course.data.uploader import load_files_from_source, upload_files
+from hotel_reservation.data.config_loader import load_env, load_project_config
+from hotel_reservation.data.uploader import load_files_from_source, upload_files
 
 
 def main() -> None:

@@ -1,0 +1,9 @@
+{
+  "jupyter.interactiveWindow.cellMarker.codeRegex": "^# COMMAND ----------|^# Databricks notebook source|^(#\\s*%%|#\\s*\\<codecell\\>|#\\s*In\\[\\d*?\\]|#\\s*In\\[ \\])",
+  "jupyter.interactiveWindow.cellMarker.default": "# COMMAND ----------",
+  "workbench.colorCustomizations": {
+    "activityBar.background": "#4e29a7",
+    "titleBar.inactiveBackground": "#4e29a7",
+    "titleBar.activeBackground": "#4e29a7"
+  }
+}

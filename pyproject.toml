@@ -1,6 +1,19 @@
 [project]
-name = "mlops-course"
-description = "MLOps with Databricks course"
+name = "hotel-reservation"
+description = "Hotel Reservation Package for the MLOps with Databricks course"
+authors = [
+    { name = "Cao Tri DO", email = "caotri.do88@gmail.com" }
+]
+maintainers = [
+    { name = "Cao Tri DO", email = "caotri.do88@gmail.com" }
+]
+readme = "README.md"
+keywords = ["python", "databricks", "data-science", "mlops"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
 requires-python = ">=3.12, <3.13"
 dependencies = [
     "mlflow==3.1.1",
@@ -19,13 +32,16 @@ dependencies = [
     "pretty-errors>=1.2.25",
     "kagglehub>=0.3.13",
     "boto3>=1.40.40",
+    "databricks-feature-engineering>=0.12.1",
+    "databricks-feature-lookup>=1.6.1",
+    "setuptools>=80.9.0",
 ]
 
 dynamic = ['version']
 
 [project.optional-dependencies]
 dev = ["databricks-cli>=0.18.0",
-       "databricks-connect>=16.0, <17",
+       "databricks-connect==16.3.5",
        "ipykernel>=6.29.5, <7",
        "pip>=25.0.1, <26",
        "pre-commit>=4.1.0, <5",
@@ -34,8 +50,8 @@ dev = ["databricks-cli>=0.18.0",
 test = ["pre-commit>=4.1.0, <5",
        "pytest>=8.0.0, <9",
        "pytest-cov>=5.0.0, <6",
-       "pyspark>=3.4.0, <4",
-       "pytest-mock[test]>=3.15.1",]
+       "pyspark==3.5.7",
+       "pytest-mock>=3.15.1",]
 
 [build-system]
 requires = [
@@ -45,7 +61,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where =["src"]
-include = ["mlops_course"]
+include = ["hotel_reservation"]
 
 
 [tool.setuptools.dynamic]
@@ -118,3 +134,6 @@ changelog_message_template = """
 {{/each}}
 
 """
+
+[project.urls]
+homepage = "https://github.com/end-to-end-mlops-databricks-4/marvelous-databricks-course-malganis35"

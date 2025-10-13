@@ -1,4 +1,4 @@
-"""Unit tests for src/mlops_course/data/config_loader.py."""
+"""Unit tests for src/hotel_reservation/data/config_loader.py."""
 
 import logging
 import os
@@ -9,7 +9,7 @@ import pytest
 import yaml
 from loguru import logger
 
-from src.mlops_course.data import config_loader
+from src.hotel_reservation.data import config_loader
 
 
 # --------------------------------------------------------------------------- #

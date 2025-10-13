@@ -4,20 +4,43 @@
 
 # %% Databricks notebook source
 
+import argparse
+import sys
+
 import pretty_errors  # noqa: F401
 import yaml
 from loguru import logger
 
-from mlops_course.feature.data_processor import DataProcessor
-from mlops_course.utils.config import ProjectConfig
-from mlops_course.utils.databricks_utils import create_spark_session
-from mlops_course.utils.env_loader import load_environment
+from hotel_reservation.feature.data_processor import DataProcessor
+from hotel_reservation.utils.config import ProjectConfig
+from hotel_reservation.utils.databricks_utils import create_spark_session
+from hotel_reservation.utils.env_loader import load_environment
 
 # COMMAND ----------
-# Adjust the path: if running from this script, use "../project_config.yml" or if running from the command line in the root folder, use "./project_config.yml"
-CONFIG_FILE = "./project_config.yml"
-ENVIRONMENT_CHOICE = "dev"
-ENV_FILE = "./.env"
+
+if "ipykernel" in sys.modules:
+    # Running interactively, mock arguments
+    class Args:
+        """Mock arguments used when running interactively (e.g. in Jupyter)."""
+
+        root_path = ".."
+        config = "project_config.yml"
+        env = ".env"
+
+    args = Args()
+else:
+    # Normal CLI usage
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--root_path", type=str, default=".")
+    parser.add_argument("--config", type=str, default="project_config.yml")
+    parser.add_argument("--env", type=str, default=".env")
+    parser.add_argument("--branch", type=str, default="dev", help="branch of the project")
+    args = parser.parse_args()
+
+root_path = args.root_path
+CONFIG_FILE = f"{root_path}/{args.config}"
+ENV_FILE = f"{root_path}/{args.env}"
+ENVIRONMENT_CHOICE = args.branch
 
 # COMMAND ----------
 
@@ -33,33 +56,6 @@ logger.info(yaml.dump(config, default_flow_style=False))
 
 # COMMAND ----------
 
-# try:
-#     logger.info("Intialize Spark session")
-#     spark = SparkSession.builder.getOrCreate()
-# except Exception as e:
-#     logger.warning(f"Falling back to DatabricksSession due to: {e}")
-#     spark = DatabricksSession.builder.getOrCreate()
-
-# from databricks.connect import DatabricksSession
-
-# compute_mode = os.getenv("DATABRICKS_COMPUTE", "serverless")
-# cluster_id = os.getenv("DATABRICKS_CLUSTER_ID")
-
-# builder = DatabricksSession.builder
-
-# if cluster_id and compute_mode.lower() == "cluster":
-#     logger.info(f"Using Databricks cluster: {cluster_id}")
-#     spark = builder.remote(cluster_id=cluster_id).getOrCreate()
-# elif compute_mode.lower() == "serverless":
-#     logger.info("Using Databricks Serverless compute")
-#     spark = builder.remote(serverless=True).getOrCreate()
-# else:
-#     logger.info("No compute specified, defaulting to serverless")
-#     spark = builder.remote(serverless=True).getOrCreate()
-
-# logger.info("✅ Spark session initialized successfully")
-
-# Créer la session Spark connectée à Databricks
 spark = create_spark_session()
 
 logger.info("Load the hotel reservations dataset from the catalog")

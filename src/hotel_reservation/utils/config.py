@@ -22,9 +22,13 @@ class ProjectConfig(BaseModel):
     raw_data_file: str
     train_table: str
     test_table: str
+    feature_table_name: str | None
+    feature_function_name: str | None
     experiment_name_basic: str | None
     experiment_name_custom: str | None
+    experiment_name_fe: str | None
     model_name: str | None
+    model_name_fe: str | None
     model_type: str | None
     model_config = {"protected_namespaces": ()}
 
@@ -46,6 +50,8 @@ class ProjectConfig(BaseModel):
             config_dict["raw_data_file"] = config_dict[env]["raw_data_file"]
             config_dict["train_table"] = config_dict[env]["train_table"]
             config_dict["test_table"] = config_dict[env]["test_table"]
+            config_dict["feature_table_name"] = config_dict[env]["feature_table_name"]
+            config_dict["feature_function_name"] = config_dict[env]["feature_function_name"]
 
             return cls(**config_dict)
 

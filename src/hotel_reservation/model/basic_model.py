@@ -24,8 +24,8 @@ from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_sc
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
-from mlops_course.utils.config import ProjectConfig, Tags
-from mlops_course.utils.timer import timeit
+from hotel_reservation.utils.config import ProjectConfig, Tags
+from hotel_reservation.utils.timer import timeit
 
 
 class Result:
@@ -171,34 +171,6 @@ class BasicModel:
             self.metrics = result.metrics
 
     @timeit
-    def model_improved(self) -> bool:
-        """Evaluate the model performance on the test set.
-
-        Compares the current model with the latest registered model using F1-score.
-        :return: True if the current model performs better, False otherwise.
-        """
-        client = MlflowClient()
-        latest_model_version = client.get_model_version_by_alias(name=self.model_name, alias="latest-model")
-        latest_model_uri = f"models:/{latest_model_version.model_id}"
-
-        result = mlflow.models.evaluate(
-            latest_model_uri,
-            self.eval_data,
-            targets=self.config.target,
-            model_type="classifier",
-            evaluators=["default"],
-        )
-        metrics_old = result.metrics
-        logger.info(f"Latest model F1-score: {metrics_old['f1_score']}")
-        logger.info(f"Current model F1-score: {self.metrics['f1_score']}")
-        if self.metrics["f1_score"] >= metrics_old["f1_score"]:
-            logger.info("💥 Current model performs better. Returning True.")
-            return True
-        else:
-            logger.info("⛔ Current model does not improve over latest. Returning False.")
-            return False
-
-    @timeit
     def register_model(self) -> None:
         """Register model in Unity Catalog."""
         logger.info("🔄 Registering the model in UC...")
@@ -263,3 +235,37 @@ class BasicModel:
 
         # Return predictions as a DataFrame
         return predictions
+
+    @timeit
+    def model_improved(self) -> bool:
+        """Evaluate the model performance on the test set.
+
+        Compares the current model with the latest registered model using F1-score.
+        :return: True if the current model performs better, False otherwise.
+        """
+        client = MlflowClient()
+        try:
+            latest_model_version = client.get_model_version_by_alias(name=self.model_name, alias="latest-model")
+            latest_model_uri = f"models:/{latest_model_version.model_id}"
+
+            result = mlflow.models.evaluate(
+                latest_model_uri,
+                self.eval_data,
+                targets=self.config.target,
+                model_type="classifier",
+                evaluators=["default"],
+            )
+            metrics_old = result.metrics
+            logger.info(f"Latest model F1-score: {metrics_old['f1_score']}")
+        except Exception:
+            logger.info("No model exist yet. Set F1-score to Zero")
+            metrics_old = {}
+            metrics_old["f1_score"] = 0
+
+        logger.info(f"Current model F1-score: {self.metrics['f1_score']}")
+        if self.metrics["f1_score"] >= metrics_old["f1_score"]:
+            logger.info("💥 Current model performs better. Returning True.")
+            return True
+        else:
+            logger.info("⛔ Current model does not improve over latest. Returning False.")
+            return False

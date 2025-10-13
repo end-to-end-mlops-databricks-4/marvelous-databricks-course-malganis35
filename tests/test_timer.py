@@ -1,9 +1,9 @@
-"""Unit tests for the DataProcessor class in mlops_course.feature.data_processor."""
+"""Unit tests for the DataProcessor class in hotel_reservation.feature.data_processor."""
 
 import time
 from unittest.mock import MagicMock, patch
 
-from mlops_course.utils.timer import measure_time, timeit
+from hotel_reservation.utils.timer import measure_time, timeit
 
 
 def test_timeit_decorator_returns_result() -> None:
@@ -19,7 +19,7 @@ def test_timeit_decorator_returns_result() -> None:
     assert add(2, 3) == 5
 
 
-@patch("mlops_course.utils.timer.logger")
+@patch("hotel_reservation.utils.timer.logger")
 def test_timeit_logs_execution_time(mock_logger: MagicMock) -> None:
     """Test that the @timeit decorator logs an execution time message.
 
@@ -41,7 +41,7 @@ def test_timeit_logs_execution_time(mock_logger: MagicMock) -> None:
     assert "Function dummy_function Took" in log_msg
 
 
-@patch("mlops_course.utils.timer.logger")
+@patch("hotel_reservation.utils.timer.logger")
 def test_timeit_measures_correct_duration(mock_logger: MagicMock) -> None:
     """Test that the @timeit decorator correctly measures execution time.
 

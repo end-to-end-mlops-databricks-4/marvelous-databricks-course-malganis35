@@ -1,7 +1,26 @@
-"""Main entry point for train a model and register to MLFlow on hotel reservation data."""
-
 # Databricks notebook source
+# install dependencies
+# %pip install -e ..
 
+# COMMAND ----------
+
+# restart python
+# %restart_python
+
+# COMMAND ----------
+
+# system path update, must be after %restart_python
+# caution! This is not a great approach
+# from pathlib import Path
+# import sys
+# sys.path.append(str(Path.cwd().parent / 'src'))
+
+
+# COMMAND ----------
+
+# Generate a temporary token: databricks auth token --host https://dbc-f122dc18-1b68.cloud.databricks.com
+
+# Configure tracking uri
 import argparse
 import os
 import sys
@@ -12,7 +31,7 @@ from dotenv import load_dotenv
 from loguru import logger
 
 from hotel_reservation.marvelous.common import is_databricks
-from hotel_reservation.model.basic_model import BasicModel
+from hotel_reservation.model.feature_lookup_model import FeatureLookUpModel
 from hotel_reservation.utils.config import ProjectConfig, Tags
 from hotel_reservation.utils.databricks_utils import create_spark_session
 
@@ -64,39 +83,26 @@ spark = create_spark_session()
 tags_dict = {"git_sha": args.git_sha, "branch": args.branch, "job_run_id": args.job_run_id}
 tags = Tags(**tags_dict)
 
-# COMMAND ----------
-# Initialize model
-# Initialize model with the config path
-basic_model = BasicModel(config=config, tags=tags, spark=spark)
-logger.info("Model initialized.")
 
 # COMMAND ----------
-# Load data and prepare features
-basic_model.load_data()
-basic_model.prepare_features()
-logger.info("Loaded data, prepared features.")
+
+# Lets run prediction on the last production model
+# Load test set from Delta table
+
+test_set = spark.table(f"{config.catalog_name}.{config.schema_name}.{config.test_table}").limit(10)
+
+# Drop feature lookup columns and target
+# X_test = test_set.drop("no_of_weekend_nights", "no_of_week_nights", config.target)
+X_test = test_set
 
 # COMMAND ----------
-# Train
-basic_model.train()
-logger.info("Model training completed.")
 
-# COMMAND ----------
-# log the model in MLFlow Experiment
-basic_model.log_model()
-logger.info("Model is logged in MLFlow Experiments.")
+fe_model = FeatureLookUpModel(config=config, tags=tags, spark=spark)
 
-# COMMAND ----------
-# Evaluate old and new model
-model_improved = basic_model.model_improved()
-logger.info(f"Model evaluation completed, model improved: {model_improved}")
+# %% Make predictions
+predictions = fe_model.load_latest_model_and_predict(X_test)
 
-# COMMAND ----------
-if model_improved:
-    # Register the model
-    basic_model.register_model()
-    logger.info("Model registration completed.")
-else:
-    logger.info("Model not registered as it did not improve.")
+# Display predictions
+logger.info(predictions)
 
 # COMMAND ----------

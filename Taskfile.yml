@@ -2,7 +2,7 @@ version: '3'
 dotenv: [.env]
 
 vars:
-  PACKAGE_IMPORT_NAME: mlops_course
+  PACKAGE_IMPORT_NAME: hotel_reservation
   PYTHON_VERSION: 3.12
 
 tasks:
@@ -23,17 +23,12 @@ tasks:
   dev-install:
     desc: Sync project dependencies with optionals
     cmds:
-      - rm -rf .venv
-      - task: create-venv
       - uv sync --extra dev
 
   test-install:
     desc: Sync only test dependencies
     cmds:
-        - rm -rf .venv
-        - task: create-venv
         - uv sync --extra test
-        # - source .venv/Scripts/activate && uv sync --extra test # Activate and sync
 
   demo:
     desc: Test on a demo script
@@ -65,6 +60,12 @@ tasks:
       - task: dev-install
       - uv run scripts/train_register_model.py --git_sha "abcd12345" "--job_run_id" local_test_run --branch dev
 
+  fe_train_register_model:
+    desc: Run a basic experiment to train, log and register a model
+    cmds:
+      - task: dev-install
+      - uv run scripts/train_register_fe_model.py --git_sha "abcd12345" "--job_run_id" local_test_run --branch dev
+
   lint:
     desc: Run pre-commit hooks
     cmds:
@@ -75,7 +76,7 @@ tasks:
     desc: Run unit test and coverage
     cmds:
       - task: test-install
-      - pytest --cov src/mlops_course --cov-report=html:_artifact/coverage_re --cov-report=term-missing --cov-config=.coveragerc
+      - uv run --extra test pytest
       - 'echo "Note: you can open the HTML report with: open _artifact/coverage_re/index.html"'
 
   qa-lines-count:
@@ -102,6 +103,13 @@ tasks:
       - rm -rf .venv/
       - rm -rf _artifact/ .devbox/ .pytest_cache/ .ruff_cache/ node_modules/
       - rm .coverage package.json package-lock.json digest.txt zz_git-diff.txt
+
+  clean-databricks:
+    desc: Clean all data, schema and experiments in Databricks
+    cmds:
+      - task: dev-install
+      - uv run scripts/run_cleanup_mlflow_experiments.py
+      - uv run scripts/run_cleanup_data.py
 
   digest:
     desc: Make a git digest of the repository

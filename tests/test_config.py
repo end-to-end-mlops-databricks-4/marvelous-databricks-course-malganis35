@@ -1,4 +1,4 @@
-"""Unit tests for configuration loading and validation logic in mlops_course.utils.config."""
+"""Unit tests for configuration loading and validation logic in hotel_reservation.utils.config."""
 
 import tempfile
 from typing import Any
@@ -6,7 +6,7 @@ from typing import Any
 import pytest
 import yaml
 
-from mlops_course.utils.config import ProjectConfig, Tags
+from hotel_reservation.utils.config import ProjectConfig, Tags
 
 
 @pytest.fixture
@@ -18,7 +18,9 @@ def config_yaml_content() -> dict[str, Any]:
     return {
         "experiment_name_basic": "/exp/basic",
         "experiment_name_custom": "/exp/custom",
+        "experiment_name_fe": "/exp/fe",  # ✅ ajouté ici
         "model_name": "test_model",
+        "model_name_fe": "test_model",
         "model_type": "logistic-regression",
         "num_features": ["f1", "f2"],
         "cat_features": ["c1"],
@@ -30,6 +32,8 @@ def config_yaml_content() -> dict[str, Any]:
             "raw_data_file": "file_prd.csv",
             "train_table": "train_prd",
             "test_table": "test_prd",
+            "feature_table_name": "feature_prd",
+            "feature_function_name": "feature_func_prd",
         },
         "acc": {
             "catalog_name": "catalog_acc",
@@ -37,6 +41,8 @@ def config_yaml_content() -> dict[str, Any]:
             "raw_data_file": "file_acc.csv",
             "train_table": "train_acc",
             "test_table": "test_acc",
+            "feature_table_name": "feature_acc",
+            "feature_function_name": "feature_func_acc",
         },
         "dev": {
             "catalog_name": "catalog_dev",
@@ -44,6 +50,8 @@ def config_yaml_content() -> dict[str, Any]:
             "raw_data_file": "file_dev.csv",
             "train_table": "train_dev",
             "test_table": "test_dev",
+            "feature_table_name": "feature_dev",
+            "feature_function_name": "feature_func_dev",
         },
     }
 

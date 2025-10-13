@@ -1,4 +1,4 @@
-"""Unit tests for src/mlops_course/data/cleanup.py."""
+"""Unit tests for src/hotel_reservation/data/cleanup.py."""
 
 import logging
 from typing import Any
@@ -6,7 +6,7 @@ from typing import Any
 import pytest
 from loguru import logger
 
-from src.mlops_course.data.cleanup import delete_schema, delete_volume
+from src.hotel_reservation.data.cleanup import delete_schema, delete_volume
 
 
 # --------------------------------------------------------------------------- #

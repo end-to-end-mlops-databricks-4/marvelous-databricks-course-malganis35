@@ -1,4 +1,4 @@
-"""mlops_course package."""
+"""hotel_reservation package."""
 
 import importlib.metadata
 import importlib.resources
