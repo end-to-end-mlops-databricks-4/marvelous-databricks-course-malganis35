@@ -5,14 +5,14 @@ on:
 
   push:
     branches:
-      - 'week5'
+      - 'main'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        environment: [acc]
+        environment: [acc, prd]
     environment: ${{ matrix.environment }}
     permissions:
       id-token: write
@@ -41,6 +41,16 @@ jobs:
         uses: databricks/setup-cli@49580195afe1ccb06d195764a1d0ae9fabfe2edd #v0.246.0
         with:
           version: 0.246.0
+
+      - name: Configure Databricks CLI
+        run: |
+          mkdir -p ~/.databricks
+          cat > ~/.databrickscfg << EOF
+          [marvelous]
+          host = ${{ vars.DATABRICKS_HOST }}
+          client_id = ${{ secrets.DATABRICKS_CLIENT_ID }}
+          client_secret = ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+          EOF
 
       - name: Install uv
         uses: astral-sh/setup-uv@0c5e2b8115b80b4c7c5ddf6ffdd634974642d182 #v5.4.1
