@@ -38,21 +38,37 @@ tasks:
   demo:
     desc: Test on a demo script
     cmds:
+      - task: dev-install
       - uv run scripts/demo.py
 
   run-upload-data:
     desc: Test on a demo script
     cmds:
+      - task: dev-install
       - uv run scripts/run_upload_data.py --env dev --env-file .env --config project_config.yml
 
   run-process-data:
     desc: Test on a pre-processing script
     cmds:
+      - task: dev-install
       - uv run scripts/process_data.py
+
+  run_create_mlflow_workspace:
+    desc: Create the directory on Databricks for MLflow experiments
+    cmds:
+      - task: dev-install
+      - uv run scripts/run_create_mlflow_workspace.py
+
+  train_register_model:
+    desc: Run a basic experiment to train, log and register a model
+    cmds:
+      - task: dev-install
+      - uv run scripts/train_register_model.py --git_sha "abcd12345" "--job_run_id" local_test_run --branch dev
 
   lint:
     desc: Run pre-commit hooks
     cmds:
+      - task: dev-install
       - uv run pre-commit run --all-files
 
   test:
@@ -91,6 +107,11 @@ tasks:
     desc: Make a git digest of the repository
     cmds:
       - uv run --with gitingest gitingest .
+
+  databrickscfg:
+    desc: Show the databrickscfg file
+    cmds:
+      - cat ~/.databrickscfg
 
   help:
     desc: Print all tasks defined in the Taskfile

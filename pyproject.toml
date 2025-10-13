@@ -18,6 +18,7 @@ dependencies = [
     "python-dotenv==1.1.1",
     "pretty-errors>=1.2.25",
     "kagglehub>=0.3.13",
+    "boto3>=1.40.40",
 ]
 
 dynamic = ['version']
@@ -95,7 +96,7 @@ docstring-code-format = true
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.1.0"
+version = "0.2.0"
 tag_format = "v$version"
 version_files = [
   "version.txt"
