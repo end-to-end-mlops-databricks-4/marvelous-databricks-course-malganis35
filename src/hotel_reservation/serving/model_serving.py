@@ -14,10 +14,10 @@ import mlflow
 from databricks.sdk import WorkspaceClient
 from databricks.sdk.errors import ResourceConflict, ResourceDoesNotExist
 from databricks.sdk.service.serving import (
-    EndpointCoreConfigInput, 
-    ServedEntityInput,
     AiGatewayConfig,
     AiGatewayInferenceTableConfig,
+    EndpointCoreConfigInput,
+    ServedEntityInput,
 )
 from loguru import logger
 
@@ -37,13 +37,14 @@ class ModelServing:
 
     """
 
-    def __init__(self, 
-                 model_name: str, 
-                 endpoint_name: str,
-                 catalog_name: str | None = None,
-                 schema_name: str | None = None,
-                 monitoring_table_suffix: str = "endpoint_logs",
-                 ) -> None:
+    def __init__(
+        self,
+        model_name: str,
+        endpoint_name: str,
+        catalog_name: str | None = None,
+        schema_name: str | None = None,
+        monitoring_table_suffix: str = "endpoint_logs",
+    ) -> None:
         self.workspace = WorkspaceClient()
         self.endpoint_name = endpoint_name
         self.model_name = model_name
@@ -195,6 +196,7 @@ class ModelServing:
             workload_size (str, optional): Workload size (e.g., `"Small"`, `"Medium"`, `"Large"`). Defaults to `"Small"`.
             scale_to_zero (bool, optional): Whether to scale endpoint to 0 when idle. Defaults to `True`.
             environment_vars (dict, optional): Environment variables to inject into the serving environment. Defaults to `None`.
+            enable_inference_tables (boolean, optional): Enable Inferance Table in AI Gateway. Defaults to `False`.
             max_retries (int, optional): Maximum number of retry attempts on conflict. Defaults to `5`.
             retry_interval (int, optional): Wait time in seconds between retries. Defaults to `20`.
 
@@ -219,9 +221,7 @@ class ModelServing:
         ai_gateway_cfg = None
         if enable_inference_tables:
             if not (self.catalog_name and self.schema_name):
-                raise ValueError(
-                    "To enable inference tables, both catalog_name and schema_name must be provided."
-                )
+                raise ValueError("To enable inference tables, both catalog_name and schema_name must be provided.")
             ai_gateway_cfg = AiGatewayConfig(
                 inference_table_config=AiGatewayInferenceTableConfig(
                     enabled=True,
@@ -254,7 +254,7 @@ class ModelServing:
 
                 logger.info(f"🔄 Attempt {attempt}/{max_retries}: updating endpoint '{self.endpoint_name}'...")
                 self.workspace.serving_endpoints.update_config(name=self.endpoint_name, served_entities=served_entities)
-                
+
                 # If inference tables are enabled, ensure AI Gateway config is applied
                 if ai_gateway_cfg:
                     self.workspace.serving_endpoints.put_ai_gateway(

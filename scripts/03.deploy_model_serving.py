@@ -82,11 +82,12 @@ model_name_to_deploy = f"{config.catalog_name}.{config.schema_name}.{config.mode
 # COMMAND ----------
 
 # Main script to serve the endpoint of the model
-serving = ModelServing(model_name=model_name_to_deploy, 
-                       endpoint_name=endpoint_name,
-                       catalog_name=config.catalog_name,
-                       schema_name=config.schema_name,
-                       )
+serving = ModelServing(
+    model_name=model_name_to_deploy,
+    endpoint_name=endpoint_name,
+    catalog_name=config.catalog_name,
+    schema_name=config.schema_name,
+)
 
 if model_version == "auto":
     logger.info("Model version 'auto' detected. Fetching the latest ready version in Unity Catalog...")
