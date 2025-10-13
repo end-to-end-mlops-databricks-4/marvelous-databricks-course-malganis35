@@ -9,7 +9,9 @@ Usage:
     spark = create_spark_session()
 """
 
+import json
 import os
+import subprocess
 
 import pyspark
 from databricks.connect import DatabricksSession
@@ -58,4 +60,40 @@ def create_spark_session() -> "pyspark.sql.SparkSession":
         spark = builder.remote(serverless=True).getOrCreate()
 
     logger.info("✅ Spark session initialized successfully via Databricks Connect")
+    logger.info("You might need to wait a few seconds or minutes for the cluster to start ...")
+
     return spark
+
+
+def get_databricks_token(DATABRICKS_HOST: str) -> str:
+    """Automatically generates a Databricks temporary token via CLI.
+
+    Args:
+        DATABRICKS_HOST (str): The host URL of the Databricks instance.
+
+    Returns:
+        str: The JSON data containing the generated Databricks token.
+
+    """
+    logger.info("🔑 Automatically generating a Databricks temporary token via CLI...")
+
+    result = subprocess.run(
+        ["databricks", "auth", "token", "--host", DATABRICKS_HOST, "--output", "JSON"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+    token_data = json.loads(result.stdout)
+
+    logger.info(f"✅ Temporary token acquired (expires at {token_data['expiry']})")
+
+    return token_data
+
+
+def is_databricks() -> bool:
+    """Check if the code is running in a Databricks environment.
+
+    :return: True if running in Databricks, False otherwise.
+    """
+    return "DATABRICKS_RUNTIME_VERSION" in os.environ

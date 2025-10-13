@@ -31,6 +31,8 @@ class ProjectConfig(BaseModel):
     model_name_fe: str | None
     model_type: str | None
     model_config = {"protected_namespaces": ()}
+    endpoint_name: str | None
+    endpoint_name_fe: str | None
 
     @classmethod
     def from_yaml(cls, config_path: str, env: str = "dev") -> "ProjectConfig":

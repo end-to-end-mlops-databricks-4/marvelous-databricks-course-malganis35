@@ -1,10 +1,13 @@
 """Unit tests for src/hotel_reservation/utils/databricks_utils.py."""
 
+import json
 import logging
 import os
+import subprocess
 import sys
 import types
 from types import ModuleType
+from typing import Never
 
 import pytest
 from loguru import logger
@@ -200,3 +203,48 @@ def test_create_spark_session_local_failure_invalid_compute(
     assert isinstance(spark, DummySpark)
     assert spark.mode == "serverless"
     assert "No compute specified" in caplog.text or "defaulting to serverless" in caplog.text
+
+
+def test_get_databricks_token_success(monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture) -> None:
+    """Test successful token generation via Databricks CLI."""
+    dummy_output: dict[str, str] = {"token_value": "abc123", "expiry": "2030-01-01T00:00:00Z"}
+
+    class DummyCompletedProcess:
+        def __init__(self) -> None:
+            self.stdout = json.dumps(dummy_output)
+            self.returncode = 0
+
+    def dummy_run(*args: object, **kwargs: object) -> DummyCompletedProcess:
+        return DummyCompletedProcess()
+
+    monkeypatch.setattr(subprocess, "run", dummy_run)
+
+    with caplog.at_level("INFO"):
+        result = databricks_utils.get_databricks_token("https://dummy-host")
+
+    assert result == dummy_output
+    assert "Temporary token acquired" in caplog.text
+    assert "🔑 Automatically generating a Databricks temporary token" in caplog.text
+
+
+def test_get_databricks_token_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that subprocess.run failure raises a CalledProcessError."""
+
+    def dummy_run(*args: object, **kwargs: object) -> "Never":
+        raise subprocess.CalledProcessError(returncode=1, cmd=args[0])
+
+    monkeypatch.setattr(subprocess, "run", dummy_run)
+
+    with pytest.raises(subprocess.CalledProcessError):
+        databricks_utils.get_databricks_token("https://dummy-host")
+
+
+def test_is_databricks_true_false(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test environment detection logic."""
+    # False when variable is absent
+    monkeypatch.delenv("DATABRICKS_RUNTIME_VERSION", raising=False)
+    assert not databricks_utils.is_databricks()
+
+    # True when variable is present
+    monkeypatch.setenv("DATABRICKS_RUNTIME_VERSION", "13.3")
+    assert databricks_utils.is_databricks()

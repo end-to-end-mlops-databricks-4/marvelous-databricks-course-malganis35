@@ -78,6 +78,8 @@ def mock_config() -> ProjectConfig:
         model_name="mock_model",
         model_name_fe="mock_model",
         model_type="logistic-regression",
+        endpoint_name="endpoint_model",
+        endpoint_name_fe="endpoint_fe_model",
     )
 
 

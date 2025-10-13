@@ -1,9 +1,20 @@
 # Databricks notebook source
-# %pip install house_price-0.0.1-py3-none-any.whl
+# install dependencies
+# %pip install -e ..
 
 # COMMAND ----------
 
+# restart python
 # %restart_python
+
+# COMMAND ----------
+
+# system path update, must be after %restart_python
+# caution! This is not a great approach
+# from pathlib import Path
+# import sys
+# sys.path.append(str(Path.cwd().parent / 'src'))
+
 
 # COMMAND ----------
 
@@ -19,10 +30,9 @@ import pretty_errors  # noqa: F401
 from dotenv import load_dotenv
 from loguru import logger
 
-from hotel_reservation.marvelous.common import is_databricks
 from hotel_reservation.model.feature_lookup_model import FeatureLookUpModel
 from hotel_reservation.utils.config import ProjectConfig, Tags
-from hotel_reservation.utils.databricks_utils import create_spark_session
+from hotel_reservation.utils.databricks_utils import create_spark_session, is_databricks
 
 ## COMMAND ----------
 # Global user setup
@@ -72,54 +82,26 @@ spark = create_spark_session()
 tags_dict = {"git_sha": args.git_sha, "branch": args.branch, "job_run_id": args.job_run_id}
 tags = Tags(**tags_dict)
 
+
 # COMMAND ----------
 
-# Initialize model
+# Lets run prediction on the last production model
+# Load test set from Delta table
+
+test_set = spark.table(f"{config.catalog_name}.{config.schema_name}.{config.test_table}").limit(10)
+
+# Drop feature lookup columns and target
+# X_test = test_set.drop("no_of_weekend_nights", "no_of_week_nights", config.target)
+X_test = test_set
+
+# COMMAND ----------
+
 fe_model = FeatureLookUpModel(config=config, tags=tags, spark=spark)
 
-# COMMAND ----------
+# %% Make predictions
+predictions = fe_model.load_latest_model_and_predict(X_test)
 
-# Create feature table
-fe_model.create_feature_table()
-
-# COMMAND ----------
-
-# Define house age feature function
-fe_model.define_feature_function()
+# Display predictions
+logger.info(predictions)
 
 # COMMAND ----------
-
-# Load data
-fe_model.load_data()
-
-# COMMAND ----------
-
-# Perform feature engineering
-fe_model.feature_engineering()
-
-# COMMAND ----------
-
-# Train the model
-fe_model.train()
-
-# COMMAND ----------
-# Register the model
-fe_model.register_model()
-
-# COMMAND ----------
-# # Evaluate old and new model
-# try:
-#     model_improved = fe_model.model_improved()
-#     logger.info(f"Model evaluation completed, model improved: {model_improved}")
-# except Exception as e:
-#     logger.error(f"Model evaluation encountered an issue: {e}")
-#     model_improved = False
-
-
-# # COMMAND ----------
-# if model_improved:
-#     # Register the model
-#     fe_model.register_model()
-#     logger.info("Model registration completed.")
-# else:
-#     logger.info("Model not registered as it did not improve or has encountered an error.")

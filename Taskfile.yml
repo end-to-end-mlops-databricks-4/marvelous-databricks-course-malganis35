@@ -23,6 +23,7 @@ tasks:
   dev-install:
     desc: Sync project dependencies with optionals
     cmds:
+      - rm -rf .venv/
       - uv sync --extra dev
 
   test-install:
@@ -34,37 +35,49 @@ tasks:
     desc: Test on a demo script
     cmds:
       - task: dev-install
-      - uv run scripts/demo.py
+      - uv run notebooks/demo.py
 
   run-upload-data:
     desc: Test on a demo script
     cmds:
       - task: dev-install
-      - uv run scripts/run_upload_data.py --env dev --env-file .env --config project_config.yml
+      - uv run notebooks/utils/run_upload_data.py --env dev --env-file .env --config project_config.yml
 
   run-process-data:
     desc: Test on a pre-processing script
     cmds:
       - task: dev-install
-      - uv run scripts/process_data.py
+      - uv run notebooks/process_data.py
 
   run_create_mlflow_workspace:
     desc: Create the directory on Databricks for MLflow experiments
     cmds:
       - task: dev-install
-      - uv run scripts/run_create_mlflow_workspace.py
+      - uv run notebooks/utils/run_create_mlflow_workspace.py
 
   train_register_model:
     desc: Run a basic experiment to train, log and register a model
     cmds:
       - task: dev-install
-      - uv run scripts/train_register_model.py --git_sha "abcd12345" "--job_run_id" local_test_run --branch dev
+      - uv run notebooks/train_register_model.py --git_sha "abcd12345" "--job_run_id" local_test_run --branch dev
 
   fe_train_register_model:
     desc: Run a basic experiment to train, log and register a model
     cmds:
       - task: dev-install
-      - uv run scripts/train_register_fe_model.py --git_sha "abcd12345" "--job_run_id" local_test_run --branch dev
+      - uv run notebooks/train_register_fe_model.py --git_sha "abcd12345" "--job_run_id" local_test_run --branch dev
+
+  deploy_model_serving:
+    desc: Deploy a model serving endpoint in Databricks from the model
+    cmds:
+      - task: dev-install
+      - uv run notebooks/deploy_model_serving.py --branch dev
+
+  test_model_serving:
+    desc: Test the deployed model serving endpoint in Databricks
+    cmds:
+      - task: dev-install
+      - uv run tests/functional/deploy_model_serving_call.py --branch dev
 
   lint:
     desc: Run pre-commit hooks
@@ -108,8 +121,8 @@ tasks:
     desc: Clean all data, schema and experiments in Databricks
     cmds:
       - task: dev-install
-      - uv run scripts/run_cleanup_mlflow_experiments.py
-      - uv run scripts/run_cleanup_data.py
+      - uv run notebooks/utils/run_cleanup_mlflow_experiments.py
+      - uv run notebooks/utils/run_cleanup_data.py
 
   digest:
     desc: Make a git digest of the repository

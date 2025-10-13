@@ -16,6 +16,8 @@ def config_yaml_content() -> dict[str, Any]:
     :return: A dictionary representing the full structure of a config YAML file.
     """
     return {
+        "endpoint_name": "endpoint_model",
+        "endpoint_name_fe": "endpoint_fe_model",
         "experiment_name_basic": "/exp/basic",
         "experiment_name_custom": "/exp/custom",
         "experiment_name_fe": "/exp/fe",  # ✅ ajouté ici

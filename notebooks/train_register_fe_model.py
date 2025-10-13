@@ -1,7 +1,15 @@
-"""Main entry point for train a model and register to MLFlow on hotel reservation data."""
-
 # Databricks notebook source
+# %pip install house_price-0.0.1-py3-none-any.whl
 
+# COMMAND ----------
+
+# %restart_python
+
+# COMMAND ----------
+
+# Generate a temporary token: databricks auth token --host https://dbc-f122dc18-1b68.cloud.databricks.com
+
+# Configure tracking uri
 import argparse
 import os
 import sys
@@ -11,10 +19,9 @@ import pretty_errors  # noqa: F401
 from dotenv import load_dotenv
 from loguru import logger
 
-from hotel_reservation.marvelous.common import is_databricks
-from hotel_reservation.model.basic_model import BasicModel
+from hotel_reservation.model.feature_lookup_model import FeatureLookUpModel
 from hotel_reservation.utils.config import ProjectConfig, Tags
-from hotel_reservation.utils.databricks_utils import create_spark_session
+from hotel_reservation.utils.databricks_utils import create_spark_session, get_databricks_token, is_databricks
 
 ## COMMAND ----------
 # Global user setup
@@ -50,8 +57,20 @@ ENV_FILE = f"{root_path}/{args.env}"
 if not is_databricks():
     load_dotenv(dotenv_path=ENV_FILE, override=True)
     profile = os.getenv("PROFILE")  # os.environ["PROFILE"]
+    DATABRICKS_HOST = os.getenv("DATABRICKS_HOST")
+
     mlflow.set_tracking_uri(f"databricks://{profile}")
     mlflow.set_registry_uri(f"databricks-uc://{profile}")
+
+    # Get a temporary token for Databricks Connect & SDK
+    token_data = get_databricks_token(DATABRICKS_HOST)
+    db_token = token_data["access_token"]
+
+    # Define the variable for Databricks SDK
+    os.environ["DATABRICKS_TOKEN"] = db_token
+    os.environ["DBR_TOKEN"] = db_token
+    os.environ["DATABRICKS_HOST"] = DATABRICKS_HOST
+    os.environ["DBR_HOST"] = DATABRICKS_HOST
 
 logger.info(f"MLflow Tracking URI: {mlflow.get_tracking_uri()}")
 logger.info(f"MLflow Registry URI: {mlflow.get_registry_uri()}")
@@ -65,38 +84,53 @@ tags_dict = {"git_sha": args.git_sha, "branch": args.branch, "job_run_id": args.
 tags = Tags(**tags_dict)
 
 # COMMAND ----------
+
 # Initialize model
-# Initialize model with the config path
-basic_model = BasicModel(config=config, tags=tags, spark=spark)
-logger.info("Model initialized.")
+fe_model = FeatureLookUpModel(config=config, tags=tags, spark=spark)
 
 # COMMAND ----------
-# Load data and prepare features
-basic_model.load_data()
-basic_model.prepare_features()
-logger.info("Loaded data, prepared features.")
+
+# Create feature table
+fe_model.create_feature_table()
 
 # COMMAND ----------
-# Train
-basic_model.train()
-logger.info("Model training completed.")
+
+# Define house age feature function
+fe_model.define_feature_function()
 
 # COMMAND ----------
-# log the model in MLFlow Experiment
-basic_model.log_model()
-logger.info("Model is logged in MLFlow Experiments.")
+
+# Load data
+fe_model.load_data()
 
 # COMMAND ----------
-# Evaluate old and new model
-model_improved = basic_model.model_improved()
-logger.info(f"Model evaluation completed, model improved: {model_improved}")
+
+# Perform feature engineering
+fe_model.feature_engineering()
 
 # COMMAND ----------
-if model_improved:
-    # Register the model
-    basic_model.register_model()
-    logger.info("Model registration completed.")
-else:
-    logger.info("Model not registered as it did not improve.")
+
+# Train the model
+fe_model.train()
 
 # COMMAND ----------
+# Register the model
+fe_model.register_model()
+
+# COMMAND ----------
+# # Evaluate old and new model
+# try:
+#     model_improved = fe_model.model_improved()
+#     logger.info(f"Model evaluation completed, model improved: {model_improved}")
+# except Exception as e:
+#     logger.error(f"Model evaluation encountered an issue: {e}")
+#     model_improved = False
+
+
+# # COMMAND ----------
+# if model_improved:
+#     # Register the model
+#     fe_model.register_model()
+#     logger.info("Model registration completed.")
+# else:
+#     logger.info("Model not registered as it did not improve or has encountered an error.")
