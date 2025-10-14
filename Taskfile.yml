@@ -126,7 +126,7 @@ tasks:
     desc: Run locally the streamlit app for testing purpose
     cmds:
       - task: dev-install
-      - uv run --with streamlit streamlit run app/app.py
+      - uv run --extra ui streamlit run app/app.py
 
   deploy_streamlit_app:
     desc: Deploy the streamlit app for inference
