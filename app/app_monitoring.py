@@ -1,22 +1,13 @@
 import json
 import os
 import subprocess
-import time
-from typing import Any
 
-import os
-import time
 import pandas as pd
-import streamlit as st
-from databricks import sql
-from dotenv import load_dotenv
-from loguru import logger
 import plotly.express as px
-
-import pandas as pd
 import pretty_errors  # noqa: F401
 import requests
 import streamlit as st
+from databricks import sql
 from dotenv import load_dotenv
 from loguru import logger
 from requests.auth import HTTPBasicAuth
@@ -36,7 +27,7 @@ def set_app_config() -> None:
     st.markdown(
         """
         This Streamlit dashboard provides an easy way to monitor the hotel reservation ML System: 1/ **Generic monitoring** (system health, errors, latency); 2/ **ML Specific monitoring** (DQ, Data Drift); 3/ **Cost & Business Value** (Infra, Business Value, KPI); 4/ **Fairness & Bias**
-        
+
         *The data are based on the Delta table: `mlops_dev.caotrido.model_monitoring`*
         """
     )
@@ -115,23 +106,26 @@ os.environ["DATABRICKS_HOST"] = DATABRICKS_HOST
 
 
 DATABRICKS_SERVER_HOSTNAME = os.getenv("DATABRICKS_HOST").replace("https://", "")
-DATABRICKS_HTTP_PATH = "/sql/1.0/warehouses/711fa33d05cc334c" # os.getenv("DATABRICKS_WAREHOUSE_PATH")
+DATABRICKS_HTTP_PATH = "/sql/1.0/warehouses/711fa33d05cc334c"  # os.getenv("DATABRICKS_WAREHOUSE_PATH")
 DATABRICKS_TOKEN = os.getenv("DATABRICKS_TOKEN")
+
 
 # --- CONNEXION AU SQL WAREHOUSE ---
 @st.cache_data(ttl=300)
 def run_query(query: str) -> pd.DataFrame:
     """Exécuter une requête SQL sur Databricks."""
-    with sql.connect(
-        server_hostname=DATABRICKS_SERVER_HOSTNAME,
-        http_path=DATABRICKS_HTTP_PATH,
-        access_token=DATABRICKS_TOKEN,
-    ) as connection:
-        with connection.cursor() as cursor:
-            cursor.execute(query)
-            result = cursor.fetchall()
-            cols = [desc[0] for desc in cursor.description]
-            return pd.DataFrame(result, columns=cols)
+    with (
+        sql.connect(
+            server_hostname=DATABRICKS_SERVER_HOSTNAME,
+            http_path=DATABRICKS_HTTP_PATH,
+            access_token=DATABRICKS_TOKEN,
+        ) as connection,
+        connection.cursor() as cursor,
+    ):
+        cursor.execute(query)
+        result = cursor.fetchall()
+        cols = [desc[0] for desc in cursor.description]
+        return pd.DataFrame(result, columns=cols)
 
 
 # --- STREAMLIT CONFIG ---
@@ -156,12 +150,9 @@ with st.sidebar:
 # 🧭 ONGLET NAVIGATION PRINCIPALE
 # ======================================================
 
-tab1, tab2, tab3, tab4 = st.tabs([
-    "🧠 Generic Monitoring",
-    "📊 ML Monitoring",
-    "💰 Costs & Business Value",
-    "⚖️ Fairness & Bias"
-])
+tab1, tab2, tab3, tab4 = st.tabs(
+    ["🧠 Generic Monitoring", "📊 ML Monitoring", "💰 Costs & Business Value", "⚖️ Fairness & Bias"]
+)
 
 # 💅 Personnalisation du style des onglets
 st.markdown(
@@ -179,7 +170,7 @@ st.markdown(
     }
     </style>
     """,
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
 # ======================================================
@@ -187,7 +178,6 @@ st.markdown(
 # ======================================================
 
 with tab1:
-
     st.subheader("🧠 Generic Monitoring — System Health & Performance")
 
     st.markdown(
@@ -210,7 +200,7 @@ with tab1:
     date_trunc('hour', CAST(timestamp AS timestamp)) AS heure,
     COUNT(*) AS total_calls,
     SUM(CASE WHEN prediction IS NULL THEN 1 ELSE 0 END) AS errors,
-    { "AVG(execution_duration_ms)" if has_latency else "NULL" } AS avg_latency_ms
+    {"AVG(execution_duration_ms)" if has_latency else "NULL"} AS avg_latency_ms
     FROM mlops_dev.caotrido.model_monitoring
     WHERE CAST(timestamp AS timestamp) BETWEEN current_date() - INTERVAL 7 DAY AND current_timestamp()
     GROUP BY 1
@@ -218,7 +208,7 @@ with tab1:
     """
 
     df_system = run_query(query_system)
-    
+
     query_calls = """
     SELECT
     date_trunc('hour', CAST(timestamp AS timestamp)) AS heure,
@@ -253,9 +243,7 @@ with tab1:
         # 🔧 Line charts
         with st.expander("📈 Temporal Drilldown"):
             st.dataframe(df_system, width="stretch", hide_index=True)
-            fig_health = px.line(
-                df_system, x="heure", y="error_rate", title="Error rates (%) in time", markers=True
-            )
+            fig_health = px.line(df_system, x="heure", y="error_rate", title="Error rates (%) in time", markers=True)
             st.plotly_chart(fig_health, config={"displayModeBar": True, "responsive": True})
 
             if has_latency:
@@ -264,14 +252,13 @@ with tab1:
                 )
                 st.plotly_chart(fig_latency, config={"displayModeBar": True, "responsive": True})
 
-
     # --- METRICS SUMMARY ---
     st.subheader("📈 Nb Calls (inference)")
 
     if not df_calls.empty:
         total_calls = int(df_calls["nombre_appels"].sum())
         last_hour = int(df_calls["nombre_appels"].iloc[-1])
-        
+
         _, c1, c2 = st.columns([1, 2, 2])
         c1.metric("📊 Total Calls", f"{total_calls}")
         c2.metric("🕒 Last hour calls", f"{last_hour}")
@@ -287,7 +274,7 @@ with tab1:
             markers=True,
         )
         st.plotly_chart(fig_calls, config={"displayModeBar": True, "responsive": True})
-        
+
         with st.expander("🧭 How to interpretate the graph ?"):
             st.markdown(
                 """
@@ -302,7 +289,6 @@ with tab1:
 
 # --- SECTION 2 : DATA DRIFT ---
 with tab2:
-
     st.subheader("📊 ML Monitoring - Global Data Drift")
 
     # ======================================================
@@ -336,7 +322,7 @@ with tab2:
         "🧮 Select the numerical variables to analyze:",
         options=valid_num_features,
         default=["avg_price_per_room", "lead_time", "no_of_children"],
-        help="Select one or more numerical variables to calculate their hourly drift."
+        help="Select one or more numerical variables to calculate their hourly drift.",
     )
 
     if not selected_num_features:
@@ -361,18 +347,14 @@ with tab2:
         if df_drift_num.empty:
             st.warning("⚠️ Not enough data to calculate the drift of numerical variables.")
         else:
-            st.dataframe(
-                df_drift_num.sort_values(["heure", "feature"]),
-                width="stretch",
-                hide_index=True
-            )
+            st.dataframe(df_drift_num.sort_values(["heure", "feature"]), width="stretch", hide_index=True)
 
             # Résumé statistique global
             mean_drift = df_drift_num["drift_score"].mean()
             max_drift = df_drift_num["drift_score"].max()
             st.markdown(
                 f"""
-                **📈 Average on drift score:** `{mean_drift:.3f}`  
+                **📈 Average on drift score:** `{mean_drift:.3f}`
                 **🚨 Maximal Drift score observed:** `{max_drift:.3f}`
                 """
             )
@@ -381,11 +363,11 @@ with tab2:
                 st.markdown(
                     """
                     ℹ️ **Interpretation:**
-                    - A `drift_score` ≈ **0** means the variable’s distribution is stable.  
-                    - A `drift_score` > **1** means the hourly average deviates significantly from the historical mean.  
+                    - A `drift_score` ≈ **0** means the variable’s distribution is stable.
+                    - A `drift_score` > **1** means the hourly average deviates significantly from the historical mean.
                     This may indicate:
-                    - a **seasonality change**,  
-                    - a **change in user behavior**,  
+                    - a **seasonality change**,
+                    - a **change in user behavior**,
                     - or a **data collection anomaly**.
                     """
                 )
@@ -405,14 +387,14 @@ with tab2:
         "🔍 Select the categorical variables to analyze:",
         options=cat_features,
         default=["market_segment_type"],
-        help="Select one or more categorical variables to calculate their hourly drift."
+        help="Select one or more categorical variables to calculate their hourly drift.",
     )
 
     if not selected_cat_features:
         st.info("👉 Select at least one categorical variable to display the drift table.")
     else:
         all_results = []  # contiendra les DataFrames concaténés
-        
+
         for feat in selected_cat_features:
             query = f"""
             WITH base AS (
@@ -447,7 +429,7 @@ with tab2:
             GROUP BY h.heure
             ORDER BY h.heure
             """
-            
+
             try:
                 df_temp = run_query(query)
                 if not df_temp.empty:
@@ -461,18 +443,14 @@ with tab2:
         else:
             df_drift_cat = pd.concat(all_results, ignore_index=True)
 
-            st.dataframe(
-                df_drift_cat.sort_values(["heure", "feature"]),
-                width="stretch",
-                hide_index=True
-            )
+            st.dataframe(df_drift_cat.sort_values(["heure", "feature"]), width="stretch", hide_index=True)
 
             # Résumé statistique global
             mean_drift = df_drift_cat["drift_score"].mean()
             max_drift = df_drift_cat["drift_score"].max()
             st.markdown(
                 f"""
-                **📈 Average on drift score:** `{mean_drift:.3f}`  
+                **📈 Average on drift score:** `{mean_drift:.3f}`
                 **🚨 Maximal Drift score observed:** `{max_drift:.3f}`
                 """
             )
@@ -481,16 +459,14 @@ with tab2:
                 st.markdown(
                     """
                     ℹ️ **Interpretation:**
-                    - A `drift_score` ≈ **0** means the class distribution remains stable.  
-                    - A high `drift_score` means certain categories appear or disappear more frequently.  
+                    - A `drift_score` ≈ **0** means the class distribution remains stable.
+                    - A high `drift_score` means certain categories appear or disappear more frequently.
                     This may indicate:
-                    - a **change in user profile**,  
-                    - a **modification in data sources**,  
+                    - a **change in user profile**,
+                    - a **modification in data sources**,
                     - or a **sampling bias**.
                     """
                 )
-
-
 
     # ======================================================
     #   4️⃣  ML-SPECIFIC MONITORING — Data Quality Checks
@@ -518,7 +494,7 @@ with tab2:
         "📋 Select the variables to include in the quality check.:",
         options=quality_features,
         default=["avg_price_per_room", "lead_time", "no_of_children"],
-        help="Choose the variables for which you want to assess data quality."
+        help="Choose the variables for which you want to assess data quality.",
     )
 
     if not selected_quality_features:
@@ -566,11 +542,7 @@ with tab2:
             df_quality["outlier_rate"] = df_quality["outlier_rate"].astype(float) * 100
 
             # ✅ Tableau résumé
-            st.dataframe(
-                df_quality[["feature", "missing_rate", "outlier_rate"]],
-                width="stretch",
-                hide_index=True
-            )
+            st.dataframe(df_quality[["feature", "missing_rate", "outlier_rate"]], width="stretch", hide_index=True)
 
             # ✅ Graphique synthétique
             with st.expander("📈 Visualization of the data quality"):
@@ -582,15 +554,9 @@ with tab2:
                     title="Missing value ratio (%)",
                 )
                 fig_missing.update_traces(marker_color="orange")
-                fig_missing.update_layout(
-                    yaxis_title="Ratio (%)",
-                    xaxis_title="Variable",
-                    showlegend=False,
-                    height=400
-                )
+                fig_missing.update_layout(yaxis_title="Ratio (%)", xaxis_title="Variable", showlegend=False, height=400)
                 st.plotly_chart(fig_missing, config={"displayModeBar": True, "responsive": True})
-                
-                
+
                 fig_outliers = px.bar(
                     df_quality,
                     x="feature",
@@ -600,10 +566,7 @@ with tab2:
                 )
                 fig_outliers.update_traces(marker_color="blue")
                 fig_outliers.update_layout(
-                    yaxis_title="Ratio (%)",
-                    xaxis_title="Variable",
-                    showlegend=False,
-                    height=400
+                    yaxis_title="Ratio (%)", xaxis_title="Variable", showlegend=False, height=400
                 )
                 st.plotly_chart(fig_outliers, config={"displayModeBar": True, "responsive": True})
 
@@ -611,12 +574,12 @@ with tab2:
                 st.markdown(
                     """
                     ℹ️ **Interpretation:**
-                    - A `missing_rate` > **5%** may indicate a data collection issue.  
-                    - An `outlier_rate` > **1%** suggests atypical or incorrectly entered data.  
+                    - A `missing_rate` > **5%** may indicate a data collection issue.
+                    - An `outlier_rate` > **1%** suggests atypical or incorrectly entered data.
                     - These anomalies can directly impact the model’s stability and performance.
                     """
                 )
-                
+
 
 # ======================================================
 #   6️⃣  COSTS & BUSINESS VALUE MONITORING (INTERACTIVE)
@@ -647,7 +610,7 @@ with tab3:
         max_value=1.0,
         value=0.02,
         step=0.001,
-        help="Unit cost charged for each model call (Databricks, API, etc.)."
+        help="Unit cost charged for each model call (Databricks, API, etc.).",
     )
 
     VALUE_PER_SUCCESSFUL_BOOKING = st.sidebar.number_input(
@@ -656,7 +619,7 @@ with tab3:
         max_value=1000,
         value=120,
         step=10,
-        help="Average business value of a kept (honored) reservation."
+        help="Average business value of a kept (honored) reservation.",
     )
 
     LOSS_PER_CANCELLATION = st.sidebar.number_input(
@@ -665,7 +628,7 @@ with tab3:
         max_value=500,
         value=30,
         step=5,
-        help="Estimated loss when a reservation is canceled."
+        help="Estimated loss when a reservation is canceled.",
     )
 
     # ======================================================
@@ -744,12 +707,12 @@ with tab3:
             st.markdown(
                 """
                 ℹ️ **Interpretation:**
-                - The inference cost depends on the number of model calls.  
-                - The generated value is an estimate based on the predictions.  
-                - The parameters on the side allow you to test different economic scenarios:  
-                - 💸 unit cost of the model (cloud, API, GPU)  
-                - 💰 value of a reservation  
-                - ❌ cost of a cancellation  
+                - The inference cost depends on the number of model calls.
+                - The generated value is an estimate based on the predictions.
+                - The parameters on the side allow you to test different economic scenarios:
+                - 💸 unit cost of the model (cloud, API, GPU)
+                - 💰 value of a reservation
+                - ❌ cost of a cancellation
 
                 🎯 Objective: **maximize the net value** (*generated value − infrastructure cost*).
                 """
@@ -781,7 +744,7 @@ with tab4:
         "🎯 Choose the sensitive variable to analyze:",
         options=bias_features,
         index=0,
-        help="This variable will be used to segment the predictions and assess disparities."
+        help="This variable will be used to segment the predictions and assess disparities.",
     )
 
     query_bias = f"""
@@ -813,11 +776,7 @@ with tab4:
         st.warning("⚠️ Not enough data to evaluate the model’s fairness.")
     else:
         # ✅ Tableau de fairness
-        st.dataframe(
-            df_bias,
-            width="stretch",
-            hide_index=True
-        )
+        st.dataframe(df_bias, width="stretch", hide_index=True)
 
         # ✅ Graphique — Taux de prédictions positives par groupe
         with st.expander("📊 Visualization of prediction disparity."):
@@ -828,11 +787,7 @@ with tab4:
                 text_auto=".2%",
                 title=f"Rate of positive predictions by group — {selected_bias_feature}",
             )
-            fig_bias.update_layout(
-                yaxis_title="Positive prediction rate (%)",
-                xaxis_title="Group",
-                height=400
-            )
+            fig_bias.update_layout(yaxis_title="Positive prediction rate (%)", xaxis_title="Group", height=400)
             st.plotly_chart(fig_bias, config={"displayModeBar": True, "responsive": True})
 
         # ✅ Interprétation
@@ -840,14 +795,14 @@ with tab4:
             st.markdown(
                 """
                 ℹ️ **Interpretation:**
-                - The `positive_rate` indicates the proportion of "canceled" predictions within each group.  
-                - The `bias_gap` measures the difference between this rate and the overall average:  
-                - close to **0** → model is fair across groups;  
-                - positive → the group is **more often predicted as canceled**;  
-                - negative → the group is **less often predicted as canceled**.  
+                - The `positive_rate` indicates the proportion of "canceled" predictions within each group.
+                - The `bias_gap` measures the difference between this rate and the overall average:
+                - close to **0** → model is fair across groups;
+                - positive → the group is **more often predicted as canceled**;
+                - negative → the group is **less often predicted as canceled**.
 
                 ⚠️ **Note:**
-                - Differences greater than **0.1 (10%)** may indicate a significant bias.  
+                - Differences greater than **0.1 (10%)** may indicate a significant bias.
                 - These analyses should be **cross-checked with actual data** before concluding bias.
                 """
             )
