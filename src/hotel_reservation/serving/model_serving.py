@@ -50,7 +50,7 @@ class ModelServing:
         self.model_name = model_name
         self.catalog_name = catalog_name
         self.schema_name = schema_name
-        self.monitoring_table_suffix = f"{model_name}_{monitoring_table_suffix}"
+        self.monitoring_table = f"{monitoring_table_suffix}"
 
     # -------------------------------------------------------------------------
     # Model Version Utilities
@@ -227,11 +227,11 @@ class ModelServing:
                     enabled=True,
                     catalog_name=self.catalog_name,
                     schema_name=self.schema_name,
-                    monitoring_table_suffix=self.monitoring_table_suffix,
+                    table_name_prefix=self.monitoring_table,
                 )
             )
             logger.info(
-                f"🧠 Enabling AI Gateway inference tables: {self.catalog_name}.{self.schema_name}.{self.monitoring_table_suffix}_*"
+                f"🧠 Enabling AI Gateway inference tables: {self.catalog_name}.{self.schema_name}.{self.monitoring_table}_*"
             )
 
         # Create new endpoint
