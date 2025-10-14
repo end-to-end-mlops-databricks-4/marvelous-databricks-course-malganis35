@@ -3,20 +3,23 @@
 # COMMAND ----------
 
 import argparse
+import datetime
+import itertools
 import os
 import sys
+import time
+from typing import Any
 
 import pretty_errors  # noqa: F401
+import requests
+from databricks.sdk import WorkspaceClient
 from dotenv import load_dotenv
 from loguru import logger
-
-from pyspark.sql.functions import col
-from pyspark.sql import SparkSession
-import os
 from pyspark.dbutils import DBUtils
 
 from hotel_reservation.utils.config import ProjectConfig
 from hotel_reservation.utils.databricks_utils import create_spark_session, get_databricks_token, is_databricks
+from hotel_reservation.visualization.monitoring import create_or_refresh_monitoring
 
 ## COMMAND ----------
 # Global user setup
@@ -56,6 +59,7 @@ test_set = spark.table(f"{config.catalog_name}.{config.schema_name}.{config.test
 # COMMAND ----------
 if is_databricks():
     from pyspark.dbutils import DBUtils
+
     dbutils = DBUtils(spark)
     os.environ["DBR_TOKEN"] = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
     os.environ["DBR_HOST"] = spark.conf.get("spark.databricks.workspaceUrl")
@@ -80,16 +84,12 @@ else:
     os.environ["DATABRICKS_TOKEN"] = db_token  # required by Databricks SDK / Connect
     os.environ["DBR_HOST"] = DATABRICKS_HOST
     os.environ["DATABRICKS_HOST"] = DATABRICKS_HOST
-    
+
     assert os.environ.get("DBR_TOKEN"), "DBR_TOKEN must be set in your environment or .env file."
     assert os.environ.get("DBR_HOST"), "DBR_HOST must be set in your environment or .env file."
-    
-    
-# COMMAND ----------
 
-from databricks.sdk import WorkspaceClient
-import requests
-import time
+
+# COMMAND ----------
 
 workspace = WorkspaceClient()
 
@@ -118,10 +118,26 @@ required_columns = [
 # Sample records for testing
 sampled_records = test_set[required_columns].sample(n=100, replace=True).to_dict(orient="records")
 
-#%%
+# %%
+
 
 # 1. Using https endpoint
-def send_request_https(dataframe_record, config, token):
+def send_request_https(
+    dataframe_record: dict[str, Any],
+    config: ProjectConfig,
+    token: str,
+) -> requests.Response:
+    """Send an inference request to the model serving endpoint using HTTPS.
+
+    Args:
+        dataframe_record: A single record (row) of input data as a dictionary.
+        config: The project configuration object.
+        token: The Databricks access token.
+
+    Returns:
+        The `requests.Response` object returned by the endpoint.
+
+    """
     model_serving_endpoint = f"{os.environ['DBR_HOST']}/serving-endpoints/{config.endpoint_name}/invocations"
     response = requests.post(
         model_serving_endpoint,
@@ -130,18 +146,27 @@ def send_request_https(dataframe_record, config, token):
     )
     return response
 
+
 # 2. Using workspace client
-def send_request_workspace(dataframe_record, config):
-    response = workspace.serving_endpoints.query(
-        name=config.endpoint_name,
-        dataframe_records=[dataframe_record]
-    )
+def send_request_workspace(
+    dataframe_record: dict[str, Any],
+    config: ProjectConfig,
+) -> dict[str, Any]:
+    """Send an inference request using the Databricks WorkspaceClient.
+
+    Args:
+        dataframe_record: A single record (row) of input data as a dictionary.
+        config: The project configuration object.
+
+    Returns:
+        A dictionary response from the Databricks workspace endpoint query.
+
+    """
+    response = workspace.serving_endpoints.query(name=config.endpoint_name, dataframe_records=[dataframe_record])
     return response
 
 
 # COMMAND ----------
-import itertools
-import datetime
 
 end_time = datetime.datetime.now() + datetime.timedelta(minutes=10)
 # Test the endpoint
@@ -149,18 +174,12 @@ for index, record in enumerate(itertools.cycle(sampled_records)):
     if datetime.datetime.now() >= end_time:
         break
     print(f"Sending request for data, index {index}")
-    response = send_request_https(record, config, token=os.environ['DBR_TOKEN'])
+    response = send_request_https(record, config, token=os.environ["DBR_TOKEN"])
     print(f"Response status: {response.status_code}")
     print(f"Response text: {response.text}")
     time.sleep(0.2)
 
 # COMMAND ----------
-
-from databricks.connect import DatabricksSession
-from databricks.sdk import WorkspaceClient
-
-from hotel_reservation.utils.config import ProjectConfig
-from hotel_reservation.visualization.monitoring import create_or_refresh_monitoring
 
 workspace = WorkspaceClient()
 

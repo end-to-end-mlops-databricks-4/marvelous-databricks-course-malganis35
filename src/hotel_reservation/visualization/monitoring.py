@@ -30,7 +30,7 @@ def create_or_refresh_monitoring(config: ProjectConfig, spark: SparkSession, wor
     # Continue normal flow
     inf_count = inf_table.count()
     logger.info(f"Found {inf_count} records in custom_model_payload table")
-    
+
     if inf_count == 0:
         logger.warning("No records found in custom_model_payload table. Monitoring table will be empty.")
         return
@@ -106,7 +106,6 @@ def create_or_refresh_monitoring(config: ProjectConfig, spark: SparkSession, wor
         F.col("record.market_segment_type").alias("market_segment_type"),
         F.col("record.room_type_reserved").alias("room_type_reserved"),
         F.col("record.type_of_meal_plan").alias("type_of_meal_plan"),
-        
         F.col("parsed_response.predictions")[0].alias("prediction"),
         F.lit("house-prices-model-fe").alias("model_name"),
     )
@@ -116,11 +115,11 @@ def create_or_refresh_monitoring(config: ProjectConfig, spark: SparkSession, wor
 
     # df_final_with_status = df_final.withColumn("prediction", F.col("prediction"))
     df_final_with_status = df_final.withColumn(
-                                                "prediction",
-                                                F.when(F.col("prediction") == "Canceled", F.lit(1.0))
-                                                .when(F.col("prediction") == "Not_Canceled", F.lit(0.0))
-                                                .otherwise(F.lit(None).cast("double"))
-                                              )
+        "prediction",
+        F.when(F.col("prediction") == "Canceled", F.lit(1.0))
+        .when(F.col("prediction") == "Not_Canceled", F.lit(0.0))
+        .otherwise(F.lit(None).cast("double")),
+    )
 
     # Make dropna optional if we're losing all data
     df_with_valid_values = df_final_with_status.dropna(subset=["prediction"])
@@ -157,6 +156,7 @@ def create_or_refresh_monitoring(config: ProjectConfig, spark: SparkSession, wor
         create_monitoring_table(config=config, spark=spark, workspace=workspace)
         logger.info("Lakehouse monitoring table is created.")
 
+
 def create_monitoring_table(config: ProjectConfig, spark: SparkSession, workspace: WorkspaceClient) -> None:
     """Create a new monitoring table for model monitoring.
 
@@ -186,5 +186,5 @@ def create_monitoring_table(config: ProjectConfig, spark: SparkSession, workspac
 
     # Important to update monitoring
     spark.sql(f"ALTER TABLE {monitoring_table} SET TBLPROPERTIES (delta.enableChangeDataFeed = true);")
-    
+
     logger.info("Lakehouse monitoring table is created.")

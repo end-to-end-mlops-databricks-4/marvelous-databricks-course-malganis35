@@ -91,7 +91,7 @@ serving = ModelServing(
     endpoint_name=config.endpoint_name,
     catalog_name=config.catalog_name,
     schema_name=config.schema_name,
-    monitoring_table_suffix="basic_model_logs"
+    monitoring_table_suffix="basic_model_logs",
 )
 
 if args.model_version == "auto":
