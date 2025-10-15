@@ -64,6 +64,24 @@ mock_delta_module.tables = mock_tables_module
 sys.modules["delta"] = mock_delta_module
 sys.modules["delta.tables"] = mock_tables_module
 
+
+# === Mock databricks.connect ===
+mock_databricks = types.ModuleType("databricks")
+mock_connect = types.ModuleType("databricks.connect")
+mock_session = types.ModuleType("databricks.connect.session")
+mock_auth = types.ModuleType("databricks.connect.auth")
+
+# Create dummy classes used in databricks.connect
+mock_connect.DatabricksSession = MagicMock()
+mock_session.DatabricksSession = MagicMock()
+mock_auth.DatabricksChannelBuilder = MagicMock()
+
+# Register modules in sys.modules
+sys.modules["databricks"] = mock_databricks
+sys.modules["databricks.connect"] = mock_connect
+sys.modules["databricks.connect.session"] = mock_session
+sys.modules["databricks.connect.auth"] = mock_auth
+
 # ---------------------------------------------------------------------
 # Import after patching
 # ---------------------------------------------------------------------

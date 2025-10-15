@@ -40,14 +40,13 @@ dependencies = [
 dynamic = ['version']
 
 [project.optional-dependencies]
-dev = [
+dev = ["databricks-cli>=0.18.0",
        "databricks-connect==16.3.5",
        "ipykernel>=6.29.5, <7",
        "pip>=25.0.1, <26",
        "pre-commit>=4.1.0, <5",
-       "commitizen>=4.9.1",
-       "databricks>=0.2",
-]
+       "commitizen>=4.9.1",]
+
 
 test = ["pre-commit>=4.1.0, <5",
        "pytest>=8.0.0, <9",
