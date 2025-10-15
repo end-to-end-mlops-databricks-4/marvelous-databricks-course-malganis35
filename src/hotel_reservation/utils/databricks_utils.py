@@ -12,12 +12,19 @@ Usage:
 import json
 import os
 import subprocess
+import time
 
 import pyspark
-from databricks.connect import DatabricksSession
 from loguru import logger
 from pyspark.sql import SparkSession
 
+# Try importing DatabricksSession safely (for environments without Connect)
+try:
+    from databricks.connect import DatabricksSession
+    DATABRICKS_AVAILABLE = True
+except ImportError:
+    DatabricksSession = None
+    DATABRICKS_AVAILABLE = False
 
 def create_spark_session() -> "pyspark.sql.SparkSession":
     """Create a Spark session connected to Databricks via Databricks Connect.
@@ -34,10 +41,11 @@ def create_spark_session() -> "pyspark.sql.SparkSession":
         pyspark.sql.SparkSession
 
     """
+
     compute_mode = os.getenv("DATABRICKS_COMPUTE", "serverless").lower()
     cluster_id = os.getenv("DATABRICKS_CLUSTER_ID")
 
-    # --- Try local Spark first (useful for offline or testing) ---
+    # Attempting to initialize local Spark session
     try:
         logger.info("Attempting to initialize local Spark session")
         spark = SparkSession.builder.getOrCreate()
@@ -46,9 +54,13 @@ def create_spark_session() -> "pyspark.sql.SparkSession":
     except Exception as e:
         logger.warning(f"⚠️ Falling back to Databricks Connect due to: {e}")
 
-    # --- Databricks remote session ---
-    builder = DatabricksSession.builder
+    # Connection Databricks Connect
+    if not DATABRICKS_AVAILABLE:
+        raise ImportError(
+            "Databricks Connect is not installed. Run: pip install databricks-connect"
+        )
 
+    builder = DatabricksSession.builder
     if compute_mode == "cluster" and cluster_id:
         logger.info(f"🔗 Connecting to Databricks cluster: {cluster_id}")
         spark = builder.remote(cluster_id=cluster_id).getOrCreate()
@@ -59,9 +71,28 @@ def create_spark_session() -> "pyspark.sql.SparkSession":
         logger.warning("⚠️ No compute specified — defaulting to serverless")
         spark = builder.remote(serverless=True).getOrCreate()
 
-    logger.info("✅ Spark session initialized successfully via Databricks Connect")
-    logger.info("You might need to wait a few seconds or minutes for the cluster to start ...")
+    # Force an active session
+    active = SparkSession.getActiveSession()
+    if not active:
+        logger.warning("⚠️ No active SparkSession detected — forcing creation…")
+        spark = builder.getOrCreate()
+    else:
+        spark = active
 
+    # Check that the cluster is responding
+    for i in range(6):
+        try:
+            logger.info("⏳ Verifying Spark connection with a tiny query…")
+            spark.range(1, 1).collect()
+            logger.info("✅ Spark session confirmed active and cluster responsive")
+            break
+        except Exception as e:
+            logger.warning(f"Cluster not ready yet ({type(e).__name__}: {e}); retrying in 10 s…")
+            time.sleep(10)
+    else:
+        raise RuntimeError("Databricks cluster not ready after several attempts.")
+
+    logger.info("✅ Spark session initialized successfully via Databricks Connect")
     return spark
 
 
