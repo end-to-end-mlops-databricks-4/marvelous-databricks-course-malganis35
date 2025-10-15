@@ -87,7 +87,7 @@ targets:
 
 
   prd:
-    cluster_id: 00925-180914-5nzxv7hw #replace with your own!
+    cluster_id: 0925-180914-5nzxv7hw #replace with your own!
     mode: production
     workspace:
       host: https://dbc-f122dc18-1b68.cloud.databricks.com
