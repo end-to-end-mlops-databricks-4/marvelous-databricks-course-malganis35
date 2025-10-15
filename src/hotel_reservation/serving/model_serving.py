@@ -132,12 +132,15 @@ class ModelServing:
         """Wait until the Databricks serving endpoint reaches the READY state.
 
         Args:
-        timeout (int, optional): Maximum wait time in seconds. Defaults to 600.
-        check_interval (int, optional): Interval between status checks in seconds. Defaults to 10.
+            timeout (int, optional): Maximum wait time in seconds. Defaults to 600.
+            check_interval (int, optional): Interval between status checks in seconds. Defaults to 10.
 
         Raises:
-        RuntimeError: If the endpoint update fails.
-        TimeoutError: If the endpoint does not become READY within the timeout.
+            RuntimeError: If the endpoint update fails.
+
+        Note:
+            If the endpoint does not become READY within the timeout, an error is logged
+            but execution continues.
 
         """
         start_time = time.time()
@@ -170,7 +173,10 @@ class ModelServing:
 
             time.sleep(check_interval)
 
-        raise TimeoutError(f"❌ Timeout: endpoint '{self.endpoint_name}' did not become READY after {timeout} seconds.")
+        # Timeout reached — no exception, just log the error
+        logger.error(
+            f"❌ Timeout: endpoint '{self.endpoint_name}' did not become READY after {timeout} seconds. Continuing execution..."
+        )
 
     # -------------------------------------------------------------------------
     # Deployment / Update Logic
