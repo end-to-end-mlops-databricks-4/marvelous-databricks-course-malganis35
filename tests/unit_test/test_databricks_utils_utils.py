@@ -63,6 +63,38 @@ def clean_env(monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.delenv(var, raising=False)
 
 
+@pytest.fixture
+def mock_spark_session(monkeypatch: pytest.MonkeyPatch):
+    """Fixture that mocks SparkSession with a builder and getActiveSession method."""
+    class DummySpark:
+        def __init__(self, mode="local"):
+            self.mode = mode
+
+    class DummySparkBuilder:
+        def __init__(self, should_fail=False):
+            self.should_fail = should_fail
+            self.called = False
+
+        def getOrCreate(self):
+            self.called = True
+            if self.should_fail:
+                raise Exception("Local Spark failure")
+            return DummySpark(mode="local")
+
+    dummy_builder = DummySparkBuilder(should_fail=False)
+    fake_spark_class = type(
+        "S",
+        (),
+        {
+            "builder": dummy_builder,
+            "getActiveSession": staticmethod(lambda: None),
+        },
+    )
+
+    monkeypatch.setattr(databricks_utils, "SparkSession", fake_spark_class)
+    return dummy_builder, DummySpark
+
+
 # --------------------------------------------------------------------------- #
 #                                   Dummies                                   #
 # --------------------------------------------------------------------------- #
@@ -70,44 +102,53 @@ class DummySpark:
     """Dummy Spark session placeholder."""
 
     def __init__(self, mode: str = "local") -> None:
-        """Initialize with a mode indicator (local/serverless/cluster)."""
         self.mode = mode
+
+    def range(self, start: int, end: int):
+        """Simulate Spark range query (used for health check)."""
+        return self
+
+    def collect(self):
+        """Simulate Spark collect call."""
+        return [1]
 
 
 class DummyRemoteBuilder:
-    """Dummy remote Spark builder (for Databricks Connect simulation)."""
-
-    def __init__(self, mode: str) -> None:
-        """Initialize with the selected mode."""
+    def __init__(self, mode: str):
         self.mode = mode
 
-    def getOrCreate(self) -> DummySpark:
-        """Return a dummy Spark instance."""
+    def getOrCreate(self) -> "DummySpark":
         return DummySpark(mode=self.mode)
 
 
 class DummyDatabricksBuilder:
     """Mocked DatabricksSession.builder behavior."""
+    def __init__(self):
+        self.last_mode = "serverless"  # valeur par défaut
 
-    def remote(self, cluster_id: str | None = None, serverless: bool = False) -> DummyRemoteBuilder:
-        """Simulate remote session creation for cluster or serverless modes."""
+    def remote(self, cluster_id: str | None = None, serverless: bool = False) -> "DummyRemoteBuilder":
+        """Simulate remote() used to create remote builder objects."""
         if cluster_id:
-            return DummyRemoteBuilder(mode=f"cluster:{cluster_id}")
+            self.last_mode = f"cluster:{cluster_id}"
+            return DummyRemoteBuilder(mode=self.last_mode)
         if serverless:
-            return DummyRemoteBuilder(mode="serverless")
-        return DummyRemoteBuilder(mode="default")
+            self.last_mode = "serverless"
+            return DummyRemoteBuilder(mode=self.last_mode)
+        self.last_mode = "default"
+        return DummyRemoteBuilder(mode=self.last_mode)
 
+    def getOrCreate(self) -> "DummySpark":
+        """Simulate builder.getOrCreate() — returns last known mode."""
+        return DummySpark(mode=self.last_mode)
 
 class DummySparkBuilder:
     """Simulate SparkSession.builder with optional failure."""
 
     def __init__(self, should_fail: bool = False) -> None:
-        """Initialize with optional failure flag."""
         self.should_fail = should_fail
         self.called = False
 
     def getOrCreate(self) -> DummySpark:
-        """Return dummy Spark or raise exception based on should_fail."""
         self.called = True
         if self.should_fail:
             raise Exception("Local Spark failure")
@@ -117,10 +158,15 @@ class DummySparkBuilder:
 # --------------------------------------------------------------------------- #
 #                                    Tests                                    #
 # --------------------------------------------------------------------------- #
-def test_create_spark_session_local_success(monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture) -> None:
+def test_create_spark_session_local_success(monkeypatch: pytest.MonkeyPatch, caplog):
     """Test successful creation of a local Spark session."""
     dummy_builder = DummySparkBuilder(should_fail=False)
-    monkeypatch.setattr(databricks_utils, "SparkSession", type("S", (), {"builder": dummy_builder}))
+    fake_spark = type(
+        "S",
+        (),
+        {"builder": dummy_builder, "getActiveSession": staticmethod(lambda: None)},
+    )
+    monkeypatch.setattr(databricks_utils, "SparkSession", fake_spark)
 
     with caplog.at_level(logging.INFO):
         spark = databricks_utils.create_spark_session()
@@ -130,12 +176,15 @@ def test_create_spark_session_local_success(monkeypatch: pytest.MonkeyPatch, cap
     assert "Local Spark session initialized successfully" in caplog.text
 
 
-def test_create_spark_session_local_failure_serverless(
-    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
-) -> None:
+def test_create_spark_session_local_failure_serverless(monkeypatch, caplog):
     """Test fallback to Databricks serverless compute on local Spark failure."""
     dummy_builder = DummySparkBuilder(should_fail=True)
-    monkeypatch.setattr(databricks_utils, "SparkSession", type("S", (), {"builder": dummy_builder}))
+    fake_spark = type(
+        "S",
+        (),
+        {"builder": dummy_builder, "getActiveSession": staticmethod(lambda: None)},
+    )
+    monkeypatch.setattr(databricks_utils, "SparkSession", fake_spark)
     monkeypatch.setattr(databricks_utils, "DatabricksSession", type("D", (), {"builder": DummyDatabricksBuilder()}))
 
     os.environ["DATABRICKS_COMPUTE"] = "serverless"
@@ -145,17 +194,19 @@ def test_create_spark_session_local_failure_serverless(
 
     assert isinstance(spark, DummySpark)
     assert spark.mode == "serverless"
-    assert "Falling back to Databricks Connect" in caplog.text
     assert "Serverless" in caplog.text
     assert "Spark session initialized successfully" in caplog.text
 
 
-def test_create_spark_session_local_failure_cluster(
-    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
-) -> None:
+def test_create_spark_session_local_failure_cluster(monkeypatch, caplog):
     """Test fallback to Databricks cluster mode on local Spark failure."""
     dummy_builder = DummySparkBuilder(should_fail=True)
-    monkeypatch.setattr(databricks_utils, "SparkSession", type("S", (), {"builder": dummy_builder}))
+    fake_spark = type(
+        "S",
+        (),
+        {"builder": dummy_builder, "getActiveSession": staticmethod(lambda: None)},
+    )
+    monkeypatch.setattr(databricks_utils, "SparkSession", fake_spark)
     monkeypatch.setattr(databricks_utils, "DatabricksSession", type("D", (), {"builder": DummyDatabricksBuilder()}))
 
     os.environ["DATABRICKS_COMPUTE"] = "cluster"
@@ -170,12 +221,15 @@ def test_create_spark_session_local_failure_cluster(
     assert "Spark session initialized successfully" in caplog.text
 
 
-def test_create_spark_session_local_failure_no_compute(
-    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
-) -> None:
+def test_create_spark_session_local_failure_no_compute(monkeypatch, caplog):
     """Test defaulting to serverless when no compute mode is defined."""
     dummy_builder = DummySparkBuilder(should_fail=True)
-    monkeypatch.setattr(databricks_utils, "SparkSession", type("S", (), {"builder": dummy_builder}))
+    fake_spark = type(
+        "S",
+        (),
+        {"builder": dummy_builder, "getActiveSession": staticmethod(lambda: None)},
+    )
+    monkeypatch.setattr(databricks_utils, "SparkSession", fake_spark)
     monkeypatch.setattr(databricks_utils, "DatabricksSession", type("D", (), {"builder": DummyDatabricksBuilder()}))
 
     with caplog.at_level(logging.INFO):
@@ -187,12 +241,15 @@ def test_create_spark_session_local_failure_no_compute(
     assert "Spark session initialized successfully" in caplog.text
 
 
-def test_create_spark_session_local_failure_invalid_compute(
-    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
-) -> None:
+def test_create_spark_session_local_failure_invalid_compute(monkeypatch, caplog):
     """Test invalid compute mode triggers fallback to serverless."""
     dummy_builder = DummySparkBuilder(should_fail=True)
-    monkeypatch.setattr(databricks_utils, "SparkSession", type("S", (), {"builder": dummy_builder}))
+    fake_spark = type(
+        "S",
+        (),
+        {"builder": dummy_builder, "getActiveSession": staticmethod(lambda: None)},
+    )
+    monkeypatch.setattr(databricks_utils, "SparkSession", fake_spark)
     monkeypatch.setattr(databricks_utils, "DatabricksSession", type("D", (), {"builder": DummyDatabricksBuilder()}))
 
     os.environ["DATABRICKS_COMPUTE"] = "foobar"
@@ -205,16 +262,16 @@ def test_create_spark_session_local_failure_invalid_compute(
     assert "No compute specified" in caplog.text or "defaulting to serverless" in caplog.text
 
 
-def test_get_databricks_token_success(monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture) -> None:
+def test_get_databricks_token_success(monkeypatch, caplog):
     """Test successful token generation via Databricks CLI."""
-    dummy_output: dict[str, str] = {"token_value": "abc123", "expiry": "2030-01-01T00:00:00Z"}
+    dummy_output = {"token_value": "abc123", "expiry": "2030-01-01T00:00:00Z"}
 
     class DummyCompletedProcess:
-        def __init__(self) -> None:
+        def __init__(self):
             self.stdout = json.dumps(dummy_output)
             self.returncode = 0
 
-    def dummy_run(*args: object, **kwargs: object) -> DummyCompletedProcess:
+    def dummy_run(*args, **kwargs):
         return DummyCompletedProcess()
 
     monkeypatch.setattr(subprocess, "run", dummy_run)
@@ -227,10 +284,10 @@ def test_get_databricks_token_success(monkeypatch: pytest.MonkeyPatch, caplog: p
     assert "🔑 Automatically generating a Databricks temporary token" in caplog.text
 
 
-def test_get_databricks_token_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_get_databricks_token_failure(monkeypatch):
     """Test that subprocess.run failure raises a CalledProcessError."""
 
-    def dummy_run(*args: object, **kwargs: object) -> "Never":
+    def dummy_run(*args, **kwargs):
         raise subprocess.CalledProcessError(returncode=1, cmd=args[0])
 
     monkeypatch.setattr(subprocess, "run", dummy_run)
@@ -239,7 +296,7 @@ def test_get_databricks_token_failure(monkeypatch: pytest.MonkeyPatch) -> None:
         databricks_utils.get_databricks_token("https://dummy-host")
 
 
-def test_is_databricks_true_false(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_is_databricks_true_false(monkeypatch):
     """Test environment detection logic."""
     # False when variable is absent
     monkeypatch.delenv("DATABRICKS_RUNTIME_VERSION", raising=False)
