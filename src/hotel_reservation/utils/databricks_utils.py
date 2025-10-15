@@ -21,10 +21,12 @@ from pyspark.sql import SparkSession
 # Try importing DatabricksSession safely (for environments without Connect)
 try:
     from databricks.connect import DatabricksSession
+
     DATABRICKS_AVAILABLE = True
 except ImportError:
     DatabricksSession = None
     DATABRICKS_AVAILABLE = False
+
 
 def create_spark_session() -> "pyspark.sql.SparkSession":
     """Create a Spark session connected to Databricks via Databricks Connect.
@@ -41,7 +43,6 @@ def create_spark_session() -> "pyspark.sql.SparkSession":
         pyspark.sql.SparkSession
 
     """
-
     compute_mode = os.getenv("DATABRICKS_COMPUTE", "serverless").lower()
     cluster_id = os.getenv("DATABRICKS_CLUSTER_ID")
 
@@ -56,9 +57,7 @@ def create_spark_session() -> "pyspark.sql.SparkSession":
 
     # Connection Databricks Connect
     if not DATABRICKS_AVAILABLE:
-        raise ImportError(
-            "Databricks Connect is not installed. Run: pip install databricks-connect"
-        )
+        raise ImportError("Databricks Connect is not installed. Run: pip install databricks-connect")
 
     builder = DatabricksSession.builder
     if compute_mode == "cluster" and cluster_id:
@@ -82,7 +81,7 @@ def create_spark_session() -> "pyspark.sql.SparkSession":
     # Check that the cluster is responding
     for i in range(6):
         try:
-            logger.info("⏳ Verifying Spark connection with a tiny query…")
+            logger.info(f"⏳ Verifying Spark connection with a tiny query… Attempt {i}/6")
             spark.range(1, 1).collect()
             logger.info("✅ Spark session confirmed active and cluster responsive")
             break
