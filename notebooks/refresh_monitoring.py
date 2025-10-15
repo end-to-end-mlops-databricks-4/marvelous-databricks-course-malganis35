@@ -3,27 +3,17 @@
 # COMMAND ----------
 
 import argparse
-import datetime
-import itertools
-import os
 import sys
-import time
-from typing import Any
-import yaml
 
 import pretty_errors  # noqa: F401
-import requests
+import yaml
 from databricks.sdk import WorkspaceClient
-from dotenv import load_dotenv
 from loguru import logger
-from pyspark.dbutils import DBUtils
 
-from hotel_reservation.utils.config import ProjectConfig
-from hotel_reservation.utils.databricks_utils import create_spark_session, get_databricks_token, is_databricks
-from hotel_reservation.visualization.monitoring import create_or_refresh_monitoring
 from hotel_reservation.utils.config import ProjectConfig
 from hotel_reservation.utils.databricks_utils import create_spark_session
 from hotel_reservation.utils.env_loader import load_environment
+from hotel_reservation.visualization.monitoring import create_or_refresh_monitoring
 
 ## COMMAND ----------
 # Global user setup
