@@ -3,6 +3,8 @@
 # Databricks notebook source
 
 import argparse
+import os
+import shutil
 
 import pretty_errors  # noqa: F401
 from loguru import logger
@@ -79,6 +81,26 @@ tags = Tags(**tags_dict)
 spark = create_spark_session()
 dbutils = DBUtils(spark)
 
+# COMMAND ----------
+# ---------------------------------------------------------------------------
+# Copy the wheel from bundle → local_disk0/tmp/
+# ---------------------------------------------------------------------------
+wheel_name = f"hotel_reservation-{hotel_reservation_v}-py3-none-any.whl"
+wheel_src = os.path.join(root_path, "artifacts", ".internal", wheel_name)
+local_whl_path = f"/local_disk0/tmp/{wheel_name}"
+
+logger.info(f"📦 Preparing wheel: {wheel_name}")
+if not os.path.exists(wheel_src):
+    raise FileNotFoundError(f"❌ Wheel not found at {wheel_src}")
+
+# Éviter de copier le même fichier
+if os.path.abspath(wheel_src) != os.path.abspath(local_whl_path):
+    shutil.copyfile(wheel_src, local_whl_path)
+    logger.info(f"✅ Copied wheel from {wheel_src} to {local_whl_path}")
+else:
+    logger.info(f"⚠️ Wheel already in {local_whl_path}, skipping copy.")
+
+code_paths = [local_whl_path]
 
 # COMMAND ----------
 # Initialize model
@@ -87,7 +109,7 @@ custom_model = CustomModel(
     config=config,
     tags=tags,
     spark=spark,
-    code_paths=[f"{root_path}/dist/hotel_reservation-{hotel_reservation_v}-py3-none-any.whl"],
+    code_paths=code_paths,
 )
 logger.info("Model initialized.")
 

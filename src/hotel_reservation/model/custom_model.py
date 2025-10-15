@@ -9,6 +9,9 @@ parameters → Hyperparameters for LightGBM.
 catalog_name, schema_name → Database schema names for Databricks tables.
 """
 
+import os
+import shutil
+
 import mlflow
 import mlflow.pyfunc
 import numpy as np
@@ -29,6 +32,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
 from hotel_reservation.utils.config import ProjectConfig, Tags
+from hotel_reservation.utils.databricks_utils import is_databricks
 from hotel_reservation.utils.timer import timeit
 
 
@@ -152,12 +156,37 @@ class CustomModel:
         """Log the model using MLflow."""
         mlflow.set_experiment(self.experiment_name)
 
-        ####################################################
         additional_pip_deps = ["pyspark==3.5.0"]
         for package in self.code_paths:
             whl_name = package.split("/")[-1]
             additional_pip_deps.append(f"./code/{whl_name}")
-        ####################################################
+
+        # Manage the wheel so that it can be copied
+        if is_databricks():
+            wheel_src = self.code_paths[0]
+            whl_name = os.path.basename(wheel_src)
+            local_whl_path = f"/local_disk0/tmp/{whl_name}"
+
+            # Avoid the SameFileError if already copy
+            if not os.path.exists(wheel_src):
+                raise FileNotFoundError(f"❌ Wheel not found at {wheel_src}")
+            elif os.path.abspath(wheel_src) == os.path.abspath(local_whl_path):
+                logger.info(f"⚠️ Wheel already in {local_whl_path}, skipping copy.")
+            else:
+                try:
+                    shutil.copyfile(wheel_src, local_whl_path)
+                    logger.info(f"✅ Copied wheel from {wheel_src} to {local_whl_path}")
+                except shutil.SameFileError:
+                    logger.info("⚠️ Wheel already identical, skipping copy.")
+
+            code_paths = [local_whl_path]
+            additional_pip_deps.append(f"./code/{whl_name}")
+        else:
+            # On local environment
+            code_paths = self.code_paths
+            for package in self.code_paths:
+                whl_name = os.path.basename(package)
+                additional_pip_deps.append(f"./code/{whl_name}")
 
         with mlflow.start_run(tags=self.tags) as run:
             self.run_id = run.info.run_id
@@ -183,50 +212,15 @@ class CustomModel:
 
             wrapped_model = SklearnModelWithProba(self.pipeline)
 
-            #############################################################
-            # ✅ Define custom conda environment for MLflow logging
-            # conda_env = {
-            #     "channels": ["conda-forge"],
-            #     "dependencies": [
-            #         "python=3.11.9",
-            #         "pip<=25.2",
-            #         {
-            #             "pip": [
-            #                 "mlflow==3.1.1",
-            #                 "cloudpickle==3.1.1",
-            #                 "databricks-connect==16.3.5",
-            #                 "numpy==1.26.4",
-            #                 "pandas==2.3.0",
-            #                 "psutil==7.1.0",
-            #                 "scikit-learn==1.7.0",
-            #                 "scipy==1.16.0",
-            #                 "-e ."
-            #             ]
-            #         },
-            #     ],
-            #     "name": "mlflow-env",
-            # }
-
-            # # Write it to file so MLflow can version it
-            # env_path = Path("conda_env_custom.yaml")
-            # with open(env_path, "w") as f:
-            #     yaml.safe_dump(conda_env, f)
-            # logger.info(f"✅ Custom conda environment written to {env_path}")
             conda_env = _mlflow_conda_env(additional_pip_deps=additional_pip_deps)
-
-            #############################################################
 
             mlflow.pyfunc.log_model(
                 artifact_path=f"{self.model_type}-pipeline-custom-model",
                 python_model=wrapped_model,
                 signature=signature,
                 input_example=self.X_test[0:1],
-                ##################################
-                # conda_env=str(env_path),
-                # code_paths=["src"],
                 conda_env=conda_env,
-                code_paths=self.code_paths,
-                ##################################
+                code_paths=code_paths,
             )
 
             # Evaluate classification metrics
