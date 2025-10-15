@@ -16,7 +16,7 @@ jobs:
     environment: ${{ matrix.environment }}
     permissions:
       id-token: write
-      contents: read
+      contents: write
     env:
       DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
     steps:
