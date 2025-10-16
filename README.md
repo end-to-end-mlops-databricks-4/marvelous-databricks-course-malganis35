@@ -5,10 +5,28 @@
 [![Lang Badge](https://img.shields.io/badge/LANGUAGE-PYTHON_3.12-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)](#)
 [![Infra Badge](https://img.shields.io/badge/ENV-DEVBOX_|_UV_|_TASKFILE-6d7cff?style=for-the-badge&logo=dev.to&logoColor=white)](#)
 
-An **end-to-end MLOps project** developed as part of the *Marvelous MLOps Databricks Course (Cohort 4)*.
-It automates the complete lifecycle of a **hotel reservation classification model**, from **data ingestion & preprocessing** to **model training, registration, deployment, and serving** — fully orchestrated on **Databricks**.
+## 📚 Table of Contents
+
+* [🧠 Project Overview](#-project-overview)
+* [🧰 Technology Stack](#-technology-stack)
+* [⚙️ Installation & Setup](#️-installation--setup)
+* [🧩 Repository Structure](#-repository-structure)
+* [🚀 Key Features](#-key-features)
+* [⚙️ Databricks Asset Bundle Workflow](#️-databricks-asset-bundle-workflow)
+* [🧪 Development & Testing Workflow](#-development--testing-workflow)
+* [🔁 Reproduce Results](#-reproduce-results)
+* [🧱 Prerequisites](#-prerequisites)
+* [🧾 Configuration Example](#-configuration-example)
+* [📊 End-to-End Workflow](#-end-to-end-workflow)
+* [📚 Documentation](#-documentation)
+* [🧑‍💻 Contributing](#-contributing)
+* [📜 License & Credits](#-license--credits)
+
 
 ## 🧠 Project Overview
+
+An **end-to-end MLOps project** developed as part of the *Marvelous MLOps Databricks Course (Cohort 4)*.
+It automates the complete lifecycle of a **hotel reservation classification model**, from **data ingestion & preprocessing** to **model training, registration, deployment, and serving** — fully orchestrated on **Databricks**.
 
 This repository demonstrates:
 
@@ -72,6 +90,9 @@ cp .env.template .env
 # → update with Databricks credentials, tokens, etc.
 ```
 
+⚠️ **Security Note**: Never commit your `.env` file. Use [Databricks Secrets](https://docs.databricks.com/en/security/secrets/secrets.html) or a secure vault.
+
+
 ### 6️⃣ Run Demo Pipeline
 
 ```bash
@@ -88,45 +109,109 @@ task test
 ## 🧩 Repository Structure
 
 ```
-malganis35_cohort4/
+.
+├── CHANGELOG.md                   # Project changelog — version history and updates
+├── CONTRIBUTING                   # Contribution guidelines (commits, PRs, conventions)
+├── LICENCE                        # Project license and usage permissions
+├── README.md                      # Main documentation file
+├── Taskfile.yml                   # Task automation (install, test, lint, deploy)
+├── Taskfiles.md                   # Extended task documentation and pipeline overview
 │
-├── src/hotel_reservation/
-│   ├── data/              # Data ingestion, upload & config
-│   ├── feature/           # Feature engineering and transformations
-│   ├── model/             # Model training, registry & Feature Store models
-│   ├── serving/           # Model deployment & Databricks model serving
-│   ├── utils/             # Config loader, Databricks utils, timing
-│   └── vizualization/     # Placeholder for future visualization tools
+├── app/                           # Local inference or monitoring application (Streamlit / API)
+│   ├── app.py                     # Main Streamlit app for model serving
+│   ├── app.yml                    # Databricks Asset Bundle configuration for app deployment
+│   ├── app_monitoring.py          # Streamlit dashboard for model performance monitoring
+│   ├── hotel.jpg / hotel.png      # Static images for UI display
+│   └── requirements.txt           # App-specific dependencies
 │
-├── scripts/               # Automated Databricks bundle tasks
-│   ├── 01.process_new_data.py
-│   ├── 02.train_register_model.py
-│   ├── 03.deploy_model_serving.py
-│   ├── 04.post_commit_status.py
+├── data/                          # Data lifecycle folders (raw → processed)
+│   ├── external/                  # External datasets (APIs, external sources)
+│   ├── interim/                   # Intermediate transformed data
+│   ├── processed/                 # Processed data ready for ML training
+│   └── raw/                       # Original raw dataset(s)
 │
-├── notebooks/             # Databricks notebooks and local prototypes
-│   ├── train_register_model.py
-│   ├── train_register_fe_model.py
-│   ├── deploy_model_serving.py
-│   ├── process_data.py
-│   └── utils/
-│       ├── run_upload_data.py
-│       ├── run_cleanup_mlflow_experiments.py
-│       └── run_create_mlflow_workspace.py
+├── databricks.yml                 # Main Databricks Asset Bundle definition (job orchestration)
+├── devbox.json                    # Devbox environment configuration (reproducible shell)
 │
-├── tests/
-│   ├── unit_test/         # Unit tests for all modules
-│   ├── integration/       # Integration tests (Databricks & MLflow)
-│   └── functional/        # E2E functional tests (model deployment)
+├── docs/                          # Sphinx documentation and technical references
+│   ├── README.md                  # Secondary documentation index
+│   ├── commands.rst               # CLI commands and Taskfile command reference
+│   ├── references/                # Technical references (Databricks, MLflow, etc.)
+│   └── reports/                   # Reports and analytics
+│       └── figures/               # Generated figures and plots
 │
-├── docs/                  # Sphinx documentation (auto-built)
-├── wiki-content/          # GitHub Wiki export (CI-synced)
-├── data/                  # Raw, processed, and external datasets
-├── .github/ & .gitlab/    # CI/CD configurations
-├── databricks.yml         # Databricks Asset Bundle definition
-├── project_config.yml     # Environment-specific parameters
-├── Taskfile.yml           # Task automation commands
-└── pyproject.toml         # Project metadata & dependencies
+├── models/                        # Exported models or local MLflow registry cache
+│
+├── notebooks/                     # Databricks notebooks for prototyping and orchestration
+│   ├── process_data.py            # Data cleaning and processing
+│   ├── train_register_*.py        # Model training and registration (basic/custom/FE)
+│   ├── deploy_*.py                # Model deployment scripts (Databricks Serving)
+│   ├── predict_*.py               # Model inference and validation
+│   ├── create_monitoring.py       # Creates model monitoring pipelines
+│   ├── refresh_monitoring.py      # Refreshes monitoring metrics and dashboards
+│   ├── demo.py                    # End-to-end demonstration pipeline
+│   └── utils/                     # Helper scripts for Databricks operations
+│       ├── run_upload_data.py     # Upload dataset to Databricks Volume
+│       ├── run_cleanup_mlflow_experiments.py # Clean old MLflow experiments
+│       ├── run_create_mlflow_workspace.py    # Initialize MLflow workspace and structure
+│       └── run_cleanup_data.py    # Clean up Databricks data volumes
+│
+├── project_config.yml             # Multi-environment configuration (dev / acc / prd)
+├── pyproject.toml                 # Python project metadata and dependencies
+│
+├── resources/                     # Databricks YAML templates and job configurations
+│   ├── inference.app.yml          # Model inference service deployment
+│   ├── bundle_monitoring.yml      # Monitoring job bundle definition
+│   ├── initial_training_*.yml     # Initial model training jobs (basic/custom)
+│   ├── weekly_training_*.yml      # Weekly retraining workflows
+│
+├── scripts/                       # Executable Python scripts for CI/CD and bundles
+│   ├── 00.process_initial_data.py # Initial dataset preparation
+│   ├── 01.process_new_data.py     # Incremental data ingestion pipeline
+│   ├── 02.train_register_model.py # Train and register baseline model
+│   ├── 02.b.train_register_custom_model.py # Train and register tuned/custom model
+│   ├── 03.deploy_model_serving.py # Deploy model to Databricks Serving
+│   ├── 03.b.deploy_custom_model_serving.py # Deploy the custom model variant
+│   ├── 04.post_commit_status.py   # Post-build CI validation
+│   └── 05.refresh_monitor.py      # Refresh MLflow model monitoring metrics
+│
+├── src/                           # Main Python package source code
+│   └── hotel_reservation/
+│       ├── data/                  # Data ingestion, config loading, and upload helpers
+│       │   ├── cleanup.py         # Data cleaning and preparation logic
+│       │   ├── config_loader.py   # YAML configuration file parser
+│       │   ├── databricks_utils.py# Databricks workspace interaction utilities
+│       │   └── uploader.py        # Uploads raw datasets to Databricks Volumes
+│       │
+│       ├── feature/               # Feature engineering and transformation logic
+│       │   └── data_processor.py  # Pipeline for generating ML-ready features
+│       │
+│       ├── model/                 # Model definition, training, and registration
+│       │   ├── basic_model.py     # Baseline logistic regression model
+│       │   ├── custom_model.py    # Custom model variant with hyperparameter tuning
+│       │   └── feature_lookup_model.py # Model integrating with Databricks Feature Store
+│       │
+│       ├── serving/               # Model serving and API interface
+│       │   └── model_serving.py   # Databricks Serving endpoint handler
+│       │
+│       ├── utils/                 # Generic utility functions and helpers
+│       │   ├── config.py          # Configuration loader and management
+│       │   ├── databricks_utils.py# Shared Databricks API wrappers
+│       │   ├── env_loader.py      # Environment variable and .env manager
+│       │   └── timer.py           # Performance and timing utilities
+│       │
+│       └── visualization/         # Model monitoring and visualization tools
+│           └── monitoring.py      # Metrics visualization and drift monitoring
+│
+├── tests/                         # Full testing suite (unit / integration / functional)
+│   ├── unit_test/                 # Unit tests for all modules
+│   ├── integration/               # Integration tests for Databricks & MLflow
+│   └── functional/                # End-to-end tests (model serving and API)
+│
+├── uv.lock                        # Locked dependency versions (managed by UV)
+├── version.txt                    # Current project version number
+│
+└── wiki-content/                  # Technical wiki synchronized with CI/CD
 ```
 
 ## 🚀 Key Features
@@ -171,6 +256,30 @@ databricks bundle run deployment --target dev
 | `task clean`                   | Clean environment and temporary files      |
 | `pytest`                       | Run all unit/integration/functional tests  |
 
+
+## 🔁 Reproduce Results
+
+1. Upload dataset:
+
+   ```bash
+   task run-upload-data
+   ```
+2. Train & register:
+
+   ```bash
+   task train-register-model
+   ```
+3. Deploy serving endpoint:
+
+   ```bash
+   task deploy-model-serving
+   ```
+4. Validate predictions:
+
+   ```bash
+   pytest tests/functional
+   ```
+
 ## 🧱 Prerequisites
 
 * **Required:** macOS/Linux, Python ≥3.12, Databricks workspace, `task`, `devbox`, `uv`
@@ -194,8 +303,8 @@ dev:
 Switch environments easily:
 
 ```bash
-task run-upload-data --env=dev
-task fe_train_register_model --env=prd
+task run-upload-data --branch=dev
+task fe_train_register_model --branch=prd
 ```
 
 ## 📊 End-to-End Workflow
@@ -228,10 +337,16 @@ Refer to the [CONTRIBUTING](CONTRIBUTING) file for full contribution guidelines.
 
 ## 📚 Documentation
 
-* **Wiki** synced from `/wiki-content/` via CI
-* **Reports & Figures** stored under `/docs/reports/figures/`
+* 📘 [View Wiki](https://github.com/end-to-end-mlops-databricks-4/marvelous-databricks-course-malganis35/blob/main/wiki-content/Course-Overview.md)
+* 📗 [Read the Docs](https://docs.mlops.caotri.dofavier.fr/)
+* 🧾 Reports: `/docs/reports/figures/`
 
-## 📜 License
+## 📜 License & Credits
 
 Proprietary © 2025 — *Marvelous MLOps Course / Cao Tri Do*
 For **educational and internal use only**. See the [LICENCE](LICENCE) file for details.
+This repository is part of the *Marvelous MLOps — End-to-end MLOps with Databricks: https://maven.com/marvelousmlops/mlops-with-databricks*.
+
+**Course Mentor**: 
+- [Maria Vechtomova (@mvechtomova)](https://github.com/mvechtomova)
+- [Basak Tugce Eskili (basakeskili)](https://github.com/basakeskili)
