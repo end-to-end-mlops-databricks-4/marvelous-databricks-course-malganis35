@@ -202,7 +202,8 @@ def send_request_https(
         The `requests.Response` object returned by the endpoint.
 
     """
-    model_serving_endpoint = f"{os.environ['DBR_HOST']}/serving-endpoints/{config.endpoint_name}/invocations"
+    endpoint_name = f"{config.endpoint_name}-{args.env}"
+    model_serving_endpoint = f"{os.environ['DBR_HOST']}/serving-endpoints/{endpoint_name}/invocations"
 
     logger.debug(f"Sending request to endpoint: {model_serving_endpoint}")
 
