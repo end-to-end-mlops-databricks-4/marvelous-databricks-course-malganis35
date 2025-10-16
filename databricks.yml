@@ -52,7 +52,7 @@ targets:
       host: https://dbc-f122dc18-1b68.cloud.databricks.com
       root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.target}/${bundle.name}
     variables:
-      schedule_pause_status: UNPAUSED
+      schedule_pause_status: PAUSED
       is_test: 0
       env: dev
     artifacts:
@@ -69,7 +69,7 @@ targets:
       host: https://dbc-f122dc18-1b68.cloud.databricks.com
       root_path: /Shared/.bundle/${bundle.target}/${bundle.name}
     variables:
-      schedule_pause_status: UNPAUSED
+      schedule_pause_status: PAUSED
       is_test: 1
       env: dev
 
