@@ -1,6 +1,6 @@
 # 🛠 Taskfile — Project Automation Guide
 
-This project uses [`Taskfile`](https://taskfile.dev/) to automate development, testing, and deployment workflows.  
+This project uses [`Taskfile`](https://taskfile.dev/) to automate development, testing, and deployment workflows.
 It acts like a modern Makefile — simple, cross-platform, and dependency-aware.
 
 ---
