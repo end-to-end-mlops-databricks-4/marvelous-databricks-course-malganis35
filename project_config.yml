@@ -7,6 +7,7 @@ prd:
   test_table: hotel_reservations_test_set
   feature_table_name: hotel_reservations_features
   feature_function_name: calculate_total_nights
+  batch_inference_table: continuous_reservation
 acc:
   catalog_name: mlops_acc
   schema_name: caotrido
@@ -16,6 +17,7 @@ acc:
   test_table: hotel_reservations_test_set
   feature_table_name: hotel_reservations_features
   feature_function_name: calculate_total_nights
+  batch_inference_table: continuous_reservation
 dev:
   catalog_name: mlops_dev
   schema_name: caotrido
@@ -25,6 +27,7 @@ dev:
   test_table: hotel_reservations_test_set
   feature_table_name: hotel_reservations_features
   feature_function_name: calculate_total_nights
+  batch_inference_table: continuous_reservation
 
 # Data Sources
 data_source:
