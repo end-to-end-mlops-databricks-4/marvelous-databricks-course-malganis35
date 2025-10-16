@@ -10,6 +10,10 @@ resources:
       tags:
         project_name: "hotel-reservation-caotrido"
         job_type: "initial_training"
+        environment: "${var.env}"
+        model_name: "basic_hotel_reservation_model"
+        finops_cost_center: "mlops-cohort4"
+        purpose: "ml-training"
       job_clusters:
         - job_cluster_key: "hotel-reservation-cluster"
           new_cluster:
