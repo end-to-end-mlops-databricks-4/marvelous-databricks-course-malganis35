@@ -12,7 +12,7 @@ It automates the complete lifecycle of a **hotel reservation classification mode
 
 This repository demonstrates:
 
-* **Reproducible ML pipelines** using **Databricks, MLflow**, and **LightGBM**
+* **Reproducible ML pipelines** using **Databricks, MLflow**, and **LogisticRegression**
 * **Feature Store** and **Feature Lookup** for scalable feature management
 * **Automated Databricks job workflows** using **Databricks Asset Bundles**
 * **Multi-environment configuration** across **DEV / ACC / PRD**
