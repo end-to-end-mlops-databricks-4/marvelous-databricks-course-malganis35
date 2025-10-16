@@ -25,7 +25,7 @@ resources:
 
       tasks:
         - task_key: "initial_processing"
-          existing_cluster_id: "0925-180914-5nzxv7hw"
+          existing_cluster_id: ${target.cluster_id} # "0925-180914-5nzxv7hw"
           spark_python_task:
             python_file: "../scripts/00.process_initial_data.py"
             parameters:
@@ -40,7 +40,7 @@ resources:
 
         - task_key: "train_model"
           # job_cluster_key: "house-price-cluster"
-          existing_cluster_id: "0925-180914-5nzxv7hw"
+          existing_cluster_id: ${target.cluster_id} # "0925-180914-5nzxv7hw"
           depends_on:
             - task_key: "initial_processing"
           spark_python_task:
@@ -72,7 +72,7 @@ resources:
             - task_key: "model_updated"
               outcome: "true"
           # job_cluster_key: "house-price-cluster"
-          existing_cluster_id: "0925-180914-5nzxv7hw"
+          existing_cluster_id: ${target.cluster_id} # "0925-180914-5nzxv7hw"
           spark_python_task:
             python_file: "../scripts/03.deploy_model_serving.py"
             parameters:
@@ -98,7 +98,7 @@ resources:
             - task_key: "post_commit_status_required"
               outcome: "true"
           # job_cluster_key: "house-price-cluster"
-          existing_cluster_id: "0925-180914-5nzxv7hw"
+          existing_cluster_id: ${target.cluster_id} # "0925-180914-5nzxv7hw"
           spark_python_task:
             python_file: "../scripts/04.post_commit_status.py"
             parameters:
