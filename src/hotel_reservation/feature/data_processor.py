@@ -1,5 +1,7 @@
 """Module for preprocessing hotel reservation data."""
 
+import time
+import uuid
 import numpy as np
 import pandas as pd
 from loguru import logger
@@ -101,7 +103,7 @@ class DataProcessor:
         return train_set, test_set
 
     @timeit
-    def save_to_catalog(self, train_set: pd.DataFrame, test_set: pd.DataFrame, write_mode: str = "overwrite") -> None:
+    def save_to_catalog(self, train_set: pd.DataFrame, test_set: pd.DataFrame, write_mode: str = "overwrite", job_type: str = "training") -> None:
         """Save the train and test sets into Databricks Delta tables with mode control and CDF on first creation."""
 
         def _safe_format_count(value: int | float | str) -> str:
@@ -174,8 +176,14 @@ class DataProcessor:
         train_spark_df = self.spark.createDataFrame(train_set)
         test_spark_df = self.spark.createDataFrame(test_set)
 
-        _write_with_mode(train_spark_df, self.config.train_table, merge_key="Booking_ID")
-        _write_with_mode(test_spark_df, self.config.test_table, merge_key="Booking_ID")
+        if job_type == "training":
+            _write_with_mode(train_spark_df, self.config.train_table, merge_key="Booking_ID")
+            _write_with_mode(test_spark_df, self.config.test_table, merge_key="Booking_ID")
+        elif job_type == "inference":
+            _write_with_mode(test_spark_df, self.config.batch_inference_table, merge_key="Booking_ID")
+        else:
+            raise ValueError(f"Unknown job_type: '{job_type}'. "
+                            "Possible value are 'training' or 'inference'.")
 
     def _check_table_exists(self, full_table_name: str) -> bool:
         """Return True if the fully qualified table exists in Unity Catalog."""
@@ -285,6 +293,18 @@ def generate_synthetic_data(df: pd.DataFrame, drift: bool = False, num_rows: int
 
         else:
             synthetic_data[column] = np.random.choice(df[column].dropna(), num_rows)
+            
+    # Add unique Booking_ID column
+    if "Booking_ID" not in synthetic_data.columns:
+        synthetic_data["Booking_ID"] = [
+            f"BK{int(time.time() * 1000) + i}" for i in range(num_rows)
+        ]
+    
+    # Force the string type (for Spark)
+    synthetic_data["Booking_ID"] = synthetic_data["Booking_ID"].astype(str)
+    
+    cols = ["Booking_ID"] + [c for c in synthetic_data.columns if c != "Booking_ID"]
+    synthetic_data = synthetic_data[cols]
 
     # Type alignment with Databricks schema
     int_columns = {
