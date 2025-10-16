@@ -52,6 +52,7 @@ def sample_config() -> ProjectConfig:
         raw_data_file="dummy.csv",
         train_table="train_table",
         test_table="test_table",
+        batch_inference_table="batch_inference_table",
         experiment_name_basic="/dummy/exp/basic",
         experiment_name_custom="/dummy/exp/custom",
         experiment_name_fe="/dummy/exp/fe",
@@ -82,6 +83,7 @@ def mock_config() -> ProjectConfig:
         schema_name="my_schema",
         train_table="train_table",
         test_table="test_table",
+        batch_inference_table="batch_inference_table",
         num_features=[],
         cat_features=[],
         target="booking_status",
@@ -210,7 +212,8 @@ def test_generate_synthetic_data_basic() -> None:
     )
 
     synthetic = generate_synthetic_data(df, drift=False, num_rows=10)
-    assert list(synthetic.columns) == list(df.columns)
+    expected_cols = ["Booking_ID"] + list(df.columns)
+    assert list(synthetic.columns) == expected_cols
     assert len(synthetic) == 10
     assert np.issubdtype(synthetic["arrival_year"].dtype, np.integer)
     assert synthetic["avg_price_per_room"].dtype == np.float64
@@ -230,7 +233,7 @@ def test_generate_synthetic_data_with_drift_changes_values() -> None:
     assert (synthetic_drift["avg_price_per_room"] > df["avg_price_per_room"].max()).any()
     assert (synthetic_drift["lead_time"] > df["lead_time"].max()).any()
     assert synthetic_drift["arrival_year"].between(pd.Timestamp.now().year - 2, pd.Timestamp.now().year).all()
-
+    assert "Booking_ID" in synthetic_drift.columns
 
 def test_generate_test_data_delegates_to_generate_synthetic_data(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test that generate_test_data delegates correctly to generate_synthetic_data."""
@@ -347,3 +350,4 @@ def test_generate_synthetic_data_with_datetime() -> None:
     result = generate_synthetic_data(df, drift=False, num_rows=5)
     assert "created_at" in result.columns
     assert pd.api.types.is_datetime64_any_dtype(result["created_at"])
+    assert "Booking_ID" in result.columns
