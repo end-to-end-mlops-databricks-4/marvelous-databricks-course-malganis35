@@ -5,7 +5,7 @@ infer_signature (from mlflow.models) → Captures input-output schema for model 
 num_features → List of numerical feature names.
 cat_features → List of categorical feature names.
 target → The column to predict.
-parameters → Hyperparameters for LightGBM.
+parameters → Hyperparameters for LogisticRegression.
 catalog_name, schema_name → Database schema names for Databricks tables.
 """
 
