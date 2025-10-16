@@ -38,6 +38,7 @@ def config_yaml_content() -> dict[str, Any]:
             "test_table": "test_prd",
             "feature_table_name": "feature_prd",
             "feature_function_name": "feature_func_prd",
+            "batch_inference_table": "batch_inference_prd",
         },
         "acc": {
             "catalog_name": "catalog_acc",
@@ -47,6 +48,7 @@ def config_yaml_content() -> dict[str, Any]:
             "test_table": "test_acc",
             "feature_table_name": "feature_acc",
             "feature_function_name": "feature_func_acc",
+            "batch_inference_table": "batch_inference_acc",
         },
         "dev": {
             "catalog_name": "catalog_dev",
@@ -56,6 +58,7 @@ def config_yaml_content() -> dict[str, Any]:
             "test_table": "test_dev",
             "feature_table_name": "feature_dev",
             "feature_function_name": "feature_func_dev",
+            "batch_inference_table": "batch_inference_dev",
         },
     }
 

@@ -70,6 +70,7 @@ def mock_config() -> ProjectConfig:
         raw_data_file="mock.csv",
         train_table="train_table",
         test_table="test_table",
+        batch_inference_table="batch_inference_table",
         feature_table_name="features_table",
         feature_function_name="feature_func",
         experiment_name_fe="/experiments/mock",
