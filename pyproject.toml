@@ -23,7 +23,6 @@ dependencies = [
     "pandas==2.3.0",
     "pyarrow==17.0.0",
     "scikit-learn==1.7.0",
-    "lightgbm==4.6.0",
     "scipy==1.16.0",
     "databricks-sdk==0.55.0",
     "pydantic==2.11.7",
