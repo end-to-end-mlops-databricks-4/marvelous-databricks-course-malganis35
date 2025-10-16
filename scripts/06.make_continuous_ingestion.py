@@ -106,7 +106,7 @@ logger.info("Preprocess the data ...")
 data_processor.preprocess()
 
 logger.info("Split the data into train and test sets")
-X_train, X_test = data_processor.split_data(test_size = nb_data-1)
+X_train, X_test = data_processor.split_data(test_size=nb_data - 1)
 
 logger.info("Saving data to catalog")
 data_processor.save_to_catalog(X_train, X_test, write_mode=write_mode, job_type="inference")

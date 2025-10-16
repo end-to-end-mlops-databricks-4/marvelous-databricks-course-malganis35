@@ -5,17 +5,16 @@
 # %% Databricks notebook source
 
 import argparse
-import datetime
-import itertools
 import os
-import sys
 import time
+from datetime import datetime
 from typing import Any
-import pandas as pd
-import yaml
 
+import numpy as np
+import pandas as pd
 import pretty_errors  # noqa: F401
 import requests
+import yaml
 from databricks.sdk import WorkspaceClient
 from dotenv import load_dotenv
 from loguru import logger
@@ -23,11 +22,9 @@ from pyspark.dbutils import DBUtils
 from pyspark.sql.functions import lit
 from pyspark.sql.utils import AnalysisException
 
+from hotel_reservation.feature.data_processor import DataProcessor
 from hotel_reservation.utils.config import ProjectConfig
 from hotel_reservation.utils.databricks_utils import create_spark_session, get_databricks_token, is_databricks
-from hotel_reservation.visualization.monitoring import create_or_refresh_monitoring
-from hotel_reservation.feature.data_processor import DataProcessor
-
 
 # COMMAND ----------
 
@@ -75,7 +72,7 @@ spark = create_spark_session()
 
 
 # COMMAND ----------
-df = spark.table(f"{config.catalog_name}.{config.schema_name}.{config.batch_inference_table}") # .toPandas()
+df = spark.table(f"{config.catalog_name}.{config.schema_name}.{config.batch_inference_table}")  # .toPandas()
 
 
 # Vérifier si la colonne 'booking_status_pred' existe
@@ -94,10 +91,10 @@ except AnalysisException as e:
         logger.info(f"✅ Column {PREDICTION_COL} is already present.")
     else:
         raise
-    
+
 # Recharge la table avec la nouvelle colonne
-df = spark.table(full_table_name)   
-    
+df = spark.table(full_table_name)
+
 # Maintenant, la colonne existe toujours, même si elle est vide
 df_to_predict = df.filter(df.booking_status_pred_basic.isNull())
 
@@ -109,9 +106,7 @@ if is_databricks():
     os.environ["DBR_TOKEN"] = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
     os.environ["DBR_HOST"] = spark.conf.get("spark.databricks.workspaceUrl")
     os.environ["DBR_HOST"] = (
-        os.environ["DBR_HOST"]
-        if os.environ["DBR_HOST"].startswith("https://")
-        else f"https://{os.environ['DBR_HOST']}"
+        os.environ["DBR_HOST"] if os.environ["DBR_HOST"].startswith("https://") else f"https://{os.environ['DBR_HOST']}"
     )
     logger.info(f"Databricks host URL: {os.environ['DBR_HOST']}")
 else:
@@ -171,24 +166,24 @@ required_columns = [
 records_to_predict = df_to_predict.toPandas().to_dict(orient="records")
 
 # %%
-from datetime import datetime
-import numpy as np
+
 
 def clean_record_for_json(record: dict) -> dict:
     """Convert Pandas/Numpy/Timestamp types to JSON serializable types."""
     clean_record = {}
     for k, v in record.items():
-        if isinstance(v, (np.int64, np.int32)):
+        if isinstance(v, np.int64 | np.int32):
             clean_record[k] = int(v)
-        elif isinstance(v, (np.float64, np.float32)):
+        elif isinstance(v, np.float64 | np.float32):
             clean_record[k] = float(v)
-        elif isinstance(v, (pd.Timestamp, datetime)):
+        elif isinstance(v, pd.Timestamp | datetime):
             clean_record[k] = v.isoformat()
         elif pd.isna(v):
             clean_record[k] = None
         else:
             clean_record[k] = v
     return clean_record
+
 
 # 1. Using https endpoint
 def send_request_https(
@@ -208,11 +203,11 @@ def send_request_https(
 
     """
     model_serving_endpoint = f"{os.environ['DBR_HOST']}/serving-endpoints/{config.endpoint_name}/invocations"
-    
+
     logger.debug(f"Sending request to endpoint: {model_serving_endpoint}")
-    
+
     dataframe_record = clean_record_for_json(dataframe_record)
-    
+
     response = requests.post(
         model_serving_endpoint,
         headers={"Authorization": f"Bearer {token}"},
@@ -246,11 +241,11 @@ predictions = []
 
 # Send to the endpoint
 for index, record in enumerate(records_to_predict):
-    print(f"Sending request for data, index {index+1}/{len(records_to_predict)}")
+    print(f"Sending request for data, index {index + 1}/{len(records_to_predict)}")
     response = send_request_https(record, config, token=os.environ["DBR_TOKEN"])
     print(f"Response status: {response.status_code}")
     print(f"Response text: {response.text}")
-    
+
     if response.status_code == 200:
         try:
             # ✅ Extraire la vraie prédiction
@@ -266,7 +261,7 @@ for index, record in enumerate(records_to_predict):
     print(f"Prediction: {prediction_value}")
     record[PREDICTION_COL] = prediction_value
     predictions.append(record)
-    
+
     time.sleep(0.05)
 
 # COMMAND ----------
