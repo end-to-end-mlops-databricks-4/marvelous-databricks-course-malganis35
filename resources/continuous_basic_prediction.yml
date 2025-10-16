@@ -66,4 +66,3 @@ resources:
               - "upsert"
           libraries:
             - whl: ../dist/*.whl
-        
