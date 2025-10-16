@@ -47,16 +47,16 @@ git clone <your-repo-url>
 cd hotel_reservation
 ````
 
-### 2️⃣ Open a Devbox Shell
-
-```bash
-devbox shell
-```
-
-### 3️⃣ Install Tooling
+### 2️⃣ Install Tooling
 
 ```bash
 task install
+```
+
+### 3️⃣ Open a Devbox Shell (if needed)
+
+```bash
+devbox shell
 ```
 
 ### 4️⃣ Create and Sync Python Environment
@@ -183,7 +183,7 @@ dev:
   catalog_name: mlops_dev
   schema_name: caotrido
   volume_name: data
-  raw_data_file: "Hotel Reservations.csv"
+  raw_data_file: "Hotel_Reservations.csv"
   train_table: hotel_reservations_train_set
   test_table: hotel_reservations_test_set
   feature_table_name: hotel_reservations_features
