@@ -235,6 +235,7 @@ def test_generate_synthetic_data_with_drift_changes_values() -> None:
     assert synthetic_drift["arrival_year"].between(pd.Timestamp.now().year - 2, pd.Timestamp.now().year).all()
     assert "Booking_ID" in synthetic_drift.columns
 
+
 def test_generate_test_data_delegates_to_generate_synthetic_data(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test that generate_test_data delegates correctly to generate_synthetic_data."""
     df = pd.DataFrame({"lead_time": [1, 2, 3]})
