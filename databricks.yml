@@ -45,7 +45,7 @@ variables:
 
 targets:
   dev:
-    cluster_id: 0925-180914-5nzxv7hw #replace with your own!
+    cluster_id: 1016-064447-gofvx8r8 #replace with your own!
     default: true
     mode: development
     workspace:
@@ -74,25 +74,25 @@ targets:
       env: dev
 
   acc:
-    cluster_id: 0925-180914-5nzxv7hw #replace with your own!
+    cluster_id: 1016-064447-gofvx8r8 #replace with your own!
     presets:
       name_prefix: 'acc_'
     workspace:
       host: https://dbc-f122dc18-1b68.cloud.databricks.com
       root_path: /Shared/.bundle/${bundle.target}/${bundle.name}
     variables:
-      schedule_pause_status: UNPAUSED
+      schedule_pause_status: PAUSED
       is_test: 1
       env: acc
 
 
   prd:
-    cluster_id: 0925-180914-5nzxv7hw #replace with your own!
+    cluster_id: 1016-064447-gofvx8r8 #replace with your own!
     mode: production
     workspace:
       host: https://dbc-f122dc18-1b68.cloud.databricks.com
       root_path: /Shared/.bundle/${bundle.target}/${bundle.name}
     variables:
-      schedule_pause_status: UNPAUSED # normally UNPAUSED
+      schedule_pause_status: PAUSED # normally UNPAUSED
       is_test: 0
       env: prd
