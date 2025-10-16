@@ -347,6 +347,6 @@ Proprietary © 2025 — *Marvelous MLOps Course / Cao Tri Do*
 For **educational and internal use only**. See the [LICENCE](LICENCE) file for details.
 This repository is part of the *Marvelous MLOps — End-to-end MLOps with Databricks: https://maven.com/marvelousmlops/mlops-with-databricks*.
 
-**Course Mentor**: 
+**Course Mentor**:
 - [Maria Vechtomova (@mvechtomova)](https://github.com/mvechtomova)
 - [Basak Tugce Eskili (basakeskili)](https://github.com/basakeskili)
