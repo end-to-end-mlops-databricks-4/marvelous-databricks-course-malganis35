@@ -6,8 +6,8 @@ import argparse
 import os
 import sys
 import time
-from typing import Any
 
+import pandas as pd
 import pretty_errors  # noqa: F401
 import requests
 from dotenv import load_dotenv
@@ -24,7 +24,7 @@ if "ipykernel" in sys.modules:
     class Args:
         """Mock arguments used when running interactively."""
 
-        root_path = ".."
+        root_path = "../.."
         config = "project_config.yml"
         env = ".env"
         branch = "dev"
@@ -99,31 +99,50 @@ required_columns = [
 
 train_set = spark.table(f"{config.catalog_name}.{config.schema_name}.{config.train_table}").toPandas()
 sampled_records = train_set[required_columns].sample(n=1000, replace=True).to_dict(orient="records")
-dataframe_records = [[record] for record in sampled_records]
+# dataframe_records = [[record] for record in sampled_records]
 
 logger.info(train_set.dtypes)
-logger.info(dataframe_records[0])
+# logger.info(dataframe_records[0])
 
 # COMMAND ----------
 
 
-# Endpoint call function
-def call_endpoint(record: list[dict[str, Any]]) -> tuple[int, str]:
-    """Call the Databricks model serving endpoint with a given input record."""
-    serving_endpoint = f"{os.environ['DBR_HOST']}/serving-endpoints/{config.endpoint_name}/invocations"
+def call_endpoint(dataset: pd.DataFrame) -> tuple[int, dict]:
+    """Send a Pandas DataFrame to the Databricks Serving endpoint.
 
-    logger.debug(f"Calling the endpoint url: {serving_endpoint}")
+    Sends the request and returns the HTTP status code and the JSON response.
+    """
+    url = "https://dbc-c36d09ec-dbbe.cloud.databricks.com/serving-endpoints/hotel-reservation-custom-model-serving-db/invocations"
+    headers = {
+        "Authorization": f"Bearer {os.environ.get('DATABRICKS_TOKEN')}",
+        "Content-Type": "application/json",
+    }
 
-    response = requests.post(
-        serving_endpoint,
-        headers={"Authorization": f"Bearer {os.environ['DBR_TOKEN']}"},
-        json={"dataframe_records": record},
-    )
-    return response.status_code, response.text
+    # Vérification du type d'entrée
+    if not isinstance(dataset, pd.DataFrame):
+        raise ValueError("❌ dataset must be a pandas DataFrame")
+
+    # Conversion en format attendu par Databricks Serving
+    payload = {"dataframe_split": dataset.to_dict(orient="split")}
+
+    # Appel du endpoint
+    response = requests.post(url, headers=headers, json=payload)
+
+    # Gestion des erreurs HTTP
+    if response.status_code != 200:
+        raise Exception(f"Request failed with status {response.status_code}: {response.text}")
+
+    # Retourne la réponse JSON brute
+    return response.status_code, response.json()
 
 
-# Test with one sample
-status_code, response_text = call_endpoint(dataframe_records[0])
+# Test on 1 line
+sample_df = pd.DataFrame([sampled_records[0]])
+
+# Endpoint call
+status_code, response_text = call_endpoint(sample_df)
+
+# Print the json
 logger.debug(f"Response Status: {status_code}")
 logger.debug(f"Response Text: {response_text}")
 
@@ -133,7 +152,7 @@ logger.debug(f"Response Text: {response_text}")
 total = 10
 for i in range(total):
     logger.debug(f"➡️ Sending request {i + 1}/{total}")
-    status_code, response_text = call_endpoint(dataframe_records[i])
+    status_code, response_text = call_endpoint(pd.DataFrame([sampled_records[i]]))
     logger.debug(f"Response Status: {status_code}")
     logger.debug(f"Response Text: {response_text}")
     time.sleep(0.2)

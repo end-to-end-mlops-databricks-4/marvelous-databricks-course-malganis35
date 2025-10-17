@@ -1,4 +1,4 @@
-"""Basic model implementation.
+"""Custom model implementation.
 
 infer_signature (from mlflow.models) → Captures input-output schema for model tracking.
 
@@ -9,7 +9,11 @@ parameters → Hyperparameters for LogisticRegression.
 catalog_name, schema_name → Database schema names for Databricks tables.
 """
 
+import os
+import shutil
+
 import mlflow
+import mlflow.pyfunc
 import numpy as np
 import pandas as pd
 from delta.tables import DeltaTable
@@ -18,7 +22,9 @@ from mlflow import MlflowClient
 from mlflow.data.dataset_source import DatasetSource
 from mlflow.exceptions import RestException
 from mlflow.models import infer_signature
+from mlflow.utils.environment import _mlflow_conda_env
 from pyspark.sql import SparkSession
+from sklearn.base import BaseEstimator
 from sklearn.compose import ColumnTransformer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
@@ -26,6 +32,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
 from hotel_reservation.utils.config import ProjectConfig, Tags
+from hotel_reservation.utils.databricks_utils import is_databricks
 from hotel_reservation.utils.timer import timeit
 
 
@@ -37,13 +44,40 @@ class Result:
         self.metrics = {}
 
 
-class BasicModel:
+class SklearnModelWithProba(mlflow.pyfunc.PythonModel):
+    """Wrapper MLflow model that outputs both prediction and probability."""
+
+    def __init__(self, sklearn_model: BaseEstimator) -> None:
+        """Initialize the wrapper with a scikit-learn model."""
+        self.model = sklearn_model
+
+    def predict(
+        self,
+        context: mlflow.pyfunc.PythonModelContext,
+        model_input: pd.DataFrame,
+    ) -> list[dict[str, float | str | int]]:
+        """Return both prediction label and probability."""
+        proba = self.model.predict_proba(model_input)[:, 1]
+        preds = (proba >= 0.5).astype(int)
+        results: list[dict[str, float | str | int]] = []
+        for p, pr in zip(preds, proba, strict=False):
+            results.append(
+                {
+                    "prediction": int(p),
+                    "label": "Canceled" if p == 0 else "Not_Canceled",
+                    "probability": float(pr),
+                }
+            )
+        return results
+
+
+class CustomModel:
     """A basic model class for hotel_reservation prediction using LogisticRegression.
 
     This class handles data loading, feature preparation, model training, and MLflow logging.
     """
 
-    def __init__(self, config: ProjectConfig, tags: Tags, spark: SparkSession) -> None:
+    def __init__(self, config: ProjectConfig, tags: Tags, spark: SparkSession, code_paths: list[str]) -> None:
         """Initialize the model with project configuration.
 
         :param config: Project configuration object
@@ -62,10 +96,11 @@ class BasicModel:
         self.schema_name = self.config.schema_name
         self.train_table = self.config.train_table
         self.test_table = self.config.test_table
-        self.experiment_name = self.config.experiment_name_basic
-        self.model_name = f"{self.catalog_name}.{self.schema_name}.{self.config.model_name}"
+        self.experiment_name = self.config.experiment_name_custom
+        self.model_name = f"{self.catalog_name}.{self.schema_name}.{self.config.model_name_custom}"
         self.model_type = self.config.model_type
         self.tags = tags.model_dump()
+        self.code_paths = code_paths
 
     @timeit
     def load_data(self) -> None:
@@ -120,6 +155,39 @@ class BasicModel:
     def log_model(self) -> None:
         """Log the model using MLflow."""
         mlflow.set_experiment(self.experiment_name)
+
+        additional_pip_deps = ["pyspark==3.5.0"]
+        for package in self.code_paths:
+            whl_name = package.split("/")[-1]
+            additional_pip_deps.append(f"./code/{whl_name}")
+
+        # Manage the wheel so that it can be copied
+        if is_databricks():
+            wheel_src = self.code_paths[0]
+            whl_name = os.path.basename(wheel_src)
+            local_whl_path = f"/local_disk0/tmp/{whl_name}"
+
+            # Avoid the SameFileError if already copy
+            if not os.path.exists(wheel_src):
+                raise FileNotFoundError(f"❌ Wheel not found at {wheel_src}")
+            elif os.path.abspath(wheel_src) == os.path.abspath(local_whl_path):
+                logger.info(f"⚠️ Wheel already in {local_whl_path}, skipping copy.")
+            else:
+                try:
+                    shutil.copyfile(wheel_src, local_whl_path)
+                    logger.info(f"✅ Copied wheel from {wheel_src} to {local_whl_path}")
+                except shutil.SameFileError:
+                    logger.info("⚠️ Wheel already identical, skipping copy.")
+
+            code_paths = [local_whl_path]
+            additional_pip_deps.append(f"./code/{whl_name}")
+        else:
+            # On local environment
+            code_paths = self.code_paths
+            for package in self.code_paths:
+                whl_name = os.path.basename(package)
+                additional_pip_deps.append(f"./code/{whl_name}")
+
         with mlflow.start_run(tags=self.tags) as run:
             self.run_id = run.info.run_id
 
@@ -142,11 +210,17 @@ class BasicModel:
             )
             mlflow.log_input(test_dataset, context="testing")
 
-            mlflow.sklearn.log_model(
-                sk_model=self.pipeline,
-                artifact_path=f"{self.model_type}-pipeline-model",
+            wrapped_model = SklearnModelWithProba(self.pipeline)
+
+            conda_env = _mlflow_conda_env(additional_pip_deps=additional_pip_deps)
+
+            mlflow.pyfunc.log_model(
+                artifact_path=f"{self.model_type}-pipeline-custom-model",
+                python_model=wrapped_model,
                 signature=signature,
                 input_example=self.X_test[0:1],
+                conda_env=conda_env,
+                code_paths=code_paths,
             )
 
             # Evaluate classification metrics
@@ -176,7 +250,7 @@ class BasicModel:
         """Register model in Unity Catalog."""
         logger.info("🔄 Registering the model in UC...")
         registered_model = mlflow.register_model(
-            model_uri=f"runs:/{self.run_id}/{self.model_type}-pipeline-model",
+            model_uri=f"runs:/{self.run_id}/{self.model_type}-pipeline-custom-model",
             name=self.model_name,
             tags=self.tags,
         )
@@ -219,17 +293,11 @@ class BasicModel:
 
     @timeit
     def load_latest_model_and_predict(self, input_data: pd.DataFrame) -> np.ndarray:
-        """Load the latest model from MLflow (alias=latest-model) and make predictions.
-
-        Alias latest is not allowed -> we use latest-model instead as an alternative.
-
-        :param input_data: Pandas DataFrame containing input features for prediction.
-        :return: Pandas DataFrame with predictions.
-        """
+        """Load the latest model from MLflow (alias=latest-model) and make predictions."""
         logger.info("Loading model from MLflow alias 'latest-model'...")
 
         model_uri = f"models:/{self.model_name}@latest-model"
-        model = mlflow.sklearn.load_model(model_uri)
+        model = mlflow.pyfunc.load_model(model_uri)  # ✅ Correction ici
 
         logger.info("Model successfully loaded.")
 
@@ -239,10 +307,11 @@ class BasicModel:
             input_data = input_data.toPandas()
 
         # Make predictions
-        predictions = model.predict(input_data)
+        results = model.predict(input_data)
 
-        # Return predictions as a DataFrame
-        return predictions
+        # Convertir la liste de dicts en DataFrame
+        results_df = pd.DataFrame(results)
+        return results_df
 
     def _get_baseline_model_uri(self) -> str | None:
         """Return the URI of the baseline model used for comparison.
@@ -298,10 +367,23 @@ class BasicModel:
             return True
 
         # Évaluer manuellement (sans mlflow.evaluate) car le modèle retourne un dict
-        baseline_model = mlflow.sklearn.load_model(baseline_uri)
+        baseline_model = mlflow.pyfunc.load_model(baseline_uri)
         # Faire les prédictions du modèle baseline
-        y_pred = pd.DataFrame(baseline_model.predict(self.X_test))
+        preds_df = pd.DataFrame(baseline_model.predict(self.X_test))
+        if "prediction" not in preds_df.columns:
+            raise ValueError("Expected key 'prediction' in baseline model output.")
+
+        y_pred = preds_df["prediction"]
         y_true = self.y_test.copy()
+
+        # Harmoniser les labels de y_true (string → int)
+        y_true = y_true.replace(
+            {
+                "Canceled": 0,
+                "Not_Canceled": 1,
+            }
+        )
+        y_true = y_true.astype(int)
 
         old_f1 = f1_score(y_true, y_pred, average="weighted", zero_division=0)
         logger.info(f"Baseline F1-score: {old_f1}")

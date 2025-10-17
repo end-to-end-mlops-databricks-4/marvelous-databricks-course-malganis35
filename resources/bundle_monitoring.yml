@@ -1,0 +1,40 @@
+resources:
+  jobs:
+    hotel-reservation-caotrido-monitor-update:
+      name: hotel-reservation-caotrido-monitor-update-workflow
+      schedule:
+        quartz_cron_expression: "0 0 7 * * ?" # every day at 6 AM
+        timezone_id: "Europe/Amsterdam"
+        pause_status: ${var.schedule_pause_status}
+      tags:
+        project_name: "hotel-reservation-caotrido"
+        job_type: "weekly_monitoring"
+        environment: "${var.env}"
+        finops_cost_center: "mlops-cohort4"
+        purpose: "monitoring"
+      job_clusters:
+        - job_cluster_key: "hotel-reservation-cluster"
+          new_cluster:
+            spark_version: "16.4.x-scala2.12"
+            data_security_mode: "SINGLE_USER"
+            node_type_id: "r3.xlarge"
+            driver_node_type_id: "r3.xlarge"
+            autoscale:
+              min_workers: 1
+              max_workers: 1
+            spark_env_vars:
+              "TOKEN_STATUS_CHECK": "{{secrets/mlops_course/git_token_status_check}}" # not needed if there is no integration test. For example, variable in .env file
+
+      tasks:
+        - task_key: "refresh_monitor_table"
+          # job_cluster_key: "house-price-cluster"
+          existing_cluster_id: ${target.cluster_id} # "0925-180914-5nzxv7hw"
+          spark_python_task:
+            python_file: "../scripts/05.refresh_monitor.py"
+            parameters:
+              - "--root_path"
+              - ${workspace.root_path}
+              - "--env"
+              - ${bundle.target}
+          libraries:
+           - whl: ../dist/*.whl

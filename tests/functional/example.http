@@ -7,3 +7,11 @@ curl \
   -H "Content-Type: application/json" \
   -d@data.json \
   https://dbc-f122dc18-1b68.cloud.databricks.com/serving-endpoints/hotel-reservation-basic-model-serving-db/invocations
+
+### From the command line
+curl \
+  -X POST \
+  -H "Authorization: Bearer $(databricks auth token --host https://dbc-f122dc18-1b68.cloud.databricks.com | jq -r '.access_token')" \
+  -H "Content-Type: application/json" \
+  -d @data.json \
+  https://dbc-f122dc18-1b68.cloud.databricks.com/serving-endpoints/hotel-reservation-basic-model-serving-db/invocations

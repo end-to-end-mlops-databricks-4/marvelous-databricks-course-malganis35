@@ -23,7 +23,6 @@ dependencies = [
     "pandas==2.3.0",
     "pyarrow==17.0.0",
     "scikit-learn==1.7.0",
-    "lightgbm==4.6.0",
     "scipy==1.16.0",
     "databricks-sdk==0.55.0",
     "pydantic==2.11.7",
@@ -47,11 +46,22 @@ dev = ["databricks-cli>=0.18.0",
        "pre-commit>=4.1.0, <5",
        "commitizen>=4.9.1",]
 
+
 test = ["pre-commit>=4.1.0, <5",
        "pytest>=8.0.0, <9",
        "pytest-cov>=5.0.0, <6",
        "pyspark==3.5.7",
        "pytest-mock>=3.15.1",]
+ui = [
+    "databricks-sql-connector>=2.9.6",
+    "loguru>=0.7.3",
+    "pandas>=2.3.0",
+    "plotly>=6.3.1",
+    "pretty-errors>=1.2.25",
+    "python-dotenv>=1.1.1",
+    "requests>=2.32.5",
+    "streamlit>=1.50.0",
+]
 
 [build-system]
 requires = [

@@ -24,14 +24,17 @@ class ProjectConfig(BaseModel):
     test_table: str
     feature_table_name: str | None
     feature_function_name: str | None
+    batch_inference_table: str
     experiment_name_basic: str | None
     experiment_name_custom: str | None
     experiment_name_fe: str | None
     model_name: str | None
+    model_name_custom: str | None
     model_name_fe: str | None
     model_type: str | None
     model_config = {"protected_namespaces": ()}
     endpoint_name: str | None
+    endpoint_name_custom: str | None
     endpoint_name_fe: str | None
 
     @classmethod
@@ -54,6 +57,7 @@ class ProjectConfig(BaseModel):
             config_dict["test_table"] = config_dict[env]["test_table"]
             config_dict["feature_table_name"] = config_dict[env]["feature_table_name"]
             config_dict["feature_function_name"] = config_dict[env]["feature_function_name"]
+            config_dict["batch_inference_table"] = config_dict[env]["batch_inference_table"]
 
             return cls(**config_dict)
 

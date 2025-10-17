@@ -9,8 +9,6 @@ from mlflow.models import infer_signature
 from mlflow.tracking import MlflowClient
 from pyspark.sql import DataFrame, SparkSession
 from sklearn.compose import ColumnTransformer
-
-# from lightgbm import LGBMRegressor
 from sklearn.linear_model import LogisticRegression
 
 # from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
@@ -159,7 +157,7 @@ class FeatureLookUpModel:
     def train(self) -> None:
         """Train the model and log results to MLflow.
 
-        Uses a pipeline with preprocessing and LightGBM regressor.
+        Uses a pipeline with preprocessing and LogisticRegression Classifier.
         """
         logger.info("🚀 Starting training...")
 

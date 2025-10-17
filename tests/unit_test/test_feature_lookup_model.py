@@ -70,15 +70,18 @@ def mock_config() -> ProjectConfig:
         raw_data_file="mock.csv",
         train_table="train_table",
         test_table="test_table",
+        batch_inference_table="batch_inference_table",
         feature_table_name="features_table",
         feature_function_name="feature_func",
         experiment_name_fe="/experiments/mock",
         experiment_name_basic="/experiments/basic",
         experiment_name_custom="/experiments/custom",
         model_name="mock_model",
+        model_name_custom="mock_model",
         model_name_fe="mock_model",
         model_type="logistic-regression",
         endpoint_name="endpoint_model",
+        endpoint_name_custom="endpoint_custom_model",
         endpoint_name_fe="endpoint_fe_model",
     )
 

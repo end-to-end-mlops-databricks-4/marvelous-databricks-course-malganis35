@@ -73,11 +73,11 @@ logger.info("Loaded config file.")
 
 catalog_name = config.catalog_name
 schema_name = config.schema_name
-endpoint_name = f"{config.endpoint_name}-{args.env}"
+endpoint_name = f"{config.endpoint_name_custom}-{args.env}"
 
 # COMMAND ----------
 
-model_name_to_deploy = f"{config.catalog_name}.{config.schema_name}.{config.model_name}"
+model_name_to_deploy = f"{config.catalog_name}.{config.schema_name}.{config.model_name_custom}"
 
 # COMMAND ----------
 
@@ -87,7 +87,7 @@ serving = ModelServing(
     endpoint_name=endpoint_name,
     catalog_name=config.catalog_name,
     schema_name=config.schema_name,
-    monitoring_table_suffix="basic_model_logs_dev",
+    monitoring_table_suffix="custom_model_logs_dev",
 )
 
 if model_version == "auto":
