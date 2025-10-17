@@ -77,7 +77,7 @@ logger.info(f"Dataset shape: {df.shape}")
 # COMMAND ----------
 logger.info("Generating data ...")
 
-nb_data = random.randint(2, 100)
+nb_data = random.randint(15, 100)
 logger.info(f"Number of data to generate: {nb_data}")
 
 if is_test == 0:
