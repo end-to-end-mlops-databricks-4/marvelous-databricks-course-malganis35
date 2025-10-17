@@ -64,7 +64,7 @@ class SklearnModelWithProba(mlflow.pyfunc.PythonModel):
             results.append(
                 {
                     "prediction": int(p),
-                    "label": "Cancelled" if p == 0 else "Not_Canceled",
+                    "label": "Canceled" if p == 0 else "Not_Canceled",
                     "probability": float(pr),
                 }
             )
