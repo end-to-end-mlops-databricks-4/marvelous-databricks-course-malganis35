@@ -83,7 +83,6 @@ for col in lst_col_check:
         logger.warning(f"Column {col} is absent from the dataset. Add a NULL column.")
         df = df.withColumn(col, lit(None).cast("string"))
 
-
     full_table_name = f"{config.catalog_name}.{config.schema_name}.{config.batch_inference_table}"
 
     try:
