@@ -241,7 +241,7 @@ def test_load_latest_model_and_predict(mock_mlflow: MagicMock, model: CustomMode
     fake_model = MagicMock()
     fake_model.predict.return_value = [
         {"prediction": 1, "label": "Not_Canceled", "probability": 0.9},
-        {"prediction": 0, "label": "Cancelled", "probability": 0.1},
+        {"prediction": 0, "label": "Canceled", "probability": 0.1},
     ]
     mock_mlflow.pyfunc.load_model.return_value = fake_model
 
