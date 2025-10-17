@@ -4,8 +4,8 @@ resources:
     #------------------------------------------------------------------------
     # CONTINUOUS BASIC PREDICTION (RUNNED AUTOMATICALLY)
     #------------------------------------------------------------------------
-    continuous_basic_prediction:
-      name: ${bundle.name}-continuous-basic-prediction
+    continuous_prediction:
+      name: ${bundle.name}-continuous-prediction
       # email_notifications: # in case of failure, can send to teams, slack, emails
       #     on_failure:
       #       - example@example.com
@@ -57,6 +57,23 @@ resources:
             - task_key: "continuous_ingestion"
           spark_python_task:
             python_file: "../scripts/07.make_continuous_basic_prediction.py"
+            parameters:
+              - "--root_path"
+              - "${workspace.root_path}"
+              - "--env"
+              - "${var.env}"
+              - "--write_mode"
+              - "upsert"
+          libraries:
+            - whl: ../dist/*.whl
+
+        - task_key: "custom_model_prediction"
+          # job_cluster_key: "house-price-cluster"
+          existing_cluster_id: ${target.cluster_id} # "0925-180914-5nzxv7hw"
+          depends_on:
+            - task_key: "basic_model_prediction"
+          spark_python_task:
+            python_file: "../scripts/07b.make_continuous_custom_prediction.py"
             parameters:
               - "--root_path"
               - "${workspace.root_path}"
