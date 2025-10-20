@@ -1,0 +1,262 @@
+table FACT_HISTORY
+	lineageTag: 75b85ab6-f13d-48f1-822e-91a2ef09e5a3
+
+	column no_of_adults
+		dataType: int64
+		formatString: 0
+		lineageTag: 4ef9393c-e333-4ced-974d-e6ecd97be49a
+		summarizeBy: sum
+		sourceColumn: no_of_adults
+
+		annotation SummarizationSetBy = Automatic
+
+	column no_of_children
+		dataType: int64
+		formatString: 0
+		lineageTag: efb37c36-5a1b-49b9-8f82-9448a0cc7ca0
+		summarizeBy: sum
+		sourceColumn: no_of_children
+
+		annotation SummarizationSetBy = Automatic
+
+	column no_of_weekend_nights
+		dataType: int64
+		formatString: 0
+		lineageTag: 00ac2272-947a-4dba-91ca-fdb80c9653a4
+		summarizeBy: sum
+		sourceColumn: no_of_weekend_nights
+
+		annotation SummarizationSetBy = Automatic
+
+	column no_of_week_nights
+		dataType: int64
+		formatString: 0
+		lineageTag: ea165624-3b8c-4d60-a539-25f55e00c0e0
+		summarizeBy: sum
+		sourceColumn: no_of_week_nights
+
+		annotation SummarizationSetBy = Automatic
+
+	column type_of_meal_plan
+		dataType: string
+		lineageTag: 0db82e96-0c50-4207-ac53-2f0664c93354
+		summarizeBy: none
+		sourceColumn: type_of_meal_plan
+
+		annotation SummarizationSetBy = Automatic
+
+	column required_car_parking_space
+		dataType: int64
+		formatString: 0
+		lineageTag: b3a86df6-cc2c-4a22-87aa-c4b7fd486897
+		summarizeBy: sum
+		sourceColumn: required_car_parking_space
+
+		annotation SummarizationSetBy = Automatic
+
+	column room_type_reserved
+		dataType: string
+		lineageTag: cecceb47-9af4-457e-9ad3-89f6cec9dd85
+		summarizeBy: none
+		sourceColumn: room_type_reserved
+
+		annotation SummarizationSetBy = Automatic
+
+	column lead_time
+		dataType: int64
+		formatString: 0
+		lineageTag: b628ca6b-c28d-4ca5-bcf3-3ee0c8530f7e
+		summarizeBy: sum
+		sourceColumn: lead_time
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation __PBI_SemanticLinks = [{"LinkTarget":{"TableName":"FACT_HISTORY","TableItemName":"lead_time (bins)","ObjectType":4},"LinkType":"UsedInGroup"}]
+
+	column arrival_year
+		dataType: string
+		lineageTag: 1e6dfe94-6380-44e9-89b5-b52096bea328
+		summarizeBy: none
+		sourceColumn: arrival_year
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column arrival_month
+		dataType: int64
+		formatString: 0
+		lineageTag: 7685aaf2-7014-4cd5-8428-882c9fea38d2
+		summarizeBy: sum
+		sourceColumn: arrival_month
+
+		annotation SummarizationSetBy = Automatic
+
+	column market_segment_type
+		dataType: string
+		lineageTag: bda94614-47d2-42b1-9d85-1f31cf8a2483
+		summarizeBy: none
+		sourceColumn: market_segment_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column repeated_guest
+		dataType: int64
+		formatString: 0
+		lineageTag: 70524ef4-d0f0-462b-a8ab-e0968ef00cba
+		summarizeBy: sum
+		sourceColumn: repeated_guest
+
+		annotation SummarizationSetBy = Automatic
+
+	column no_of_previous_cancellations
+		dataType: int64
+		formatString: 0
+		lineageTag: 6c401922-6de7-474d-804f-c05ed2a37ed1
+		summarizeBy: sum
+		sourceColumn: no_of_previous_cancellations
+
+		annotation SummarizationSetBy = Automatic
+
+	column no_of_previous_bookings_not_canceled
+		dataType: int64
+		formatString: 0
+		lineageTag: 55e4828b-2200-4adc-95a0-1daf34745625
+		summarizeBy: sum
+		sourceColumn: no_of_previous_bookings_not_canceled
+
+		annotation SummarizationSetBy = Automatic
+
+	column avg_price_per_room
+		dataType: double
+		formatString: "€"\ #,0.00;-"€"\ #,0.00;"€"\ #,0.00
+		lineageTag: 1d45c7d0-15c9-4f84-b305-67dfa058c39f
+		summarizeBy: sum
+		sourceColumn: avg_price_per_room
+
+		annotation SummarizationSetBy = Automatic
+
+	column no_of_special_requests
+		dataType: int64
+		formatString: 0
+		lineageTag: bc6137a0-1032-4a62-b5dd-c4f041a7ef53
+		summarizeBy: sum
+		sourceColumn: no_of_special_requests
+
+		annotation SummarizationSetBy = Automatic
+
+	column booking_status
+		dataType: string
+		lineageTag: 43d59d3e-af53-4d83-8c16-0a7c7f1eecc5
+		summarizeBy: none
+		sourceColumn: booking_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column update_timestamp_utc
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 3ddddecd-5619-4062-89e7-9829a48c2f59
+		summarizeBy: none
+		sourceColumn: update_timestamp_utc
+
+		variation Variation
+			isDefault
+			relationship: 27ed4f77-e5d0-4741-b856-df03edf8e40c
+			defaultHierarchy: LocalDateTable_dce7ec6a-bbc1-4b77-b9fd-c1dc6f998928.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column Booking_ID
+		dataType: string
+		lineageTag: a8c56079-1e04-4693-afd2-1e856e5e6984
+		summarizeBy: none
+		sourceColumn: Booking_ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column CALC_DATE_ARRIVAL
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 28ce61f2-0c50-4606-8dd7-13caac6b3daa
+		summarizeBy: none
+		sourceColumn: CALC_DATE_ARRIVAL
+
+		variation Variation
+			isDefault
+			relationship: 8e56848e-3579-4828-a84a-13480dc1ecc7
+			defaultHierarchy: LocalDateTable_b7656b8e-429a-43b3-84bb-ec1aceaa4f46.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column CALC_DATE_RESERVATION
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 1622e365-009e-46ac-9b88-2264870d9c2f
+		summarizeBy: none
+		sourceColumn: CALC_DATE_RESERVATION
+
+		variation Variation
+			isDefault
+			relationship: 03ff21f6-00e7-40f0-9d04-ce0ca3c6b191
+			defaultHierarchy: LocalDateTable_e7ad21d8-ea43-439b-b022-c25b8213f02b.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'lead_time (bins)' =
+			IF(
+				ISBLANK('FACT_HISTORY'[lead_time]),
+				BLANK(),
+				INT('FACT_HISTORY'[lead_time] / 20) * 20
+			)
+		formatString: 0
+		lineageTag: 33d34f3c-59a6-42d6-a30f-f04097f1c25a
+		summarizeBy: none
+
+		extendedProperty GroupingMetadata =
+				{
+				  "version": 0,
+				  "groupedColumns": [
+				    {
+				      "Column": {
+				        "Expression": {
+				          "SourceRef": {
+				            "Entity": "FACT_HISTORY"
+				          }
+				        },
+				        "Property": "lead_time"
+				      }
+				    }
+				  ],
+				  "binningMetadata": {
+				    "binSize": {
+				      "value": 20.0,
+				      "unit": 0
+				    }
+				  }
+				}
+
+		annotation GroupingDesignState = {"Version":0,"Sources":[{"Name":"f","Entity":"FACT_HISTORY"}],"GroupedColumns":[{"Column":{"Expression":{"SourceRef":{"Source":"f"}},"Property":"lead_time"}}],"BinItem":{"Expression":{"Floor":{"Expression":{"Column":{"Expression":{"SourceRef":{"Source":"f"}},"Property":"lead_time"}},"Size":20.0}}}}
+
+		annotation SummarizationSetBy = Automatic
+
+	partition FACT_HISTORY = m
+		mode: import
+		source =
+				let
+				    Source = Table.Combine({#"FACT_RESERVATION (2)", #"FACT_RESERVATION (3)"}),
+				    #"Inserted Merged Column" = Table.AddColumn(Source, "CALC_DATE_ARRIVAL", each Text.Combine({"01/", Text.From([arrival_month], "fr-FR"), "/", Text.From([arrival_year], "fr-FR")}), type text),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Inserted Merged Column",{{"CALC_DATE_ARRIVAL", type date}}),
+				    #"Added Custom" = Table.AddColumn(#"Changed Type", "CALC_DATE_RESERVATION", each Date.AddDays( [CALC_DATE_ARRIVAL],-[lead_time])),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Added Custom",{{"CALC_DATE_RESERVATION", type date}})
+				in
+				    #"Changed Type1"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

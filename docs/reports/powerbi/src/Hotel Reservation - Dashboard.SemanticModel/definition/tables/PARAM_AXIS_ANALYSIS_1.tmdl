@@ -1,0 +1,52 @@
+table PARAM_AXIS_ANALYSIS_1
+	lineageTag: bc97cd82-bcfa-4252-a87f-595bf441f396
+
+	column PARAM_AXIS_ANALYSIS
+		lineageTag: cecea76f-7812-4728-9ece-602becf552d3
+		summarizeBy: none
+		sourceColumn: [Value1]
+		sortByColumn: 'Parameter Order'
+
+		relatedColumnDetails
+			groupByColumn: 'Parameter Fields'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Parameter Fields'
+		isHidden
+		lineageTag: c88b353c-37b5-4991-8339-0d5d4d6e002e
+		summarizeBy: none
+		sourceColumn: [Value2]
+		sortByColumn: 'Parameter Order'
+
+		extendedProperty ParameterMetadata =
+				{
+				  "version": 3,
+				  "kind": 2
+				}
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Parameter Order'
+		isHidden
+		formatString: 0
+		lineageTag: 597b2de1-7463-4579-88aa-641613c57a9e
+		summarizeBy: sum
+		sourceColumn: [Value3]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition PARAM_AXIS_ANALYSIS_1 = calculated
+		mode: import
+		source =
+				{
+				    ("Type of Meal", NAMEOF('FACT_HISTORY'[type_of_meal_plan]), 0),
+				    ("Room Type Reserved", NAMEOF('FACT_HISTORY'[room_type_reserved]), 1),
+				    ("Market Segment", NAMEOF('FACT_HISTORY'[market_segment_type]), 2),
+				    ("Lead Time (bins)", NAMEOF('FACT_HISTORY'[lead_time (bins)]), 3),
+				    ("Arrival Month", NAMEOF('FACT_HISTORY'[arrival_month]), 4),
+				    ("Arrival Year", NAMEOF('FACT_HISTORY'[arrival_year]), 5)
+				}
+
+	annotation PBI_Id = 49da2972a5d648bcb23b0320ee78f386
+

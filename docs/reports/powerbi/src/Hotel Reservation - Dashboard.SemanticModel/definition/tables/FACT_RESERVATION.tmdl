@@ -1,0 +1,249 @@
+table FACT_RESERVATION
+	lineageTag: 9b9bb2ed-1e2d-4edd-ba55-37583c3bb2d4
+
+	measure CALC_Accuracy = SUM(FACT_RESERVATION[CALC_Good_Pred (Bool)]) / COUNT(FACT_RESERVATION[Booking_ID])
+		formatString: 0.0\ %;-0.0\ %;0.0\ %
+		displayFolder: _CALC
+		lineageTag: 65f938f6-47be-4a2d-af6d-d56622603f07
+
+	column Booking_ID
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 08f48873-f242-49c8-a2fe-61e7dc67a381
+		summarizeBy: none
+		sourceColumn: Booking_ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column no_of_adults
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 3a70349a-e18b-4752-a184-1a3406c9bc82
+		summarizeBy: sum
+		sourceColumn: no_of_adults
+
+		annotation SummarizationSetBy = Automatic
+
+	column no_of_children
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 24913500-7d89-42d7-8c0a-94a257d23763
+		summarizeBy: sum
+		sourceColumn: no_of_children
+
+		annotation SummarizationSetBy = Automatic
+
+	column no_of_weekend_nights
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 8c9b5cd8-84c2-40da-a276-2e156cfa4fa7
+		summarizeBy: sum
+		sourceColumn: no_of_weekend_nights
+
+		annotation SummarizationSetBy = Automatic
+
+	column no_of_week_nights
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 9d2aef7a-1730-42d7-8d91-c88ab5a10a74
+		summarizeBy: sum
+		sourceColumn: no_of_week_nights
+
+		annotation SummarizationSetBy = Automatic
+
+	column type_of_meal_plan
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: d35455c7-35d0-4be1-b95e-478a0f9a1c76
+		summarizeBy: none
+		sourceColumn: type_of_meal_plan
+
+		annotation SummarizationSetBy = Automatic
+
+	column required_car_parking_space
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: bd8aa19e-f63c-4348-b28b-6389bafd7e05
+		summarizeBy: sum
+		sourceColumn: required_car_parking_space
+
+		annotation SummarizationSetBy = Automatic
+
+	column room_type_reserved
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 5fd3b9e9-0de4-42ea-8fd8-aec255fd9322
+		summarizeBy: none
+		sourceColumn: room_type_reserved
+
+		annotation SummarizationSetBy = Automatic
+
+	column lead_time
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: eab7293e-298b-46c6-92a6-690b3ec4d0af
+		summarizeBy: sum
+		sourceColumn: lead_time
+
+		annotation SummarizationSetBy = Automatic
+
+	column arrival_year
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 9125d1cd-3bc6-4110-991f-65f4b5284493
+		summarizeBy: sum
+		sourceColumn: arrival_year
+
+		annotation SummarizationSetBy = Automatic
+
+	column arrival_month
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 0da6cb62-bd12-4ce6-a407-f386d8cf33fe
+		summarizeBy: sum
+		sourceColumn: arrival_month
+
+		annotation SummarizationSetBy = Automatic
+
+	column market_segment_type
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 18a2a503-cbf6-4978-90ab-b9977097a653
+		summarizeBy: none
+		sourceColumn: market_segment_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column repeated_guest
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 662542c0-6849-4cdc-b7f2-f284f9072568
+		summarizeBy: sum
+		sourceColumn: repeated_guest
+
+		annotation SummarizationSetBy = Automatic
+
+	column no_of_previous_cancellations
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: c16a9b4e-dc24-4807-8d6a-0f685a675370
+		summarizeBy: sum
+		sourceColumn: no_of_previous_cancellations
+
+		annotation SummarizationSetBy = Automatic
+
+	column no_of_previous_bookings_not_canceled
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 95432a2c-5c4a-415f-b369-5b873eef9b0a
+		summarizeBy: sum
+		sourceColumn: no_of_previous_bookings_not_canceled
+
+		annotation SummarizationSetBy = Automatic
+
+	column avg_price_per_room
+		dataType: double
+		formatString: #,0\ "€";-#,0\ "€";#,0\ "€"
+		sourceProviderType: double
+		lineageTag: 2c3bef70-e922-4947-bf44-7c375c64260b
+		summarizeBy: sum
+		sourceColumn: avg_price_per_room
+
+		annotation SummarizationSetBy = Automatic
+
+	column no_of_special_requests
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 4141b243-4d02-4596-887c-2e8ea0e10864
+		summarizeBy: sum
+		sourceColumn: no_of_special_requests
+
+		annotation SummarizationSetBy = Automatic
+
+	column booking_status
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 6231be6c-ffac-45aa-bb18-81c9ac8128ab
+		summarizeBy: none
+		sourceColumn: booking_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column update_timestamp_utc
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 8b6b1c36-214a-404e-93b6-757204099bac
+		summarizeBy: none
+		sourceColumn: update_timestamp_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	column booking_status_pred_basic
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: b99bedad-94e4-4534-b707-c0c8817b6519
+		summarizeBy: none
+		sourceColumn: booking_status_pred_basic
+
+		annotation SummarizationSetBy = Automatic
+
+	column booking_status_pred_custom
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 45b214ef-94ea-43e0-ba38-e89a65fa5c93
+		summarizeBy: none
+		sourceColumn: booking_status_pred_custom
+
+		annotation SummarizationSetBy = Automatic
+
+	column booking_status_proba_custom
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 12c2c2f0-ae7d-4292-ab7a-ff3129bb43ad
+		summarizeBy: none
+		sourceColumn: booking_status_proba_custom
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'CALC_Prediction Proba' = 1 - VALUE(FACT_RESERVATION[booking_status_proba_custom])
+		formatString: 0\ %;-0\ %;0\ %
+		displayFolder: _CALC
+		lineageTag: d97a9740-bd39-4323-ade2-7275622f3700
+		summarizeBy: average
+
+		annotation SummarizationSetBy = User
+
+	column 'CALC_Good_Pred (Bool)' = IF(FACT_RESERVATION[booking_status]=FACT_RESERVATION[booking_status_pred_custom], 1, 0)
+		formatString: 0
+		displayFolder: _CALC
+		lineageTag: 4b9e4c85-2c61-4790-81eb-48fa35408673
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	partition FACT_RESERVATION = m
+		mode: directQuery
+		source =
+				let
+				    Source = DatabricksMultiCloud.Catalogs("dbc-f122dc18-1b68.cloud.databricks.com", "/sql/1.0/warehouses/711fa33d05cc334c", [Catalog = "mlops_dev", Database = "caotrido"]),
+				    continuous_reservation_caotrido_mlops_dev = Source{[Item="continuous_reservation",Schema="caotrido",Catalog="mlops_dev"]}[Data]
+				in
+				    continuous_reservation_caotrido_mlops_dev
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

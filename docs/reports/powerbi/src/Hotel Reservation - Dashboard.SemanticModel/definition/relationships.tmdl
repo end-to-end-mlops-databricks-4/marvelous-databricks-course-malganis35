@@ -1,0 +1,15 @@
+relationship 27ed4f77-e5d0-4741-b856-df03edf8e40c
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FACT_HISTORY.update_timestamp_utc
+	toColumn: LocalDateTable_dce7ec6a-bbc1-4b77-b9fd-c1dc6f998928.Date
+
+relationship 8e56848e-3579-4828-a84a-13480dc1ecc7
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FACT_HISTORY.CALC_DATE_ARRIVAL
+	toColumn: LocalDateTable_b7656b8e-429a-43b3-84bb-ec1aceaa4f46.Date
+
+relationship 03ff21f6-00e7-40f0-9d04-ce0ca3c6b191
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FACT_HISTORY.CALC_DATE_RESERVATION
+	toColumn: LocalDateTable_e7ad21d8-ea43-439b-b022-c25b8213f02b.Date
+

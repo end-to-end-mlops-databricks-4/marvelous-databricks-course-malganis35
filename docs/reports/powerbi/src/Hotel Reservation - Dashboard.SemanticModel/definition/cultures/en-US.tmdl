@@ -1,0 +1,219 @@
+cultureInfo en-US
+
+	linguisticMetadata =
+			{
+			  "Version": "2.0.0",
+			  "Language": "en-US",
+			  "Entities": {
+			    "fact_history.arrival_year": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "FACT_HISTORY",
+			          "ConceptualProperty": "arrival_year"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "fact_history.market_segment_type": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "FACT_HISTORY",
+			          "ConceptualProperty": "market_segment_type"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Market Segment": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "fact_history.type_of_meal_plan": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "FACT_HISTORY",
+			          "ConceptualProperty": "type_of_meal_plan"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Type of Meal": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "fact_history.room_type_reserved": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "FACT_HISTORY",
+			          "ConceptualProperty": "room_type_reserved"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Room Type Reserved": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "fact_reservation.booking_status_pred_custom": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "FACT_RESERVATION",
+			          "ConceptualProperty": "booking_status_pred_custom"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Booking Status": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Booking Status (Pred)": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "fact_reservation.market_segment_type": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "FACT_RESERVATION",
+			          "ConceptualProperty": "market_segment_type"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Market Segment": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "fact_reservation.room_type_reserved": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "FACT_RESERVATION",
+			          "ConceptualProperty": "room_type_reserved"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Room Type": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "fact_reservation.type_of_meal_plan": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "FACT_RESERVATION",
+			          "ConceptualProperty": "type_of_meal_plan"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Meal Type Plan": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "fact_reservation.calc_accuracy": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "FACT_RESERVATION",
+			          "ConceptualProperty": "CALC_Accuracy"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Model Accuracy": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "fact_reservation.update_timestamp_utc": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "FACT_RESERVATION",
+			          "ConceptualProperty": "update_timestamp_utc"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Date": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    }
+			  }
+			}
+		contentType: json
+

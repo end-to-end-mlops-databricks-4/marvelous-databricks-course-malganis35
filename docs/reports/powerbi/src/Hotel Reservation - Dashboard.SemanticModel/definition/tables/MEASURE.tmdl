@@ -1,0 +1,61 @@
+table MEASURE
+	lineageTag: c6cd5894-c7f6-4165-a4a6-f65707427951
+
+	measure 'Nb Bookings' = DISTINCTCOUNT(FACT_HISTORY[Booking_ID])
+		formatString: 0
+		lineageTag: 1a7e896d-055d-43f5-abf3-84f99c40e893
+
+	measure 'Nb Bookings (Canceled)' = CALCULATE([Nb Bookings], FACT_HISTORY[booking_status] = "Canceled")
+		formatString: 0
+		lineageTag: 2142f0c2-30b6-4bc0-b553-adba752e87e2
+
+	measure '% Canceled' = [Nb Bookings (Canceled)]/[Nb Bookings]
+		formatString: 0\ %;-0\ %;0\ %
+		lineageTag: 15908cf4-877c-4555-a996-50c6cdb5b9da
+
+	measure 'Revenue Estimated' = SUM(FACT_HISTORY[avg_price_per_room])
+		formatString: #,0.00\ "€";-#,0.00\ "€";#,0.00\ "€"
+		lineageTag: 69f1c764-a31e-4f04-ac6d-c84a2fe72e8a
+
+	measure 'Revenue (Not Canceled)' = CALCULATE([Revenue Estimated], FACT_HISTORY[booking_status] = "Not_Canceled")
+		formatString: #,0.0\ "€";-#,0.0\ "€";#,0.0\ "€"
+		lineageTag: dce0e327-d91f-4b6e-b77f-3374e48609dc
+
+	measure 'Revenue (Canceled)' = CALCULATE([Revenue Estimated], FACT_HISTORY[booking_status] = "Canceled")
+		formatString: #,0.0\ "€";-#,0.0\ "€";#,0.0\ "€"
+		lineageTag: 1112d9d3-2ed5-4527-977b-4594db62cfed
+
+	measure 'Avg Lead Time' = AVERAGE(FACT_HISTORY[lead_time])
+		formatString: 0
+		lineageTag: ed9bebfa-856b-46ec-bb1f-72b0b94798d2
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Avg Lead Time (Canceled)' = CALCULATE([Avg Lead Time], FACT_HISTORY[booking_status] = "Canceled")
+		formatString: 0
+		lineageTag: d899b11a-b9ff-422d-8c71-4856e6e58383
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	column Column1
+		dataType: string
+		isHidden
+		lineageTag: 3acfd5b3-d7e2-4fc4-a191-0c9ce918941c
+		summarizeBy: none
+		sourceColumn: Column1
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition MEASURE = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,529 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.3.0/schema.json",
+  "name": "ca76b40f8559d45f628e",
+  "position": {
+    "x": 341.42857142857144,
+    "y": 298.57142857142861,
+    "z": 3000,
+    "height": 372.85714285714289,
+    "width": 900.00000000000011,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_RESERVATION"
+                    }
+                  },
+                  "Property": "Booking_ID"
+                }
+              },
+              "queryRef": "FACT_RESERVATION.Booking_ID",
+              "nativeQueryRef": "Booking_ID"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_RESERVATION"
+                    }
+                  },
+                  "Property": "booking_status_pred_custom"
+                }
+              },
+              "queryRef": "FACT_RESERVATION.booking_status_pred_custom",
+              "nativeQueryRef": "Booking Status (Pred)",
+              "displayName": "Booking Status (Pred)"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FACT_RESERVATION"
+                        }
+                      },
+                      "Property": "CALC_Prediction Proba"
+                    }
+                  },
+                  "Function": 1
+                }
+              },
+              "queryRef": "Avg(FACT_RESERVATION.CALC_Prediction Proba)",
+              "nativeQueryRef": "Proba of Cancelation",
+              "displayName": "Proba of Cancelation"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_RESERVATION"
+                    }
+                  },
+                  "Property": "market_segment_type"
+                }
+              },
+              "queryRef": "FACT_RESERVATION.market_segment_type",
+              "nativeQueryRef": "Market Segment",
+              "displayName": "Market Segment"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_RESERVATION"
+                    }
+                  },
+                  "Property": "room_type_reserved"
+                }
+              },
+              "queryRef": "FACT_RESERVATION.room_type_reserved",
+              "nativeQueryRef": "Room Type",
+              "displayName": "Room Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_RESERVATION"
+                    }
+                  },
+                  "Property": "type_of_meal_plan"
+                }
+              },
+              "queryRef": "FACT_RESERVATION.type_of_meal_plan",
+              "nativeQueryRef": "Meal Type Plan",
+              "displayName": "Meal Type Plan"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FACT_RESERVATION"
+                        }
+                      },
+                      "Property": "lead_time"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(FACT_RESERVATION.lead_time)",
+              "nativeQueryRef": "Lead Time",
+              "displayName": "Lead Time"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FACT_RESERVATION"
+                        }
+                      },
+                      "Property": "no_of_adults"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(FACT_RESERVATION.no_of_adults)",
+              "nativeQueryRef": "No Adults",
+              "displayName": "No Adults"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FACT_RESERVATION"
+                        }
+                      },
+                      "Property": "no_of_children"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(FACT_RESERVATION.no_of_children)",
+              "nativeQueryRef": "No Children",
+              "displayName": "No Children"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FACT_RESERVATION"
+                        }
+                      },
+                      "Property": "no_of_previous_bookings_not_canceled"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(FACT_RESERVATION.no_of_previous_bookings_not_canceled)",
+              "nativeQueryRef": "Previous not canceled Reservation",
+              "displayName": "Previous not canceled Reservation"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FACT_RESERVATION"
+                        }
+                      },
+                      "Property": "no_of_previous_cancellations"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(FACT_RESERVATION.no_of_previous_cancellations)",
+              "nativeQueryRef": "Previous Canceled Reservation",
+              "displayName": "Previous Canceled Reservation"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FACT_RESERVATION"
+                        }
+                      },
+                      "Property": "no_of_special_requests"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(FACT_RESERVATION.no_of_special_requests)",
+              "nativeQueryRef": "Nb Special Request",
+              "displayName": "Nb Special Request"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FACT_RESERVATION"
+                        }
+                      },
+                      "Property": "no_of_week_nights"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(FACT_RESERVATION.no_of_week_nights)",
+              "nativeQueryRef": "Nb Week Nights",
+              "displayName": "Nb Week Nights"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FACT_RESERVATION"
+                        }
+                      },
+                      "Property": "no_of_weekend_nights"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(FACT_RESERVATION.no_of_weekend_nights)",
+              "nativeQueryRef": "Nb Week End Nights",
+              "displayName": "Nb Week End Nights"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FACT_RESERVATION"
+                        }
+                      },
+                      "Property": "repeated_guest"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(FACT_RESERVATION.repeated_guest)",
+              "nativeQueryRef": "Nb Repeated Guest",
+              "displayName": "Nb Repeated Guest"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FACT_RESERVATION"
+                        }
+                      },
+                      "Property": "required_car_parking_space"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(FACT_RESERVATION.required_car_parking_space)",
+              "nativeQueryRef": "Required Car Parking",
+              "displayName": "Required Car Parking"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Aggregation": {
+                "Expression": {
+                  "Column": {
+                    "Expression": {
+                      "SourceRef": {
+                        "Entity": "FACT_RESERVATION"
+                      }
+                    },
+                    "Property": "CALC_Prediction Proba"
+                  }
+                },
+                "Function": 1
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "85D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Avg(FACT_RESERVATION.CALC_Prediction Proba)"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "81D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "FACT_RESERVATION.booking_status_pred_custom"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "95D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sum(FACT_RESERVATION.no_of_previous_bookings_not_canceled)"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "82D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sum(FACT_RESERVATION.no_of_previous_cancellations)"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "106D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "FACT_RESERVATION.room_type_reserved"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "82D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sum(FACT_RESERVATION.no_of_special_requests)"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "78D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sum(FACT_RESERVATION.no_of_week_nights)"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "84D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sum(FACT_RESERVATION.no_of_weekend_nights)"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "90D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sum(FACT_RESERVATION.repeated_guest)"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "82D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sum(FACT_RESERVATION.required_car_parking_space)"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "80D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "FACT_RESERVATION.market_segment_type"
+          }
+        }
+      ],
+      "total": [
+        {
+          "properties": {
+            "totals": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "columnHeaders": [
+        {
+          "properties": {
+            "backColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 5,
+                      "Percent": 0
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

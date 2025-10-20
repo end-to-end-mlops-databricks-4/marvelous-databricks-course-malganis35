@@ -1,0 +1,365 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.3.0/schema.json",
+  "name": "272e771d091d0c0b4d86",
+  "position": {
+    "x": 338.57142857142861,
+    "y": 251.42857142857144,
+    "z": 6000,
+    "height": 421.42857142857144,
+    "width": 900.00000000000011,
+    "tabOrder": 6000
+  },
+  "visual": {
+    "visualType": "keyDriversVisual",
+    "query": {
+      "queryState": {
+        "ExplainBy": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FACT_HISTORY"
+                        }
+                      },
+                      "Property": "arrival_month"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(FACT_HISTORY.arrival_month)",
+              "nativeQueryRef": "Sum of arrival_month"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FACT_HISTORY"
+                        }
+                      },
+                      "Property": "avg_price_per_room"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(FACT_HISTORY.avg_price_per_room)",
+              "nativeQueryRef": "Sum of avg_price_per_room"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FACT_HISTORY"
+                        }
+                      },
+                      "Property": "lead_time"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(FACT_HISTORY.lead_time)",
+              "nativeQueryRef": "Sum of lead_time"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_HISTORY"
+                    }
+                  },
+                  "Property": "market_segment_type"
+                }
+              },
+              "queryRef": "FACT_HISTORY.market_segment_type",
+              "nativeQueryRef": "market_segment_type"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FACT_HISTORY"
+                        }
+                      },
+                      "Property": "no_of_adults"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(FACT_HISTORY.no_of_adults)",
+              "nativeQueryRef": "Sum of no_of_adults"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FACT_HISTORY"
+                        }
+                      },
+                      "Property": "no_of_children"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(FACT_HISTORY.no_of_children)",
+              "nativeQueryRef": "Sum of no_of_children"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FACT_HISTORY"
+                        }
+                      },
+                      "Property": "no_of_previous_bookings_not_canceled"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(FACT_HISTORY.no_of_previous_bookings_not_canceled)",
+              "nativeQueryRef": "Sum of no_of_previous_bookings_not_canceled"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FACT_HISTORY"
+                        }
+                      },
+                      "Property": "no_of_previous_cancellations"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(FACT_HISTORY.no_of_previous_cancellations)",
+              "nativeQueryRef": "Sum of no_of_previous_cancellations"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FACT_HISTORY"
+                        }
+                      },
+                      "Property": "no_of_special_requests"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(FACT_HISTORY.no_of_special_requests)",
+              "nativeQueryRef": "Sum of no_of_special_requests"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FACT_HISTORY"
+                        }
+                      },
+                      "Property": "no_of_week_nights"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(FACT_HISTORY.no_of_week_nights)",
+              "nativeQueryRef": "Sum of no_of_week_nights"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FACT_HISTORY"
+                        }
+                      },
+                      "Property": "no_of_weekend_nights"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(FACT_HISTORY.no_of_weekend_nights)",
+              "nativeQueryRef": "Sum of no_of_weekend_nights"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FACT_HISTORY"
+                        }
+                      },
+                      "Property": "repeated_guest"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(FACT_HISTORY.repeated_guest)",
+              "nativeQueryRef": "Sum of repeated_guest"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FACT_HISTORY"
+                        }
+                      },
+                      "Property": "required_car_parking_space"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(FACT_HISTORY.required_car_parking_space)",
+              "nativeQueryRef": "Sum of required_car_parking_space"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_HISTORY"
+                    }
+                  },
+                  "Property": "room_type_reserved"
+                }
+              },
+              "queryRef": "FACT_HISTORY.room_type_reserved",
+              "nativeQueryRef": "room_type_reserved"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_HISTORY"
+                    }
+                  },
+                  "Property": "type_of_meal_plan"
+                }
+              },
+              "queryRef": "FACT_HISTORY.type_of_meal_plan",
+              "nativeQueryRef": "type_of_meal_plan"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_HISTORY"
+                    }
+                  },
+                  "Property": "arrival_year"
+                }
+              },
+              "queryRef": "FACT_HISTORY.arrival_year",
+              "nativeQueryRef": "arrival_year"
+            }
+          ]
+        },
+        "Target": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_HISTORY"
+                    }
+                  },
+                  "Property": "booking_status"
+                }
+              },
+              "queryRef": "FACT_HISTORY.booking_status",
+              "nativeQueryRef": "booking_status"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "FACT_HISTORY"
+                  }
+                },
+                "Property": "booking_status"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "keyDrivers": [
+        {
+          "properties": {
+            "targetValue": {
+              "expr": {
+                "Literal": {
+                  "Value": "'''Canceled'''"
+                }
+              }
+            },
+            "selectedAnalysis": {
+              "expr": {
+                "Literal": {
+                  "Value": "'keyInfluencers'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}
