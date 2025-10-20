@@ -1,0 +1,6 @@
+loguru==0.7.3
+pandas==2.3.3
+pretty_errors==1.2.25
+python-dotenv==1.1.1
+Requests==2.32.5
+streamlit==1.50.0

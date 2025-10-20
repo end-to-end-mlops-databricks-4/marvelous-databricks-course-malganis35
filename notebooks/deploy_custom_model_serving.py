@@ -5,14 +5,13 @@
 import argparse
 import os
 import sys
-import time
-from typing import Any
 
+import mlflow
 import pretty_errors  # noqa: F401
-import requests
 from dotenv import load_dotenv
 from loguru import logger
 
+from hotel_reservation.serving.model_serving import ModelServing
 from hotel_reservation.utils.config import ProjectConfig
 from hotel_reservation.utils.databricks_utils import create_spark_session, get_databricks_token, is_databricks
 
@@ -28,6 +27,7 @@ if "ipykernel" in sys.modules:
         config = "project_config.yml"
         env = ".env"
         branch = "dev"
+        model_version = "auto"
 
     args = Args()
 else:
@@ -37,6 +37,7 @@ else:
     parser.add_argument("--config", type=str, default="project_config.yml")
     parser.add_argument("--env", type=str, default=".env")
     parser.add_argument("--branch", type=str, default="dev", required=True, help="Project branch to use")
+    parser.add_argument("--model_version", type=str, default="auto")
     args = parser.parse_args()
 
 root_path = args.root_path
@@ -52,8 +53,13 @@ if not is_databricks():
     profile = os.getenv("PROFILE")
     DATABRICKS_HOST = os.getenv("DATABRICKS_HOST")
 
+    mlflow.set_tracking_uri(f"databricks://{profile}")
+    mlflow.set_registry_uri(f"databricks-uc://{profile}")
+
+
 # COMMAND ----------
 
+# Generate a temporary Databricks access token using the CLI
 if os.getenv("DATABRICKS_TOKEN"):
     logger.debug("Existing databricks token in .env file")
     db_token = os.getenv("DATABRICKS_TOKEN")
@@ -75,65 +81,47 @@ os.environ["DATABRICKS_HOST"] = DATABRICKS_HOST
 config = ProjectConfig.from_yaml(config_path=CONFIG_FILE, env=args.branch)
 spark = create_spark_session()
 
-# COMMAND ----------
-
-# Prepare sample request data
-required_columns = [
-    "arrival_month",
-    "arrival_year",
-    "avg_price_per_room",
-    "lead_time",
-    "no_of_adults",
-    "no_of_children",
-    "no_of_previous_bookings_not_canceled",
-    "no_of_previous_cancellations",
-    "no_of_special_requests",
-    "no_of_week_nights",
-    "no_of_weekend_nights",
-    "repeated_guest",
-    "required_car_parking_space",
-    "market_segment_type",
-    "room_type_reserved",
-    "type_of_meal_plan",
-]
-
-train_set = spark.table(f"{config.catalog_name}.{config.schema_name}.{config.train_table}").toPandas()
-sampled_records = train_set[required_columns].sample(n=1000, replace=True).to_dict(orient="records")
-dataframe_records = [[record] for record in sampled_records]
-
-logger.info(train_set.dtypes)
-logger.info(dataframe_records[0])
+model_name_to_deploy = f"{config.catalog_name}.{config.schema_name}.{config.model_name_custom}"
 
 # COMMAND ----------
 
+# Main script to serve the endpoint of the model
+serving = ModelServing(
+    model_name=model_name_to_deploy,
+    endpoint_name=config.endpoint_name_custom,
+    catalog_name=config.catalog_name,
+    schema_name=config.schema_name,
+    monitoring_table_suffix="custom_model_logs",
+)
 
-# Endpoint call function
-def call_endpoint(record: list[dict[str, Any]]) -> tuple[int, str]:
-    """Call the Databricks model serving endpoint with a given input record."""
-    serving_endpoint = f"{os.environ['DBR_HOST']}/serving-endpoints/{config.endpoint_name}/invocations"
+if args.model_version == "auto":
+    logger.info("Model Version is set to default 'auto'. Finding the last version of the model in Unity Catalog")
+    entity_version_latest_ready = serving.get_latest_ready_version()
+    logger.info(f"Version of the model that will be deployed: {entity_version_latest_ready}")
+else:
+    entity_version_latest_ready = args.model_version
+    logger.info(f"Version of the model defined by the user and that will be deployed: {entity_version_latest_ready}")
 
-    logger.debug(f"Calling the endpoint url: {serving_endpoint}")
+logger.info("Checking that the endpoint is not busy")
+serving.wait_until_ready()
 
-    response = requests.post(
-        serving_endpoint,
-        headers={"Authorization": f"Bearer {os.environ['DBR_TOKEN']}"},
-        json={"dataframe_records": record},
+try:
+    logger.info("Deploying the endpoint with the AWS Secrets from the course ...")
+    serving.deploy_or_update_serving_endpoint(
+        version=entity_version_latest_ready,
+        environment_vars={
+            "aws_access_key_id": "{{secrets/mlops/aws_access_key_id}}",
+            "aws_secret_access_key": "{{secrets/mlops/aws_access_key}}",
+            "region_name": "eu-west-1",
+        },
+        enable_inference_tables=True,
     )
-    return response.status_code, response.text
+except Exception as e:
+    logger.warning(f"Error in deploying. Backing to simple deployment without secrets. Issue linked to: {e}")
+    serving.deploy_or_update_serving_endpoint(
+        version=entity_version_latest_ready,
+        enable_inference_tables=True,
+    )
 
-
-# Test with one sample
-status_code, response_text = call_endpoint(dataframe_records[0])
-logger.debug(f"Response Status: {status_code}")
-logger.debug(f"Response Text: {response_text}")
-
-# COMMAND ----------
-
-# Simple load test
-total = 10
-for i in range(total):
-    logger.debug(f"➡️ Sending request {i + 1}/{total}")
-    status_code, response_text = call_endpoint(dataframe_records[i])
-    logger.debug(f"Response Status: {status_code}")
-    logger.debug(f"Response Text: {response_text}")
-    time.sleep(0.2)
+logger.info("Checking when the endpoint is ready")
+serving.wait_until_ready()

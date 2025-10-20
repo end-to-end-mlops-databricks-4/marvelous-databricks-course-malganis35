@@ -279,42 +279,70 @@ def test_retrieve_current_run_metadata(mock_mlflow: MagicMock, model: BasicModel
 @patch("src.hotel_reservation.model.basic_model.mlflow")
 @patch("src.hotel_reservation.model.basic_model.MlflowClient")
 def test_model_improved(mock_client_cls: MagicMock, mock_mlflow: MagicMock, model: BasicModel) -> None:
-    """Return True when current model F1 is >= previous model F1."""
+    """Return True when the current model F1 ≥ baseline F1.
+
+    This test checks the branch where the new model performs better (or equal)
+    than the baseline. Since `model_improved()` does not call `mlflow.models.evaluate`,
+    we ensure that this function remains unused.
+    """
+    # --- Prepare current model ---
     model.metrics = {"f1_score": 0.8}
     model.eval_data = pd.DataFrame({"age": [25], "income": [40000], "country": ["FR"], "label": [1]})
     model.model_name = "catalog.schema.hotel_model"
+    model.X_test = pd.DataFrame({"age": [25], "income": [40000], "country": ["FR"]})
+    model.y_test = pd.Series([1])
 
+    # --- Mock MLflow client and baseline model ---
     mock_client = MagicMock()
     mock_client.get_model_version_by_alias.return_value.model_id = "fake_model_id"
     mock_client_cls.return_value = mock_client
 
-    mock_result = MagicMock()
-    mock_result.metrics = {"f1_score": 0.7}
-    mock_mlflow.models.evaluate.return_value = mock_result
+    mock_baseline_model = MagicMock()
+    mock_baseline_model.predict.return_value = [0]  # Poor baseline (low F1)
+    mock_mlflow.sklearn.load_model.return_value = mock_baseline_model
 
+    # --- Mock mlflow.models (should not be used) ---
+    mock_mlflow.models = MagicMock()
+
+    # --- Call method ---
     improved = model.model_improved()
 
+    # --- Assertions ---
     assert improved is True
-    mock_mlflow.models.evaluate.assert_called_once()
+    mock_mlflow.models.evaluate.assert_not_called()
 
 
 @patch("src.hotel_reservation.model.basic_model.mlflow")
 @patch("src.hotel_reservation.model.basic_model.MlflowClient")
 def test_model_not_improved(mock_client_cls: MagicMock, mock_mlflow: MagicMock, model: BasicModel) -> None:
-    """Return False when current model F1 is < previous model F1."""
+    """Return False when the current model F1 < baseline F1.
+
+    This test checks the branch where the new model performs worse
+    than the baseline. As `mlflow.models.evaluate()` is not used in
+    the implementation, we ensure it is not called.
+    """
+    # --- Prepare current model ---
     model.metrics = {"f1_score": 0.6}
     model.eval_data = pd.DataFrame({"age": [25], "income": [40000], "country": ["FR"], "label": [1]})
     model.model_name = "catalog.schema.hotel_model"
+    model.X_test = pd.DataFrame({"age": [25], "income": [40000], "country": ["FR"]})
+    model.y_test = pd.Series([1])
 
+    # --- Mock MLflow client and baseline model ---
     mock_client = MagicMock()
     mock_client.get_model_version_by_alias.return_value.model_id = "fake_model_id"
     mock_client_cls.return_value = mock_client
 
-    mock_result = MagicMock()
-    mock_result.metrics = {"f1_score": 0.9}  # previous better than current
-    mock_mlflow.models.evaluate.return_value = mock_result
+    mock_baseline_model = MagicMock()
+    mock_baseline_model.predict.return_value = [1]  # Strong baseline (high F1)
+    mock_mlflow.sklearn.load_model.return_value = mock_baseline_model
 
+    # --- Mock mlflow.models (should not be used) ---
+    mock_mlflow.models = MagicMock()
+
+    # --- Call method ---
     improved = model.model_improved()
 
+    # --- Assertions ---
     assert improved is False
-    mock_mlflow.models.evaluate.assert_called_once()
+    mock_mlflow.models.evaluate.assert_not_called()

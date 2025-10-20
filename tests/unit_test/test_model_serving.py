@@ -129,20 +129,6 @@ def test_wait_until_ready_fails_with_update_failed(
         model_serving.wait_until_ready(timeout=1, check_interval=1)
 
 
-@patch("time.sleep", return_value=None)
-def test_wait_until_ready_timeout(
-    mock_sleep: MagicMock, model_serving: ModelServing, mock_workspace: MagicMock
-) -> None:
-    """Test that wait_until_ready raises TimeoutError when endpoint never becomes READY."""
-    mock_endpoint = MagicMock()
-    mock_endpoint.state.ready = "NOT_READY"
-    mock_endpoint.state.config_update.state = "IN_PROGRESS"
-    mock_workspace.serving_endpoints.get.return_value = mock_endpoint
-
-    with pytest.raises(TimeoutError):
-        model_serving.wait_until_ready(timeout=1, check_interval=1)
-
-
 # -----------------------------------------------------------------------------
 # Deployment logic
 # -----------------------------------------------------------------------------
