@@ -3,39 +3,71 @@ table MEASURE
 
 	measure 'Nb Bookings' = DISTINCTCOUNT(FACT_HISTORY[Booking_ID])
 		formatString: 0
+		displayFolder: HISTORY
 		lineageTag: 1a7e896d-055d-43f5-abf3-84f99c40e893
 
 	measure 'Nb Bookings (Canceled)' = CALCULATE([Nb Bookings], FACT_HISTORY[booking_status] = "Canceled")
 		formatString: 0
+		displayFolder: HISTORY
 		lineageTag: 2142f0c2-30b6-4bc0-b553-adba752e87e2
 
-	measure '% Canceled' = [Nb Bookings (Canceled)]/[Nb Bookings]
+	measure '% Canceled' =
+			
+			VAR StatusSel = SELECTEDVALUE(FACT_HISTORY[booking_status], "__multi__")
+			VAR TotalCanceled =
+			    CALCULATE([Nb Bookings (Canceled)], ALL(FACT_HISTORY[booking_status]))
+			VAR TotalAll =
+			    CALCULATE([Nb Bookings], ALL(FACT_HISTORY[booking_status]))
+			VAR RatioAll = DIVIDE(TotalCanceled, TotalAll)
+			RETURN
+			SWITCH(
+			    TRUE(),
+			    StatusSel = "Canceled", 1,              -- 100%
+			    StatusSel = "Not_Canceled", 0,          -- 0%
+			    RatioAll                                -- sinon ratio global (33%)
+			)
 		formatString: 0\ %;-0\ %;0\ %
+		displayFolder: HISTORY
 		lineageTag: 15908cf4-877c-4555-a996-50c6cdb5b9da
 
 	measure 'Revenue Estimated' = SUM(FACT_HISTORY[avg_price_per_room])
 		formatString: #,0.00\ "€";-#,0.00\ "€";#,0.00\ "€"
+		displayFolder: HISTORY
 		lineageTag: 69f1c764-a31e-4f04-ac6d-c84a2fe72e8a
 
 	measure 'Revenue (Not Canceled)' = CALCULATE([Revenue Estimated], FACT_HISTORY[booking_status] = "Not_Canceled")
 		formatString: #,0.0\ "€";-#,0.0\ "€";#,0.0\ "€"
+		displayFolder: HISTORY
 		lineageTag: dce0e327-d91f-4b6e-b77f-3374e48609dc
 
 	measure 'Revenue (Canceled)' = CALCULATE([Revenue Estimated], FACT_HISTORY[booking_status] = "Canceled")
 		formatString: #,0.0\ "€";-#,0.0\ "€";#,0.0\ "€"
+		displayFolder: HISTORY
 		lineageTag: 1112d9d3-2ed5-4527-977b-4594db62cfed
 
 	measure 'Avg Lead Time' = AVERAGE(FACT_HISTORY[lead_time])
 		formatString: 0
+		displayFolder: HISTORY
 		lineageTag: ed9bebfa-856b-46ec-bb1f-72b0b94798d2
 
 		annotation PBI_FormatHint = {"isDecimal":true}
 
 	measure 'Avg Lead Time (Canceled)' = CALCULATE([Avg Lead Time], FACT_HISTORY[booking_status] = "Canceled")
 		formatString: 0
+		displayFolder: HISTORY
 		lineageTag: d899b11a-b9ff-422d-8c71-4856e6e58383
 
 		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Nb Good Prediction' = SUM(FACT_PREDICTION[CALC_Good Prediction])
+		formatString: 0
+		displayFolder: PREDICTION
+		lineageTag: d7193aa5-71fc-49e0-9a60-12b88f16ec42
+
+	measure Accuracy = [Nb Good Prediction]/COUNT(FACT_PREDICTION[Booking_ID])
+		formatString: 0.0\ %;-0.0\ %;0.0\ %
+		displayFolder: PREDICTION
+		lineageTag: 357d52d4-9cea-4868-a080-f7bbd0c0a001
 
 	column Column1
 		dataType: string
@@ -50,6 +82,7 @@ table MEASURE
 
 	partition MEASURE = m
 		mode: import
+		queryGroup: DATA
 		source =
 				let
 				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),

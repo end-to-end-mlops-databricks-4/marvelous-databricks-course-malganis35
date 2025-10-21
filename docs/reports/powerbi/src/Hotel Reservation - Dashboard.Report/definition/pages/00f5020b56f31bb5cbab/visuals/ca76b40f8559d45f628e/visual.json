@@ -7,7 +7,7 @@
     "z": 3000,
     "height": 372.85714285714289,
     "width": 900.00000000000011,
-    "tabOrder": 3000
+    "tabOrder": 2000
   },
   "visual": {
     "visualType": "tableEx",
@@ -20,7 +20,7 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "FACT_RESERVATION"
+                      "Entity": "FACT_PREDICTION"
                     }
                   },
                   "Property": "Booking_ID"
@@ -34,7 +34,7 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "FACT_RESERVATION"
+                      "Entity": "FACT_PREDICTION"
                     }
                   },
                   "Property": "booking_status_pred_custom"
@@ -51,7 +51,7 @@
                     "Column": {
                       "Expression": {
                         "SourceRef": {
-                          "Entity": "FACT_RESERVATION"
+                          "Entity": "FACT_PREDICTION"
                         }
                       },
                       "Property": "CALC_Prediction Proba"
@@ -69,7 +69,7 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "FACT_RESERVATION"
+                      "Entity": "FACT_PREDICTION"
                     }
                   },
                   "Property": "market_segment_type"
@@ -84,7 +84,7 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "FACT_RESERVATION"
+                      "Entity": "FACT_PREDICTION"
                     }
                   },
                   "Property": "room_type_reserved"
@@ -99,7 +99,7 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "FACT_RESERVATION"
+                      "Entity": "FACT_PREDICTION"
                     }
                   },
                   "Property": "type_of_meal_plan"
@@ -116,7 +116,7 @@
                     "Column": {
                       "Expression": {
                         "SourceRef": {
-                          "Entity": "FACT_RESERVATION"
+                          "Entity": "FACT_PREDICTION"
                         }
                       },
                       "Property": "lead_time"
@@ -136,7 +136,7 @@
                     "Column": {
                       "Expression": {
                         "SourceRef": {
-                          "Entity": "FACT_RESERVATION"
+                          "Entity": "FACT_PREDICTION"
                         }
                       },
                       "Property": "no_of_adults"
@@ -156,7 +156,7 @@
                     "Column": {
                       "Expression": {
                         "SourceRef": {
-                          "Entity": "FACT_RESERVATION"
+                          "Entity": "FACT_PREDICTION"
                         }
                       },
                       "Property": "no_of_children"
@@ -176,7 +176,7 @@
                     "Column": {
                       "Expression": {
                         "SourceRef": {
-                          "Entity": "FACT_RESERVATION"
+                          "Entity": "FACT_PREDICTION"
                         }
                       },
                       "Property": "no_of_previous_bookings_not_canceled"
@@ -196,7 +196,7 @@
                     "Column": {
                       "Expression": {
                         "SourceRef": {
-                          "Entity": "FACT_RESERVATION"
+                          "Entity": "FACT_PREDICTION"
                         }
                       },
                       "Property": "no_of_previous_cancellations"
@@ -216,7 +216,7 @@
                     "Column": {
                       "Expression": {
                         "SourceRef": {
-                          "Entity": "FACT_RESERVATION"
+                          "Entity": "FACT_PREDICTION"
                         }
                       },
                       "Property": "no_of_special_requests"
@@ -236,7 +236,7 @@
                     "Column": {
                       "Expression": {
                         "SourceRef": {
-                          "Entity": "FACT_RESERVATION"
+                          "Entity": "FACT_PREDICTION"
                         }
                       },
                       "Property": "no_of_week_nights"
@@ -256,7 +256,7 @@
                     "Column": {
                       "Expression": {
                         "SourceRef": {
-                          "Entity": "FACT_RESERVATION"
+                          "Entity": "FACT_PREDICTION"
                         }
                       },
                       "Property": "no_of_weekend_nights"
@@ -276,7 +276,7 @@
                     "Column": {
                       "Expression": {
                         "SourceRef": {
-                          "Entity": "FACT_RESERVATION"
+                          "Entity": "FACT_PREDICTION"
                         }
                       },
                       "Property": "repeated_guest"
@@ -296,7 +296,7 @@
                     "Column": {
                       "Expression": {
                         "SourceRef": {
-                          "Entity": "FACT_RESERVATION"
+                          "Entity": "FACT_PREDICTION"
                         }
                       },
                       "Property": "required_car_parking_space"
@@ -321,7 +321,7 @@
                   "Column": {
                     "Expression": {
                       "SourceRef": {
-                        "Entity": "FACT_RESERVATION"
+                        "Entity": "FACT_PREDICTION"
                       }
                     },
                     "Property": "CALC_Prediction Proba"

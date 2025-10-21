@@ -7,7 +7,7 @@
     "z": 6000,
     "height": 68.76438986953184,
     "width": 135.5640828856485,
-    "tabOrder": 6000
+    "tabOrder": 5000
   },
   "visual": {
     "visualType": "card",
@@ -22,7 +22,7 @@
                     "Column": {
                       "Expression": {
                         "SourceRef": {
-                          "Entity": "FACT_RESERVATION"
+                          "Entity": "FACT_PREDICTION"
                         }
                       },
                       "Property": "Booking_ID"
@@ -46,7 +46,7 @@
                   "Column": {
                     "Expression": {
                       "SourceRef": {
-                        "Entity": "FACT_RESERVATION"
+                        "Entity": "FACT_PREDICTION"
                       }
                     },
                     "Property": "Booking_ID"

@@ -7,7 +7,7 @@
     "z": 7000,
     "height": 72.452830188679243,
     "width": 209.30817610062891,
-    "tabOrder": 7000
+    "tabOrder": 6000
   },
   "visual": {
     "visualType": "slicer",
@@ -20,13 +20,13 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "FACT_RESERVATION"
+                      "Entity": "FACT_HISTORY"
                     }
                   },
                   "Property": "type_of_meal_plan"
                 }
               },
-              "queryRef": "FACT_RESERVATION.type_of_meal_plan",
+              "queryRef": "FACT_HISTORY.type_of_meal_plan",
               "nativeQueryRef": "type_of_meal_plan",
               "active": true
             }

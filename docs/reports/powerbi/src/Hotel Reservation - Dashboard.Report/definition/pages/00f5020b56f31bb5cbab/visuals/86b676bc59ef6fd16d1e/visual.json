@@ -7,7 +7,7 @@
     "z": 7000,
     "height": 68.76438986953184,
     "width": 135.5640828856485,
-    "tabOrder": 7000
+    "tabOrder": 6000
   },
   "visual": {
     "visualType": "card",
@@ -22,7 +22,7 @@
                     "Column": {
                       "Expression": {
                         "SourceRef": {
-                          "Entity": "FACT_RESERVATION"
+                          "Entity": "FACT_PREDICTION"
                         }
                       },
                       "Property": "Booking_ID"
@@ -46,7 +46,7 @@
                   "Column": {
                     "Expression": {
                       "SourceRef": {
-                        "Entity": "FACT_RESERVATION"
+                        "Entity": "FACT_PREDICTION"
                       }
                     },
                     "Property": "Booking_ID"
@@ -104,7 +104,7 @@
           "Column": {
             "Expression": {
               "SourceRef": {
-                "Entity": "FACT_RESERVATION"
+                "Entity": "FACT_PREDICTION"
               }
             },
             "Property": "booking_status_pred_basic"
@@ -116,7 +116,7 @@
           "From": [
             {
               "Name": "f",
-              "Entity": "FACT_RESERVATION",
+              "Entity": "FACT_PREDICTION",
               "Type": 0
             }
           ],

@@ -6,7 +6,8 @@
     "y": 674,
     "z": 0,
     "height": 35,
-    "width": 156
+    "width": 156,
+    "tabOrder": 3000
   },
   "visual": {
     "visualType": "card",
@@ -21,7 +22,7 @@
                     "Column": {
                       "Expression": {
                         "SourceRef": {
-                          "Entity": "Query1"
+                          "Entity": "FACT_UPDATE"
                         }
                       },
                       "Property": "Last Update"

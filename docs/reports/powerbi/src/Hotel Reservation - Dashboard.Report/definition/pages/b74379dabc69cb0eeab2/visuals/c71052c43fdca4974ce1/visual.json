@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.3.0/schema.json",
-  "name": "f4eb1d2be0036c37a4da",
+  "name": "c71052c43fdca4974ce1",
   "position": {
     "x": 57.693920335429766,
     "y": 567.54716981132071,
-    "z": 2000,
+    "z": 13003,
     "height": 72.452830188679243,
     "width": 209.30817610062891,
-    "tabOrder": 2000
+    "tabOrder": 16003
   },
   "visual": {
     "visualType": "slicer",
@@ -20,13 +20,13 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "FACT_RESERVATION"
+                      "Entity": "FACT_PREDICTION"
                     }
                   },
                   "Property": "type_of_meal_plan"
                 }
               },
-              "queryRef": "FACT_RESERVATION.type_of_meal_plan",
+              "queryRef": "FACT_PREDICTION.type_of_meal_plan",
               "nativeQueryRef": "type_of_meal_plan",
               "active": true
             }
@@ -68,7 +68,7 @@
       ]
     },
     "syncGroup": {
-      "groupName": "type_of_meal_plan",
+      "groupName": "type_of_meal_plan1",
       "fieldChanges": true,
       "filterChanges": true
     },

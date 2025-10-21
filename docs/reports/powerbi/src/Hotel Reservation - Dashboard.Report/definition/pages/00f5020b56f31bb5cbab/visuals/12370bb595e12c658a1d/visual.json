@@ -1,12 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.3.0/schema.json",
-  "name": "9ac7fbe35db000071ed5",
+  "name": "12370bb595e12c658a1d",
   "position": {
     "x": 57.693920335429766,
-    "y": 422.64150943396226,
-    "z": 0,
+    "y": 567.54716981132071,
+    "z": 14003,
     "height": 72.452830188679243,
-    "width": 209.30817610062891
+    "width": 209.30817610062891,
+    "tabOrder": 13003
   },
   "visual": {
     "visualType": "slicer",
@@ -19,14 +20,14 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "FACT_RESERVATION"
+                      "Entity": "FACT_PREDICTION"
                     }
                   },
-                  "Property": "booking_status_pred_custom"
+                  "Property": "type_of_meal_plan"
                 }
               },
-              "queryRef": "FACT_RESERVATION.booking_status_pred_custom",
-              "nativeQueryRef": "booking_status_pred_custom",
+              "queryRef": "FACT_PREDICTION.type_of_meal_plan",
+              "nativeQueryRef": "type_of_meal_plan",
               "active": true
             }
           ]
@@ -43,13 +44,6 @@
                   "Value": "'Dropdown'"
                 }
               }
-            },
-            "isInvertedSelectionMode": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
             }
           }
         }
@@ -60,7 +54,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Select a Booking Status'"
+                  "Value": "'Select a Type of Meal'"
                 }
               }
             }
@@ -74,7 +68,7 @@
       ]
     },
     "syncGroup": {
-      "groupName": "booking_status",
+      "groupName": "type_of_meal_plan1",
       "fieldChanges": true,
       "filterChanges": true
     },

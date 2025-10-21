@@ -7,7 +7,7 @@
     "z": 4000,
     "height": 72.452830188679243,
     "width": 209.30817610062891,
-    "tabOrder": 4000
+    "tabOrder": 3000
   },
   "visual": {
     "visualType": "slicer",
@@ -20,14 +20,14 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "FACT_RESERVATION"
+                      "Entity": "FACT_HISTORY"
                     }
                   },
-                  "Property": "booking_status_pred_custom"
+                  "Property": "booking_status"
                 }
               },
-              "queryRef": "FACT_RESERVATION.booking_status_pred_custom",
-              "nativeQueryRef": "booking_status_pred_custom",
+              "queryRef": "FACT_HISTORY.booking_status",
+              "nativeQueryRef": "booking_status",
               "active": true
             }
           ]

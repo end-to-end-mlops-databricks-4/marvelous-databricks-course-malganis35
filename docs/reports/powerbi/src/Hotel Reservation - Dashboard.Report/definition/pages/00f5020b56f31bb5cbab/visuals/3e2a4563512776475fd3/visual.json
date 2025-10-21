@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.3.0/schema.json",
-  "name": "eedb3515c1fb31b1ba20",
+  "name": "3e2a4563512776475fd3",
   "position": {
     "x": 57.693920335429766,
-    "y": 495.09433962264148,
-    "z": 1000,
+    "y": 422.64150943396226,
+    "z": 14001,
     "height": 72.452830188679243,
     "width": 209.30817610062891,
-    "tabOrder": 1000
+    "tabOrder": 13001
   },
   "visual": {
     "visualType": "slicer",
@@ -20,14 +20,14 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "FACT_RESERVATION"
+                      "Entity": "FACT_PREDICTION"
                     }
                   },
-                  "Property": "market_segment_type"
+                  "Property": "booking_status_pred_custom"
                 }
               },
-              "queryRef": "FACT_RESERVATION.market_segment_type",
-              "nativeQueryRef": "market_segment_type",
+              "queryRef": "FACT_PREDICTION.booking_status_pred_custom",
+              "nativeQueryRef": "booking_status_pred_custom",
               "active": true
             }
           ]
@@ -44,6 +44,13 @@
                   "Value": "'Dropdown'"
                 }
               }
+            },
+            "isInvertedSelectionMode": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
             }
           }
         }
@@ -54,7 +61,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Select a Market Segment'"
+                  "Value": "'Select a Booking Status'"
                 }
               }
             }
@@ -68,7 +75,7 @@
       ]
     },
     "syncGroup": {
-      "groupName": "market_segment_type",
+      "groupName": "booking_status_pred_custom",
       "fieldChanges": true,
       "filterChanges": true
     },

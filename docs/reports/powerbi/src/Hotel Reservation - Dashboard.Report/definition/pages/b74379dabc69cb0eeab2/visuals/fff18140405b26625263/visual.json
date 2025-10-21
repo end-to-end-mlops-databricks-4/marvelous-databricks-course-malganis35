@@ -4,10 +4,10 @@
   "position": {
     "x": 707.14285714285722,
     "y": 301.42857142857144,
-    "z": 8000,
+    "z": 5000,
     "height": 380,
     "width": 542.85714285714289,
-    "tabOrder": 9000
+    "tabOrder": 5000
   },
   "visual": {
     "visualType": "scatterChart",
@@ -20,7 +20,7 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "FACT_RESERVATION"
+                      "Entity": "FACT_PREDICTION"
                     }
                   },
                   "Property": "Booking_ID"
@@ -39,7 +39,7 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "FACT_RESERVATION"
+                      "Entity": "FACT_PREDICTION"
                     }
                   },
                   "Property": "booking_status_pred_custom"
@@ -59,7 +59,7 @@
                     "Column": {
                       "Expression": {
                         "SourceRef": {
-                          "Entity": "FACT_RESERVATION"
+                          "Entity": "FACT_PREDICTION"
                         }
                       },
                       "Property": "CALC_Prediction Proba"
@@ -84,7 +84,7 @@
                     "Column": {
                       "Expression": {
                         "SourceRef": {
-                          "Entity": "FACT_RESERVATION"
+                          "Entity": "FACT_PREDICTION"
                         }
                       },
                       "Property": "avg_price_per_room"
@@ -109,7 +109,7 @@
                   "Column": {
                     "Expression": {
                       "SourceRef": {
-                        "Entity": "FACT_RESERVATION"
+                        "Entity": "FACT_PREDICTION"
                       }
                     },
                     "Property": "CALC_Prediction Proba"
@@ -254,7 +254,7 @@
                     "Column": {
                       "Expression": {
                         "SourceRef": {
-                          "Entity": "FACT_RESERVATION"
+                          "Entity": "FACT_PREDICTION"
                         }
                       },
                       "Property": "avg_price_per_room"

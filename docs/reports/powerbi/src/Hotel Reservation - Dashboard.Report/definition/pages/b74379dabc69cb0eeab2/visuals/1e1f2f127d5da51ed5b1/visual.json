@@ -4,10 +4,10 @@
   "position": {
     "x": 341.42856202562979,
     "y": 263.83090614082283,
-    "z": 7000,
+    "z": 4000,
     "height": 249,
     "width": 317,
-    "tabOrder": 7000
+    "tabOrder": 3000
   },
   "visual": {
     "visualType": "donutChart",
@@ -20,7 +20,7 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "FACT_RESERVATION"
+                      "Entity": "FACT_PREDICTION"
                     }
                   },
                   "Property": "booking_status_pred_custom"
@@ -41,7 +41,7 @@
                     "Column": {
                       "Expression": {
                         "SourceRef": {
-                          "Entity": "FACT_RESERVATION"
+                          "Entity": "FACT_PREDICTION"
                         }
                       },
                       "Property": "Booking_ID"
@@ -65,7 +65,7 @@
                   "Column": {
                     "Expression": {
                       "SourceRef": {
-                        "Entity": "FACT_RESERVATION"
+                        "Entity": "FACT_PREDICTION"
                       }
                     },
                     "Property": "Booking_ID"

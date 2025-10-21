@@ -1,4 +1,4 @@
-table Query1
+table FACT_UPDATE
 	lineageTag: bdd50194-6b7e-4050-9901-f147ac6e4150
 
 	column 'Last Update'
@@ -9,8 +9,9 @@ table Query1
 
 		annotation SummarizationSetBy = Automatic
 
-	partition Query1 = m
+	partition FACT_UPDATE = m
 		mode: import
+		queryGroup: DATA
 		source =
 				let
 				    Source = DateTime.FixedLocalNow(),

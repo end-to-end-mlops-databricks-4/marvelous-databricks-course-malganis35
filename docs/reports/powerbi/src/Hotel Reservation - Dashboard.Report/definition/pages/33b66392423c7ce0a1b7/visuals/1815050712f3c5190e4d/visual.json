@@ -7,7 +7,7 @@
     "z": 3000,
     "height": 212.85714285714286,
     "width": 891.42857142857144,
-    "tabOrder": 3000
+    "tabOrder": 2000
   },
   "visual": {
     "visualType": "lineChart",
@@ -20,7 +20,7 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "FACT_RESERVATION"
+                      "Entity": "FACT_PREDICTION"
                     }
                   },
                   "Property": "update_timestamp_utc"
@@ -40,15 +40,14 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "FACT_RESERVATION"
+                      "Entity": "MEASURE"
                     }
                   },
-                  "Property": "CALC_Accuracy"
+                  "Property": "Accuracy"
                 }
               },
-              "queryRef": "FACT_RESERVATION.perf",
-              "nativeQueryRef": "Model Accuracy",
-              "displayName": "Model Accuracy"
+              "queryRef": "FACT_PREDICTION.Accuracy",
+              "nativeQueryRef": "Accuracy"
             }
           ]
         }
@@ -60,7 +59,7 @@
               "Column": {
                 "Expression": {
                   "SourceRef": {
-                    "Entity": "FACT_RESERVATION"
+                    "Entity": "FACT_PREDICTION"
                   }
                 },
                 "Property": "update_timestamp_utc"
@@ -108,27 +107,6 @@
                 }
               }
             }
-          }
-        }
-      ],
-      "dataPoint": [
-        {
-          "properties": {
-            "fill": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "ThemeDataColor": {
-                      "ColorId": 5,
-                      "Percent": 0
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "FACT_RESERVATION.perf"
           }
         }
       ]

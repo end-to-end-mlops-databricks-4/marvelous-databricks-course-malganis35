@@ -7,7 +7,7 @@
     "z": 3000,
     "height": 72.452830188679243,
     "width": 209.30817610062891,
-    "tabOrder": 3000
+    "tabOrder": 2000
   },
   "visual": {
     "visualType": "slicer",
@@ -20,13 +20,13 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "FACT_RESERVATION"
+                      "Entity": "FACT_HISTORY"
                     }
                   },
                   "Property": "market_segment_type"
                 }
               },
-              "queryRef": "FACT_RESERVATION.market_segment_type",
+              "queryRef": "FACT_HISTORY.market_segment_type",
               "nativeQueryRef": "market_segment_type",
               "active": true
             }

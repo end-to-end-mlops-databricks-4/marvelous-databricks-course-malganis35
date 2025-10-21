@@ -1,15 +1,9 @@
-table FACT_RESERVATION
-	lineageTag: 9b9bb2ed-1e2d-4edd-ba55-37583c3bb2d4
-
-	measure CALC_Accuracy = SUM(FACT_RESERVATION[CALC_Good_Pred (Bool)]) / COUNT(FACT_RESERVATION[Booking_ID])
-		formatString: 0.0\ %;-0.0\ %;0.0\ %
-		displayFolder: _CALC
-		lineageTag: 65f938f6-47be-4a2d-af6d-d56622603f07
+table FACT_PREDICTION
+	lineageTag: de8519da-a19e-46b2-b785-11a5bede5fbc
 
 	column Booking_ID
 		dataType: string
-		sourceProviderType: nvarchar(65535)
-		lineageTag: 08f48873-f242-49c8-a2fe-61e7dc67a381
+		lineageTag: 8e5d0cc6-e76c-44c9-95b3-9c7cb9359b8c
 		summarizeBy: none
 		sourceColumn: Booking_ID
 
@@ -18,8 +12,7 @@ table FACT_RESERVATION
 	column no_of_adults
 		dataType: int64
 		formatString: 0
-		sourceProviderType: int
-		lineageTag: 3a70349a-e18b-4752-a184-1a3406c9bc82
+		lineageTag: a758fe16-4dd8-4bdc-849e-cd1f79730119
 		summarizeBy: sum
 		sourceColumn: no_of_adults
 
@@ -28,8 +21,7 @@ table FACT_RESERVATION
 	column no_of_children
 		dataType: int64
 		formatString: 0
-		sourceProviderType: int
-		lineageTag: 24913500-7d89-42d7-8c0a-94a257d23763
+		lineageTag: 65763444-957a-46af-9c9f-bf5b544e83f0
 		summarizeBy: sum
 		sourceColumn: no_of_children
 
@@ -38,8 +30,7 @@ table FACT_RESERVATION
 	column no_of_weekend_nights
 		dataType: int64
 		formatString: 0
-		sourceProviderType: int
-		lineageTag: 8c9b5cd8-84c2-40da-a276-2e156cfa4fa7
+		lineageTag: 80afefea-f78c-4c03-9674-3aa0a9338ef2
 		summarizeBy: sum
 		sourceColumn: no_of_weekend_nights
 
@@ -48,8 +39,7 @@ table FACT_RESERVATION
 	column no_of_week_nights
 		dataType: int64
 		formatString: 0
-		sourceProviderType: int
-		lineageTag: 9d2aef7a-1730-42d7-8d91-c88ab5a10a74
+		lineageTag: 17a2d6c3-6959-4593-8fe3-385d63dac962
 		summarizeBy: sum
 		sourceColumn: no_of_week_nights
 
@@ -57,8 +47,7 @@ table FACT_RESERVATION
 
 	column type_of_meal_plan
 		dataType: string
-		sourceProviderType: nvarchar(65535)
-		lineageTag: d35455c7-35d0-4be1-b95e-478a0f9a1c76
+		lineageTag: 527ff8fd-1ecf-468a-8ac9-958dcdb51eeb
 		summarizeBy: none
 		sourceColumn: type_of_meal_plan
 
@@ -67,8 +56,7 @@ table FACT_RESERVATION
 	column required_car_parking_space
 		dataType: int64
 		formatString: 0
-		sourceProviderType: int
-		lineageTag: bd8aa19e-f63c-4348-b28b-6389bafd7e05
+		lineageTag: d9c64b81-7f62-44ba-8e88-f62b39f3c844
 		summarizeBy: sum
 		sourceColumn: required_car_parking_space
 
@@ -76,8 +64,7 @@ table FACT_RESERVATION
 
 	column room_type_reserved
 		dataType: string
-		sourceProviderType: nvarchar(65535)
-		lineageTag: 5fd3b9e9-0de4-42ea-8fd8-aec255fd9322
+		lineageTag: d95384a3-10e9-4347-93ed-a54864abe922
 		summarizeBy: none
 		sourceColumn: room_type_reserved
 
@@ -86,8 +73,7 @@ table FACT_RESERVATION
 	column lead_time
 		dataType: int64
 		formatString: 0
-		sourceProviderType: int
-		lineageTag: eab7293e-298b-46c6-92a6-690b3ec4d0af
+		lineageTag: 6ddec5d8-e3e1-4e40-ac87-d6f991576f2c
 		summarizeBy: sum
 		sourceColumn: lead_time
 
@@ -96,8 +82,7 @@ table FACT_RESERVATION
 	column arrival_year
 		dataType: int64
 		formatString: 0
-		sourceProviderType: int
-		lineageTag: 9125d1cd-3bc6-4110-991f-65f4b5284493
+		lineageTag: 2caf5606-cff0-4559-992f-6a7507b648cd
 		summarizeBy: sum
 		sourceColumn: arrival_year
 
@@ -106,8 +91,7 @@ table FACT_RESERVATION
 	column arrival_month
 		dataType: int64
 		formatString: 0
-		sourceProviderType: int
-		lineageTag: 0da6cb62-bd12-4ce6-a407-f386d8cf33fe
+		lineageTag: efc3deaa-cd1e-4aa0-9577-ea0c8a961e57
 		summarizeBy: sum
 		sourceColumn: arrival_month
 
@@ -115,8 +99,7 @@ table FACT_RESERVATION
 
 	column market_segment_type
 		dataType: string
-		sourceProviderType: nvarchar(65535)
-		lineageTag: 18a2a503-cbf6-4978-90ab-b9977097a653
+		lineageTag: 24474d57-5458-46a4-9f78-3bed84c637f2
 		summarizeBy: none
 		sourceColumn: market_segment_type
 
@@ -125,8 +108,7 @@ table FACT_RESERVATION
 	column repeated_guest
 		dataType: int64
 		formatString: 0
-		sourceProviderType: int
-		lineageTag: 662542c0-6849-4cdc-b7f2-f284f9072568
+		lineageTag: ce45c30e-fd6c-430c-ba4d-4482bdaa8520
 		summarizeBy: sum
 		sourceColumn: repeated_guest
 
@@ -135,8 +117,7 @@ table FACT_RESERVATION
 	column no_of_previous_cancellations
 		dataType: int64
 		formatString: 0
-		sourceProviderType: int
-		lineageTag: c16a9b4e-dc24-4807-8d6a-0f685a675370
+		lineageTag: 311bc032-7ca0-4018-bd9e-aa3dc4c9ce0c
 		summarizeBy: sum
 		sourceColumn: no_of_previous_cancellations
 
@@ -145,8 +126,7 @@ table FACT_RESERVATION
 	column no_of_previous_bookings_not_canceled
 		dataType: int64
 		formatString: 0
-		sourceProviderType: int
-		lineageTag: 95432a2c-5c4a-415f-b369-5b873eef9b0a
+		lineageTag: 6015d4fd-d612-4b5f-9f9c-b377cf11e38f
 		summarizeBy: sum
 		sourceColumn: no_of_previous_bookings_not_canceled
 
@@ -154,9 +134,8 @@ table FACT_RESERVATION
 
 	column avg_price_per_room
 		dataType: double
-		formatString: #,0\ "€";-#,0\ "€";#,0\ "€"
-		sourceProviderType: double
-		lineageTag: 2c3bef70-e922-4947-bf44-7c375c64260b
+		formatString: 0.0
+		lineageTag: 4468e492-7a5c-4174-9327-50544ef9293b
 		summarizeBy: sum
 		sourceColumn: avg_price_per_room
 
@@ -165,8 +144,7 @@ table FACT_RESERVATION
 	column no_of_special_requests
 		dataType: int64
 		formatString: 0
-		sourceProviderType: int
-		lineageTag: 4141b243-4d02-4596-887c-2e8ea0e10864
+		lineageTag: 46be5bb4-3080-456d-bd1c-a453aa58b8c1
 		summarizeBy: sum
 		sourceColumn: no_of_special_requests
 
@@ -174,8 +152,7 @@ table FACT_RESERVATION
 
 	column booking_status
 		dataType: string
-		sourceProviderType: nvarchar(65535)
-		lineageTag: 6231be6c-ffac-45aa-bb18-81c9ac8128ab
+		lineageTag: b54fcdc0-2218-4a3f-8188-c7b73532e7ff
 		summarizeBy: none
 		sourceColumn: booking_status
 
@@ -184,17 +161,20 @@ table FACT_RESERVATION
 	column update_timestamp_utc
 		dataType: dateTime
 		formatString: General Date
-		sourceProviderType: datetime2
-		lineageTag: 8b6b1c36-214a-404e-93b6-757204099bac
+		lineageTag: 3f514bdd-0f4a-4e16-92a3-d2bb517b3650
 		summarizeBy: none
 		sourceColumn: update_timestamp_utc
+
+		variation Variation
+			isDefault
+			relationship: 0b3c7ffe-f8a5-42b9-a2d5-2693e4f87cab
+			defaultHierarchy: LocalDateTable_2b5e1bbb-3273-4924-86e3-daa7fbe74064.'Date Hierarchy'
 
 		annotation SummarizationSetBy = Automatic
 
 	column booking_status_pred_basic
 		dataType: string
-		sourceProviderType: nvarchar(65535)
-		lineageTag: b99bedad-94e4-4534-b707-c0c8817b6519
+		lineageTag: b69e46df-e892-4071-856b-76c8635d10ad
 		summarizeBy: none
 		sourceColumn: booking_status_pred_basic
 
@@ -202,48 +182,56 @@ table FACT_RESERVATION
 
 	column booking_status_pred_custom
 		dataType: string
-		sourceProviderType: nvarchar(65535)
-		lineageTag: 45b214ef-94ea-43e0-ba38-e89a65fa5c93
+		lineageTag: 3ee5a9d8-3b98-472e-8879-72a018fa4eb0
 		summarizeBy: none
 		sourceColumn: booking_status_pred_custom
 
 		annotation SummarizationSetBy = Automatic
 
 	column booking_status_proba_custom
-		dataType: string
-		sourceProviderType: nvarchar(65535)
-		lineageTag: 12c2c2f0-ae7d-4292-ab7a-ff3129bb43ad
-		summarizeBy: none
+		dataType: double
+		lineageTag: ec0ea340-5a58-4b61-8390-6a5db0e89766
+		summarizeBy: sum
 		sourceColumn: booking_status_proba_custom
 
 		annotation SummarizationSetBy = Automatic
 
-	column 'CALC_Prediction Proba' = 1 - VALUE(FACT_RESERVATION[booking_status_proba_custom])
-		formatString: 0\ %;-0\ %;0\ %
-		displayFolder: _CALC
-		lineageTag: d97a9740-bd39-4323-ade2-7275622f3700
-		summarizeBy: average
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
 
-		annotation SummarizationSetBy = User
-
-	column 'CALC_Good_Pred (Bool)' = IF(FACT_RESERVATION[booking_status]=FACT_RESERVATION[booking_status_pred_custom], 1, 0)
+	column 'CALC_Good Prediction'
+		dataType: int64
 		formatString: 0
-		displayFolder: _CALC
-		lineageTag: 4b9e4c85-2c61-4790-81eb-48fa35408673
+		lineageTag: 53d3a529-c0ac-4ad7-8251-88599dc92633
 		summarizeBy: sum
+		sourceColumn: CALC_Good Prediction
 
 		annotation SummarizationSetBy = Automatic
 
-	partition FACT_RESERVATION = m
-		mode: directQuery
+	column 'CALC_Prediction Proba'
+		dataType: double
+		formatString: 0.0\ %;-0.0\ %;0.0\ %
+		lineageTag: e2d0346c-d4ce-4a74-9cad-61a790efa14a
+		summarizeBy: sum
+		sourceColumn: CALC_Prediction Proba
+
+		annotation SummarizationSetBy = Automatic
+
+	partition FACT_PREDICTION = m
+		mode: import
+		queryGroup: DATA
 		source =
 				let
 				    Source = DatabricksMultiCloud.Catalogs("dbc-f122dc18-1b68.cloud.databricks.com", "/sql/1.0/warehouses/711fa33d05cc334c", [Catalog = "mlops_dev", Database = "caotrido"]),
-				    continuous_reservation_caotrido_mlops_dev = Source{[Item="continuous_reservation",Schema="caotrido",Catalog="mlops_dev"]}[Data]
+				    continuous_reservation_caotrido_mlops_dev = Source{[Item="continuous_reservation",Schema="caotrido",Catalog="mlops_dev"]}[Data],
+				    #"Replaced Value" = Table.ReplaceValue(continuous_reservation_caotrido_mlops_dev,".",",",Replacer.ReplaceText,{"booking_status_proba_custom"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Replaced Value",{{"booking_status_proba_custom", type number}}),
+				    #"Added Conditional Column" = Table.AddColumn(#"Changed Type", "CALC_Good Prediction", each if [booking_status] = [booking_status_pred_custom] then 1 else 0),
+				    #"Added Custom" = Table.AddColumn(#"Added Conditional Column", "CALC_Prediction Proba", each 1-[booking_status_proba_custom]),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Added Custom",{{"CALC_Good Prediction", Int64.Type}, {"CALC_Prediction Proba", type number}})
 				in
-				    continuous_reservation_caotrido_mlops_dev
-
-	annotation PBI_ResultType = Table
+				    #"Changed Type1"
 
 	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Exception
 

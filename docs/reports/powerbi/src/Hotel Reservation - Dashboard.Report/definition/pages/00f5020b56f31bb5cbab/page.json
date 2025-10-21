@@ -13,7 +13,7 @@
           "Column": {
             "Expression": {
               "SourceRef": {
-                "Entity": "FACT_RESERVATION"
+                "Entity": "FACT_PREDICTION"
               }
             },
             "Property": "Booking_ID"
@@ -25,7 +25,7 @@
           "From": [
             {
               "Name": "f",
-              "Entity": "FACT_RESERVATION",
+              "Entity": "FACT_PREDICTION",
               "Type": 0
             }
           ],
@@ -74,7 +74,7 @@
           "Column": {
             "Expression": {
               "SourceRef": {
-                "Entity": "FACT_RESERVATION"
+                "Entity": "FACT_PREDICTION"
               }
             },
             "Property": "Booking_ID"

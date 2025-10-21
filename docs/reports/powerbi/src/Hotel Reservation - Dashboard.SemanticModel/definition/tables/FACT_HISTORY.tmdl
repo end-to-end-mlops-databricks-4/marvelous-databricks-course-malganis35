@@ -246,9 +246,10 @@ table FACT_HISTORY
 
 	partition FACT_HISTORY = m
 		mode: import
+		queryGroup: DATA
 		source =
 				let
-				    Source = Table.Combine({#"FACT_RESERVATION (2)", #"FACT_RESERVATION (3)"}),
+				    Source = Table.Combine({SRC_HISTORY_TRAIN, SRC_HISTORY_TEST}),
 				    #"Inserted Merged Column" = Table.AddColumn(Source, "CALC_DATE_ARRIVAL", each Text.Combine({"01/", Text.From([arrival_month], "fr-FR"), "/", Text.From([arrival_year], "fr-FR")}), type text),
 				    #"Changed Type" = Table.TransformColumnTypes(#"Inserted Merged Column",{{"CALC_DATE_ARRIVAL", type date}}),
 				    #"Added Custom" = Table.AddColumn(#"Changed Type", "CALC_DATE_RESERVATION", each Date.AddDays( [CALC_DATE_ARRIVAL],-[lead_time])),

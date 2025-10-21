@@ -7,7 +7,7 @@
     "z": 6000,
     "height": 78.571428571428569,
     "width": 212.85714285714286,
-    "tabOrder": 6000
+    "tabOrder": 5000
   },
   "visual": {
     "visualType": "card",
@@ -18,25 +18,38 @@
           "projections": [
             {
               "field": {
-                "Aggregation": {
+                "Measure": {
                   "Expression": {
-                    "Column": {
-                      "Expression": {
-                        "SourceRef": {
-                          "Entity": "FACT_RESERVATION"
-                        }
-                      },
-                      "Property": "CALC_Good_Pred (Bool)"
+                    "SourceRef": {
+                      "Entity": "MEASURE"
                     }
                   },
-                  "Function": 0
+                  "Property": "Nb Good Prediction"
                 }
               },
-              "queryRef": "Sum(FACT_RESERVATION.result_pred)",
-              "nativeQueryRef": "Sum of CALC_Good_Pred (Bool)"
+              "queryRef": "FACT_PREDICTION.Nb Good Prediction",
+              "nativeQueryRef": "Nb Good Prediction"
             }
           ]
         }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "MEASURE"
+                  }
+                },
+                "Property": "Nb Good Prediction"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
       }
     },
     "objects": {

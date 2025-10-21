@@ -1,22 +1,37 @@
-expression 'FACT_RESERVATION (2)' =
+expression SRC_HISTORY_TRAIN =
 		let
 		    Source = DatabricksMultiCloud.Catalogs("dbc-f122dc18-1b68.cloud.databricks.com", "/sql/1.0/warehouses/711fa33d05cc334c", [Catalog = "mlops_dev", Database = "caotrido"]),
 		    continuous_reservation_caotrido_mlops_dev = Source{[Item="hotel_reservations_train_set",Schema="caotrido",Catalog="mlops_dev"]}[Data]
 		in
 		    continuous_reservation_caotrido_mlops_dev
 	lineageTag: 636490a5-bcaa-42e8-b1c4-9bfe63bb1ef1
+	queryGroup: SRC
 
 	annotation PBI_NavigationStepName = Navigation
 
 	annotation PBI_ResultType = Table
 
-expression 'FACT_RESERVATION (3)' =
+expression SRC_HISTORY_TEST =
 		let
 		    Source = DatabricksMultiCloud.Catalogs("dbc-f122dc18-1b68.cloud.databricks.com", "/sql/1.0/warehouses/711fa33d05cc334c", [Catalog = "mlops_dev", Database = "caotrido"]),
 		    continuous_reservation_caotrido_mlops_dev = Source{[Item="hotel_reservations_test_set",Schema="caotrido",Catalog="mlops_dev"]}[Data]
 		in
 		    continuous_reservation_caotrido_mlops_dev
 	lineageTag: 5fc4c28e-b59b-4571-8ee1-c65fb30549cd
+	queryGroup: SRC
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression SRC_PREDICTION =
+		let
+		    Source = DatabricksMultiCloud.Catalogs("dbc-f122dc18-1b68.cloud.databricks.com", "/sql/1.0/warehouses/711fa33d05cc334c", [Catalog = "mlops_dev", Database = "caotrido"]),
+		    continuous_reservation_caotrido_mlops_dev = Source{[Item="continuous_reservation",Schema="caotrido",Catalog="mlops_dev"]}[Data]
+		in
+		    continuous_reservation_caotrido_mlops_dev
+	lineageTag: bfbac83f-7d03-4bf5-8d12-7303cf581efb
+	queryGroup: SRC
 
 	annotation PBI_NavigationStepName = Navigation
 

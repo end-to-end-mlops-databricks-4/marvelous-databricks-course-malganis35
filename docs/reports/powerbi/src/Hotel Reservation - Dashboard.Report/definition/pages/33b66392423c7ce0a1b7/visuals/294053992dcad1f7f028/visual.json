@@ -7,7 +7,7 @@
     "z": 4000,
     "height": 210,
     "width": 465.71428571428572,
-    "tabOrder": 4000
+    "tabOrder": 3000
   },
   "visual": {
     "visualType": "barChart",
@@ -20,7 +20,7 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "FACT_RESERVATION"
+                      "Entity": "FACT_PREDICTION"
                     }
                   },
                   "Property": "market_segment_type"
@@ -41,17 +41,17 @@
                     "Column": {
                       "Expression": {
                         "SourceRef": {
-                          "Entity": "FACT_RESERVATION"
+                          "Entity": "FACT_PREDICTION"
                         }
                       },
-                      "Property": "CALC_Good_Pred (Bool)"
+                      "Property": "Booking_ID"
                     }
                   },
-                  "Function": 0
+                  "Function": 5
                 }
               },
-              "queryRef": "Sum(FACT_RESERVATION.good_pred)",
-              "nativeQueryRef": "Sum of CALC_Good_Pred (Bool)"
+              "queryRef": "CountNonNull(FACT_PREDICTION.Booking_ID)",
+              "nativeQueryRef": "Booking_ID"
             }
           ]
         }
@@ -65,18 +65,19 @@
                   "Column": {
                     "Expression": {
                       "SourceRef": {
-                        "Entity": "FACT_RESERVATION"
+                        "Entity": "FACT_PREDICTION"
                       }
                     },
-                    "Property": "CALC_Good_Pred (Bool)"
+                    "Property": "Booking_ID"
                   }
                 },
-                "Function": 0
+                "Function": 5
               }
             },
             "direction": "Descending"
           }
-        ]
+        ],
+        "isDefaultSort": true
       }
     },
     "objects": {
