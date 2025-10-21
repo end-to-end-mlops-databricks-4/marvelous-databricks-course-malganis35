@@ -1,6 +1,6 @@
 resources:
   apps:
     inference_app:
-      name: "hotel-reservation-caotrido-app-${bundle.target}"
+      name: "hotel-resa-caotrido-app-${bundle.target}"
       source_code_path: ../app
       description: "A Streamlit app for ML inference on Databricks"
