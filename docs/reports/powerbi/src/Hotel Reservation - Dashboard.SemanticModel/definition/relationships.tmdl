@@ -17,3 +17,4 @@ relationship 0b3c7ffe-f8a5-42b9-a2d5-2693e4f87cab
 	joinOnDateBehavior: datePartOnly
 	fromColumn: FACT_PREDICTION.update_timestamp_utc
 	toColumn: LocalDateTable_2b5e1bbb-3273-4924-86e3-daa7fbe74064.Date
+

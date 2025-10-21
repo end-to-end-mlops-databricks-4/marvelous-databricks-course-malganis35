@@ -12,7 +12,7 @@ table MEASURE
 		lineageTag: 2142f0c2-30b6-4bc0-b553-adba752e87e2
 
 	measure '% Canceled' =
-
+			
 			VAR StatusSel = SELECTEDVALUE(FACT_HISTORY[booking_status], "__multi__")
 			VAR TotalCanceled =
 			    CALCULATE([Nb Bookings (Canceled)], ALL(FACT_HISTORY[booking_status]))
@@ -91,3 +91,4 @@ table MEASURE
 				    #"Changed Type"
 
 	annotation PBI_ResultType = Table
+

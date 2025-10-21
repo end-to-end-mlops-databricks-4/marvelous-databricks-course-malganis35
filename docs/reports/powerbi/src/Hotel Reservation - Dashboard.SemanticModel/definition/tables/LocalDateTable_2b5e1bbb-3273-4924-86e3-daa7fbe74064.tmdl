@@ -113,3 +113,4 @@ table LocalDateTable_2b5e1bbb-3273-4924-86e3-daa7fbe74064
 		source = Calendar(Date(Year(MIN('FACT_PREDICTION'[update_timestamp_utc])), 1, 1), Date(Year(MAX('FACT_PREDICTION'[update_timestamp_utc])), 12, 31))
 
 	annotation __PBI_LocalDateTable = true
+

@@ -234,3 +234,4 @@ table FACT_PREDICTION
 	annotation PBI_NavigationStepName = Navigation
 
 	annotation PBI_ResultType = Exception
+
