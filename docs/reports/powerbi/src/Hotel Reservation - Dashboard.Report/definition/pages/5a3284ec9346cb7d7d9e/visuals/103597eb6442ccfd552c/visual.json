@@ -1,0 +1,53 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.3.0/schema.json",
+  "name": "103597eb6442ccfd552c",
+  "position": {
+    "x": 553.0621642363775,
+    "y": 264.25172678434382,
+    "z": 0,
+    "height": 68.76438986953184,
+    "width": 157.17574827321565,
+    "tabOrder": 10000
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "MEASURE"
+                    }
+                  },
+                  "Property": "Nb Bookings"
+                }
+              },
+              "queryRef": "MEASURE.Nb Bookings",
+              "nativeQueryRef": "Nb Bookings"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "categoryLabels": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

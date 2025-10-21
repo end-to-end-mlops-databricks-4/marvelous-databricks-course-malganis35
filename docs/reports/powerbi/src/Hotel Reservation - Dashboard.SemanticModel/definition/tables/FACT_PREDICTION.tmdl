@@ -1,0 +1,236 @@
+table FACT_PREDICTION
+	lineageTag: de8519da-a19e-46b2-b785-11a5bede5fbc
+
+	column Booking_ID
+		dataType: string
+		lineageTag: 8e5d0cc6-e76c-44c9-95b3-9c7cb9359b8c
+		summarizeBy: none
+		sourceColumn: Booking_ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column no_of_adults
+		dataType: int64
+		formatString: 0
+		lineageTag: a758fe16-4dd8-4bdc-849e-cd1f79730119
+		summarizeBy: sum
+		sourceColumn: no_of_adults
+
+		annotation SummarizationSetBy = Automatic
+
+	column no_of_children
+		dataType: int64
+		formatString: 0
+		lineageTag: 65763444-957a-46af-9c9f-bf5b544e83f0
+		summarizeBy: sum
+		sourceColumn: no_of_children
+
+		annotation SummarizationSetBy = Automatic
+
+	column no_of_weekend_nights
+		dataType: int64
+		formatString: 0
+		lineageTag: 80afefea-f78c-4c03-9674-3aa0a9338ef2
+		summarizeBy: sum
+		sourceColumn: no_of_weekend_nights
+
+		annotation SummarizationSetBy = Automatic
+
+	column no_of_week_nights
+		dataType: int64
+		formatString: 0
+		lineageTag: 17a2d6c3-6959-4593-8fe3-385d63dac962
+		summarizeBy: sum
+		sourceColumn: no_of_week_nights
+
+		annotation SummarizationSetBy = Automatic
+
+	column type_of_meal_plan
+		dataType: string
+		lineageTag: 527ff8fd-1ecf-468a-8ac9-958dcdb51eeb
+		summarizeBy: none
+		sourceColumn: type_of_meal_plan
+
+		annotation SummarizationSetBy = Automatic
+
+	column required_car_parking_space
+		dataType: int64
+		formatString: 0
+		lineageTag: d9c64b81-7f62-44ba-8e88-f62b39f3c844
+		summarizeBy: sum
+		sourceColumn: required_car_parking_space
+
+		annotation SummarizationSetBy = Automatic
+
+	column room_type_reserved
+		dataType: string
+		lineageTag: d95384a3-10e9-4347-93ed-a54864abe922
+		summarizeBy: none
+		sourceColumn: room_type_reserved
+
+		annotation SummarizationSetBy = Automatic
+
+	column lead_time
+		dataType: int64
+		formatString: 0
+		lineageTag: 6ddec5d8-e3e1-4e40-ac87-d6f991576f2c
+		summarizeBy: sum
+		sourceColumn: lead_time
+
+		annotation SummarizationSetBy = Automatic
+
+	column arrival_year
+		dataType: int64
+		formatString: 0
+		lineageTag: 2caf5606-cff0-4559-992f-6a7507b648cd
+		summarizeBy: sum
+		sourceColumn: arrival_year
+
+		annotation SummarizationSetBy = Automatic
+
+	column arrival_month
+		dataType: int64
+		formatString: 0
+		lineageTag: efc3deaa-cd1e-4aa0-9577-ea0c8a961e57
+		summarizeBy: sum
+		sourceColumn: arrival_month
+
+		annotation SummarizationSetBy = Automatic
+
+	column market_segment_type
+		dataType: string
+		lineageTag: 24474d57-5458-46a4-9f78-3bed84c637f2
+		summarizeBy: none
+		sourceColumn: market_segment_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column repeated_guest
+		dataType: int64
+		formatString: 0
+		lineageTag: ce45c30e-fd6c-430c-ba4d-4482bdaa8520
+		summarizeBy: sum
+		sourceColumn: repeated_guest
+
+		annotation SummarizationSetBy = Automatic
+
+	column no_of_previous_cancellations
+		dataType: int64
+		formatString: 0
+		lineageTag: 311bc032-7ca0-4018-bd9e-aa3dc4c9ce0c
+		summarizeBy: sum
+		sourceColumn: no_of_previous_cancellations
+
+		annotation SummarizationSetBy = Automatic
+
+	column no_of_previous_bookings_not_canceled
+		dataType: int64
+		formatString: 0
+		lineageTag: 6015d4fd-d612-4b5f-9f9c-b377cf11e38f
+		summarizeBy: sum
+		sourceColumn: no_of_previous_bookings_not_canceled
+
+		annotation SummarizationSetBy = Automatic
+
+	column avg_price_per_room
+		dataType: double
+		formatString: 0.0
+		lineageTag: 4468e492-7a5c-4174-9327-50544ef9293b
+		summarizeBy: sum
+		sourceColumn: avg_price_per_room
+
+		annotation SummarizationSetBy = Automatic
+
+	column no_of_special_requests
+		dataType: int64
+		formatString: 0
+		lineageTag: 46be5bb4-3080-456d-bd1c-a453aa58b8c1
+		summarizeBy: sum
+		sourceColumn: no_of_special_requests
+
+		annotation SummarizationSetBy = Automatic
+
+	column booking_status
+		dataType: string
+		lineageTag: b54fcdc0-2218-4a3f-8188-c7b73532e7ff
+		summarizeBy: none
+		sourceColumn: booking_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column update_timestamp_utc
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 3f514bdd-0f4a-4e16-92a3-d2bb517b3650
+		summarizeBy: none
+		sourceColumn: update_timestamp_utc
+
+		variation Variation
+			isDefault
+			relationship: 0b3c7ffe-f8a5-42b9-a2d5-2693e4f87cab
+			defaultHierarchy: LocalDateTable_2b5e1bbb-3273-4924-86e3-daa7fbe74064.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column booking_status_pred_basic
+		dataType: string
+		lineageTag: b69e46df-e892-4071-856b-76c8635d10ad
+		summarizeBy: none
+		sourceColumn: booking_status_pred_basic
+
+		annotation SummarizationSetBy = Automatic
+
+	column booking_status_pred_custom
+		dataType: string
+		lineageTag: 3ee5a9d8-3b98-472e-8879-72a018fa4eb0
+		summarizeBy: none
+		sourceColumn: booking_status_pred_custom
+
+		annotation SummarizationSetBy = Automatic
+
+	column booking_status_proba_custom
+		dataType: double
+		lineageTag: ec0ea340-5a58-4b61-8390-6a5db0e89766
+		summarizeBy: sum
+		sourceColumn: booking_status_proba_custom
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'CALC_Good Prediction'
+		dataType: int64
+		formatString: 0
+		lineageTag: 53d3a529-c0ac-4ad7-8251-88599dc92633
+		summarizeBy: sum
+		sourceColumn: CALC_Good Prediction
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'CALC_Prediction Proba'
+		dataType: double
+		formatString: 0.0\ %;-0.0\ %;0.0\ %
+		lineageTag: e2d0346c-d4ce-4a74-9cad-61a790efa14a
+		summarizeBy: sum
+		sourceColumn: CALC_Prediction Proba
+
+		annotation SummarizationSetBy = Automatic
+
+	partition FACT_PREDICTION = m
+		mode: import
+		queryGroup: DATA
+		source =
+				let
+				    Source = DatabricksMultiCloud.Catalogs("dbc-f122dc18-1b68.cloud.databricks.com", "/sql/1.0/warehouses/711fa33d05cc334c", [Catalog = "mlops_dev", Database = "caotrido"]),
+				    continuous_reservation_caotrido_mlops_dev = Source{[Item="continuous_reservation",Schema="caotrido",Catalog="mlops_dev"]}[Data],
+				    #"Replaced Value" = Table.ReplaceValue(continuous_reservation_caotrido_mlops_dev,".",",",Replacer.ReplaceText,{"booking_status_proba_custom"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Replaced Value",{{"booking_status_proba_custom", type number}}),
+				    #"Added Conditional Column" = Table.AddColumn(#"Changed Type", "CALC_Good Prediction", each if [booking_status] = [booking_status_pred_custom] then 1 else 0),
+				    #"Added Custom" = Table.AddColumn(#"Added Conditional Column", "CALC_Prediction Proba", each 1-[booking_status_proba_custom]),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Added Custom",{{"CALC_Good Prediction", Int64.Type}, {"CALC_Prediction Proba", type number}})
+				in
+				    #"Changed Type1"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Exception

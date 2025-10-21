@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "Hotel Reservation - Dashboard"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "867c40b1-491e-4ddf-8184-72f08e55b974"
+  }
+}

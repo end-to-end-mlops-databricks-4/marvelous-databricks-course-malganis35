@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "Hotel Reservation - Dashboard"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "3695c97a-f450-4163-8ec5-82e4f79de99a"
+  }
+}

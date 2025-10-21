@@ -1,0 +1,509 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.3.0/schema.json",
+  "name": "b5cd2fa0fc708031c194",
+  "position": {
+    "x": 337.14285714285717,
+    "y": 300,
+    "z": 8000,
+    "height": 382.85714285714289,
+    "width": 904.28571428571433,
+    "tabOrder": 7000
+  },
+  "visual": {
+    "visualType": "decompositionTreeVisual",
+    "query": {
+      "queryState": {
+        "Analyze": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "MEASURE"
+                    }
+                  },
+                  "Property": "Nb Bookings"
+                }
+              },
+              "queryRef": "MEASURE.Nb Bookings",
+              "nativeQueryRef": "Nb Bookings"
+            }
+          ]
+        },
+        "ExplainBy": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_HISTORY"
+                    }
+                  },
+                  "Property": "booking_status"
+                }
+              },
+              "queryRef": "FACT_HISTORY.booking_status",
+              "nativeQueryRef": "booking_status",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_HISTORY"
+                    }
+                  },
+                  "Property": "arrival_year"
+                }
+              },
+              "queryRef": "FACT_HISTORY.arrival_year",
+              "nativeQueryRef": "arrival_year",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_HISTORY"
+                    }
+                  },
+                  "Property": "avg_price_per_room"
+                }
+              },
+              "queryRef": "FACT_HISTORY.avg_price_per_room",
+              "nativeQueryRef": "avg_price_per_room",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_HISTORY"
+                    }
+                  },
+                  "Property": "lead_time (bins)"
+                }
+              },
+              "queryRef": "FACT_HISTORY.lead_time (bins)",
+              "nativeQueryRef": "lead_time (bins)",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_HISTORY"
+                    }
+                  },
+                  "Property": "market_segment_type"
+                }
+              },
+              "queryRef": "FACT_HISTORY.market_segment_type",
+              "nativeQueryRef": "market_segment_type",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_HISTORY"
+                    }
+                  },
+                  "Property": "no_of_adults"
+                }
+              },
+              "queryRef": "FACT_HISTORY.no_of_adults",
+              "nativeQueryRef": "no_of_adults",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_HISTORY"
+                    }
+                  },
+                  "Property": "no_of_children"
+                }
+              },
+              "queryRef": "FACT_HISTORY.no_of_children",
+              "nativeQueryRef": "no_of_children",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_HISTORY"
+                    }
+                  },
+                  "Property": "no_of_previous_bookings_not_canceled"
+                }
+              },
+              "queryRef": "FACT_HISTORY.no_of_previous_bookings_not_canceled",
+              "nativeQueryRef": "no_of_previous_bookings_not_canceled",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_HISTORY"
+                    }
+                  },
+                  "Property": "no_of_previous_cancellations"
+                }
+              },
+              "queryRef": "FACT_HISTORY.no_of_previous_cancellations",
+              "nativeQueryRef": "no_of_previous_cancellations",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_HISTORY"
+                    }
+                  },
+                  "Property": "no_of_special_requests"
+                }
+              },
+              "queryRef": "FACT_HISTORY.no_of_special_requests",
+              "nativeQueryRef": "no_of_special_requests",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_HISTORY"
+                    }
+                  },
+                  "Property": "no_of_week_nights"
+                }
+              },
+              "queryRef": "FACT_HISTORY.no_of_week_nights",
+              "nativeQueryRef": "no_of_week_nights",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_HISTORY"
+                    }
+                  },
+                  "Property": "no_of_weekend_nights"
+                }
+              },
+              "queryRef": "FACT_HISTORY.no_of_weekend_nights",
+              "nativeQueryRef": "no_of_weekend_nights",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_HISTORY"
+                    }
+                  },
+                  "Property": "repeated_guest"
+                }
+              },
+              "queryRef": "FACT_HISTORY.repeated_guest",
+              "nativeQueryRef": "repeated_guest",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_HISTORY"
+                    }
+                  },
+                  "Property": "required_car_parking_space"
+                }
+              },
+              "queryRef": "FACT_HISTORY.required_car_parking_space",
+              "nativeQueryRef": "required_car_parking_space",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_HISTORY"
+                    }
+                  },
+                  "Property": "type_of_meal_plan"
+                }
+              },
+              "queryRef": "FACT_HISTORY.type_of_meal_plan",
+              "nativeQueryRef": "type_of_meal_plan",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_HISTORY"
+                    }
+                  },
+                  "Property": "room_type_reserved"
+                }
+              },
+              "queryRef": "FACT_HISTORY.room_type_reserved",
+              "nativeQueryRef": "room_type_reserved",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_HISTORY"
+                    }
+                  },
+                  "Property": "arrival_month"
+                }
+              },
+              "queryRef": "FACT_HISTORY.arrival_month",
+              "nativeQueryRef": "arrival_month",
+              "active": false
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "MEASURE"
+                  }
+                },
+                "Property": "Nb Bookings"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "expansionStates": [
+      {
+        "roles": [
+          "ExplainBy"
+        ],
+        "levels": [
+          {
+            "queryRefs": [
+              "FACT_HISTORY.booking_status"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_HISTORY"
+                    }
+                  },
+                  "Property": "booking_status"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "FACT_HISTORY.arrival_year"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "FACT_HISTORY.avg_price_per_room"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "FACT_HISTORY.lead_time (bins)"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "FACT_HISTORY.market_segment_type"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "FACT_HISTORY.no_of_adults"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "FACT_HISTORY.no_of_children"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "FACT_HISTORY.no_of_previous_bookings_not_canceled"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "FACT_HISTORY.no_of_previous_cancellations"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "FACT_HISTORY.no_of_special_requests"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "FACT_HISTORY.no_of_week_nights"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "FACT_HISTORY.no_of_weekend_nights"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "FACT_HISTORY.repeated_guest"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "FACT_HISTORY.required_car_parking_space"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "FACT_HISTORY.type_of_meal_plan"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "FACT_HISTORY.room_type_reserved"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_HISTORY"
+                    }
+                  },
+                  "Property": "room_type_reserved"
+                }
+              }
+            ]
+          },
+          {
+            "queryRefs": [
+              "FACT_HISTORY.arrival_month"
+            ],
+            "isCollapsed": true
+          }
+        ],
+        "root": {}
+      }
+    ],
+    "objects": {
+      "tree": [
+        {
+          "properties": {
+            "effectiveBarsPerLevel": {
+              "expr": {
+                "Literal": {
+                  "Value": "4L"
+                }
+              }
+            },
+            "connectorDefaultColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 1,
+                      "Percent": 0
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "dataBars": [
+        {
+          "properties": {
+            "positiveBarColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 5,
+                      "Percent": 0
+                    }
+                  }
+                }
+              }
+            },
+            "negativeBarColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 3,
+                      "Percent": 0
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,0 +1,36 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: fr-FR
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+queryGroup SRC
+
+	annotation PBI_QueryGroupOrder = 0
+
+queryGroup DATA
+
+	annotation PBI_QueryGroupOrder = 1
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_QueryOrder = ["FACT_PREDICTION","SRC_HISTORY_TRAIN","SRC_HISTORY_TEST","SRC_PREDICTION","FACT_HISTORY","FACT_UPDATE","MEASURE"]
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table FACT_HISTORY
+ref table DateTableTemplate_cbc11344-7f94-41d1-a0bc-1e4cd69cf697
+ref table LocalDateTable_dce7ec6a-bbc1-4b77-b9fd-c1dc6f998928
+ref table LocalDateTable_b7656b8e-429a-43b3-84bb-ec1aceaa4f46
+ref table LocalDateTable_e7ad21d8-ea43-439b-b022-c25b8213f02b
+ref table PARAM_AXIS_ANALYSIS_1
+ref table MEASURE
+ref table PARAM_AXIS_ANALYSIS_2
+ref table PARAM_AXIS_ANALYSIS_3
+ref table FACT_UPDATE
+ref table FACT_PREDICTION
+ref table LocalDateTable_2b5e1bbb-3273-4924-86e3-daa7fbe74064
+
+ref cultureInfo en-US
