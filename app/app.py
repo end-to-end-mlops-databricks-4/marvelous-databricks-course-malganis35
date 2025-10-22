@@ -370,7 +370,7 @@ with tab2:
     SUM(CASE WHEN prediction IS NULL THEN 1 ELSE 0 END) AS errors,
     {"AVG(execution_duration_ms)" if has_latency else "NULL"} AS avg_latency_ms
     FROM mlops_dev.caotrido.model_monitoring
-    WHERE CAST(timestamp AS timestamp) BETWEEN current_date() - INTERVAL 7 DAY AND current_timestamp()
+    WHERE CAST(timestamp AS timestamp) BETWEEN current_date() - INTERVAL 21 DAY AND current_timestamp()
     GROUP BY 1
     ORDER BY 1
     """
@@ -382,7 +382,7 @@ with tab2:
     date_trunc('hour', CAST(timestamp AS timestamp)) AS heure,
     COUNT(*) AS nombre_appels
     FROM mlops_dev.caotrido.model_monitoring
-    WHERE CAST(timestamp AS timestamp) BETWEEN current_date() - INTERVAL 7 DAY AND current_timestamp()
+    WHERE CAST(timestamp AS timestamp) BETWEEN current_date() - INTERVAL 21 DAY AND current_timestamp()
     GROUP BY 1
     ORDER BY 1;
     """
@@ -432,7 +432,7 @@ with tab2:
         c2.metric("🕒 Last hour calls", f"{last_hour}")
 
     if df_calls.empty:
-        st.warning("⚠️ No data found in the **model_monitoring** table (last 7 days).")
+        st.warning("⚠️ No data found in the **model_monitoring** table (last 21 days).")
     else:
         fig_calls = px.line(
             df_calls,
@@ -809,7 +809,7 @@ with tab4:
     SUM(CASE WHEN prediction = 1 THEN 1 ELSE 0 END) AS canceled_pred,
     SUM(CASE WHEN prediction = 0 THEN 1 ELSE 0 END) AS kept_pred
     FROM mlops_dev.caotrido.model_monitoring
-    WHERE CAST(timestamp AS timestamp) BETWEEN current_date() - INTERVAL 7 DAY AND current_timestamp()
+    WHERE CAST(timestamp AS timestamp) BETWEEN current_date() - INTERVAL 21 DAY AND current_timestamp()
     GROUP BY 1
     ORDER BY 1
     """
@@ -851,7 +851,7 @@ with tab4:
                 df_business,
                 x="jour",
                 y=["infra_cost", "estimated_value"],
-                title="Evolution of infrastructure costs and business value (last 7 days).",
+                title="Evolution of infrastructure costs and business value (last 21 days).",
                 markers=True,
                 labels={"value": "Estimated Value (€)", "jour": "Day", "variable": "Type"},
             )
